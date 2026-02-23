@@ -407,9 +407,6 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
           <button onClick={onCancel} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-full transition-colors"><ArrowLeft className="w-5 h-5" /></button>
           <h1 className="text-2xl font-black">{selectedContact ? 'Ficha do Cliente' : 'Novo Cadastro'}</h1>
         </div>
-        <Button onClick={() => onSave(formData)} className="bg-gray-900 text-white dark:bg-white dark:text-gray-900">
-          {selectedContact ? 'Salvar Alterações' : 'Criar Cadastro'}
-        </Button>
       </div>
 
       {selectedContact && (
@@ -444,6 +441,15 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
           <Input label="PROVÍNCIA" value={formData.province || ''} onChange={e => handleCapitalize('province', e.target.value)} />
           <Input label="CIDADE" value={formData.city || ''} onChange={e => handleCapitalize('city', e.target.value)} />
           <div className="md:col-span-2"><Input label="ENDEREÇO" value={formData.address || ''} onChange={e => handleCapitalize('address', e.target.value)} /></div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">NOTAS / OBSERVAÇÕES</label>
+            <textarea
+              value={formData.notes || ''}
+              onChange={e => handleCapitalize('notes', e.target.value)}
+              placeholder="Algum detalhe importante sobre este cliente..."
+              className="w-full h-24 p-4 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-[15px] font-medium text-sm outline-none focus:ring-2 focus:ring-primary-500/20 transition-all resize-none"
+            />
+          </div>
           <div className="space-y-2">
             <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">ORIGEM</label>
             <select className="w-full h-11 px-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-[15px] font-bold text-sm" value={formData.source || ''} onChange={e => setFormData(p => ({ ...p, source: e.target.value }))}>
@@ -584,39 +590,45 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
         </div>}
       </Card>
 
-      {systemModal.isOpen && <StatusModal isOpen={systemModal.isOpen} title={systemModal.title} message={systemModal.message} type={systemModal.type} onClose={() => setSystemModal(p => ({ ...p, isOpen: false }))} theme="accent" />}
-      {tagModal && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"><Card className="w-full max-w-sm p-8 bg-white dark:bg-gray-900 rounded-[24px] relative"><button onClick={() => setTagModal(false)} className="absolute top-5 right-5 p-2 text-gray-400">✕</button><h2 className="text-xl font-black mb-6">Nova Tag</h2><div className="space-y-5"><Input label="Nome" value={newTagForm.name} onChange={e => setNewTagForm(p => ({ ...p, name: e.target.value }))} /><Button onClick={createTag} className="w-full bg-gray-900 text-white font-black uppercase text-[12px]">Criar Tag</Button></div></Card></div>}
+      <div className="w-full pt-8 pb-12 border-t border-gray-100 dark:border-gray-800">
+        <Button
+          onClick={() => onSave(formData)}
+          className="w-full h-16 bg-primary-500 text-white shadow-2xl shadow-primary-500/30 font-black text-lg uppercase tracking-[0.2em] rounded-[20px] hover:scale-[1.01] active:scale-[0.99] transition-all"
+        >
+          {selectedContact ? 'Gravar Alterações do Cliente' : 'Finalizar e Criar Cadastro'}
+        </Button>
+      </div>
 
+      {systemModal.isOpen && <StatusModal isOpen={systemModal.isOpen} title={systemModal.title} message={systemModal.message} type={systemModal.type} onClose={() => setSystemModal(p => ({ ...p, isOpen: false }))} theme="accent" />}
+      {tagModal && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"><Card className="w-full max-w-sm p-8 bg-white dark:bg-gray-900 rounded-[24px] relative"><button onClick={() => setTagModal(false)} className="absolute top-5 right-5 p-2 text-gray-400">✕</button><h2 className="text-xl font-black mb-6">Nova Tag</h2><div className="space-y-5"><Input label="Nome" value={newTagForm.name} onChange={e => setNewTagForm(p => ({ ...p, name: e.target.value.replace(/(?:^|\s)\S/g, a => a.toUpperCase()) }))} /><Button onClick={createTag} className="w-full bg-gray-900 text-white font-black uppercase text-[12px]">Criar Tag</Button></div></Card></div>}
       {serviceModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <Card className="w-full max-w-md p-8 bg-white dark:bg-gray-900 rounded-[32px] relative shadow-2xl border border-gray-100 dark:border-gray-800 animate-in zoom-in-95 duration-200">
+          <Card className="w-full max-w-md p-0 overflow-hidden bg-white dark:bg-gray-900 rounded-[32px] border-none shadow-2xl animate-in fade-in zoom-in duration-300">
             <button onClick={() => setServiceModal(false)} className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-600 transition-colors">✕</button>
-            <div className="flex items-center gap-3 mb-8">
-              <div className="p-3 bg-primary-50 dark:bg-primary-900/20 rounded-2xl text-primary-600">
-                <FileText className="w-6 h-6" />
-              </div>
-              <div>
-                <h2 className="text-xl font-black tracking-tight">Nova Movimentação</h2>
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Registrar Atendimento</p>
-              </div>
+            <div className="p-8 pb-4">
+              <h2 className="text-2xl font-black tracking-tight text-gray-900 dark:text-white">Registrar Movimentação</h2>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Lançamento manual de serviço ou produto</p>
             </div>
-
-            <div className="space-y-6">
-              <Input
-                label="SERVIÇO / PRODUTO *"
-                placeholder="Ex: Corte e Barba"
-                value={serviceForm.service_name}
-                onChange={e => setServiceForm(p => ({ ...p, service_name: e.target.value }))}
-              />
+            <div className="p-8 pt-4 space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">SERVIÇO / PRODUTO</label>
+                <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-[15px] h-11 flex items-center px-4">
+                  <input
+                    type="text"
+                    placeholder="Ex: Corte de Cabelo, Pizza G..."
+                    value={serviceForm.service_name}
+                    onChange={e => setServiceForm(p => ({ ...p, service_name: e.target.value.replace(/(?:^|\s)\S/g, a => a.toUpperCase()) }))}
+                    className="w-full bg-transparent text-sm font-bold outline-none"
+                  />
+                </div>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <Input
-                  label="VALOR (¥) *"
-                  type="text"
-                  placeholder="0"
+                  label="VALOR (¥)"
                   value={serviceForm.amount}
                   onChange={e => {
-                    const val = e.target.value.replace(/[^\d.,]/g, '');
-                    setServiceForm(p => ({ ...p, amount: val }));
+                    const v = e.target.value.replace(/\D/g, '');
+                    setServiceForm(p => ({ ...p, amount: v ? Number(v).toLocaleString('ja-JP') : '' }));
                   }}
                 />
                 <div className="space-y-2">

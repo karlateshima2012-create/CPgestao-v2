@@ -253,7 +253,7 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug, 
                                     label="Nome do Local"
                                     placeholder="Ex: Balcão Principal"
                                     value={newDeviceData.name}
-                                    onChange={(e) => setNewDeviceData({ ...newDeviceData, name: e.target.value })}
+                                    onChange={(e) => setNewDeviceData({ ...newDeviceData, name: e.target.value.replace(/(?:^|\s)\S/g, a => a.toUpperCase()) })}
                                 />
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Modo de Operação</label>
@@ -347,7 +347,7 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug, 
                                                                 <input
                                                                     type="text" placeholder="Ex: Cadeira 1, João"
                                                                     className="w-full text-xs p-2 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 outline-none focus:border-blue-500"
-                                                                    value={telegramData.name} onChange={e => setTelegramData({ ...telegramData, name: e.target.value })}
+                                                                    value={telegramData.name} onChange={e => setTelegramData({ ...telegramData, name: e.target.value.replace(/(?:^|\s)\S/g, a => a.toUpperCase()) })}
                                                                 />
                                                             </div>
                                                             <div>

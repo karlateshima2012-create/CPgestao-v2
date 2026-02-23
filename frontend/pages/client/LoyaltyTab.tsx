@@ -218,7 +218,7 @@ export const LoyaltyTab: React.FC<LoyaltyTabProps> = ({ tenantPlan, contacts = [
                                  value={level.reward}
                                  onChange={e => {
                                     const newLevels = [...loyaltySettings.levels_config];
-                                    newLevels[idx].reward = e.target.value;
+                                    newLevels[idx].reward = e.target.value.replace(/(?:^|\s)\S/g, a => a.toUpperCase());
                                     setLoyaltySettings({ ...loyaltySettings, levels_config: newLevels });
                                  }}
                                  className="w-full h-10 px-4 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-[15px] font-bold text-sm outline-none focus:ring-2 focus:ring-primary-500/20"
