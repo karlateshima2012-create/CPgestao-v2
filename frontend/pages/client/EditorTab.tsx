@@ -367,24 +367,30 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
 
         <div className="mt-8 p-6 bg-gray-50 dark:bg-gray-800/50 rounded-[20px] border border-gray-100">
           <div className="flex items-center gap-2 text-gray-500 font-black text-[10px] uppercase tracking-widest mb-6"><Bell className="w-4 h-4" /> Lembretes</div>
-          <div className="grid grid-cols-1 md:grid-cols-[200px_220px_1fr] gap-5 items-end">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">DATA</label>
-              <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 rounded-[15px] h-11 flex items-center px-4"><input type="date" value={formatDateForInput(formData.reminderDate)} onChange={e => handleDateChange('reminderDate', e.target.value)} className="w-full bg-transparent text-sm font-bold outline-none" /></div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">HORÁRIO</label>
-              <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 rounded-[15px] h-11 px-3 shadow-inner">
-                <Clock className="w-4 h-4 text-gray-400" />
-                <input type="text" placeholder="00:00" value={displayTime} onChange={e => updateTimeFromDisplay(e.target.value, period)} className="w-14 bg-transparent text-sm font-bold outline-none" />
-                <div className="flex bg-white dark:bg-gray-900/50 p-0.5 rounded-lg ml-auto border border-gray-200">
-                  {['AM', 'PM'].map(p => <button key={p} type="button" onClick={() => updateTimeFromDisplay(displayTime, p)} className={`px-2.5 py-1 rounded-md text-[9px] font-black ${period === p ? 'bg-gray-600 text-white' : 'text-gray-400'}`}>{p}</button>)}
+          <div className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-end">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">DATA</label>
+                <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 rounded-[15px] h-11 flex items-center px-4">
+                  <input type="date" value={formatDateForInput(formData.reminderDate)} onChange={e => handleDateChange('reminderDate', e.target.value)} className="w-full bg-transparent text-sm font-bold outline-none" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">HORÁRIO</label>
+                <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 rounded-[15px] h-11 px-3 shadow-inner">
+                  <Clock className="w-4 h-4 text-gray-400" />
+                  <input type="text" placeholder="00:00" value={displayTime} onChange={e => updateTimeFromDisplay(e.target.value, period)} className="w-14 bg-transparent text-sm font-bold outline-none" />
+                  <div className="flex bg-white dark:bg-gray-900/50 p-0.5 rounded-lg ml-auto border border-gray-200">
+                    {['AM', 'PM'].map(p => <button key={p} type="button" onClick={() => updateTimeFromDisplay(displayTime, p)} className={`px-2.5 py-1 rounded-md text-[9px] font-black ${period === p ? 'bg-gray-600 text-white' : 'text-gray-400'}`}>{p}</button>)}
+                  </div>
                 </div>
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">MOTIVO</label>
-              <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 rounded-[15px] h-11 flex items-center px-4"><input type="text" value={formData.reminderText || ''} onChange={e => setFormData(p => ({ ...p, reminderText: e.target.value }))} className="w-full bg-transparent text-sm font-bold outline-none" /></div>
+              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">MOTIVO DO LEMBRETE</label>
+              <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 rounded-[15px] h-11 flex items-center px-4">
+                <input type="text" placeholder="Ex: Retornar para agendar serviço..." value={formData.reminderText || ''} onChange={e => setFormData(p => ({ ...p, reminderText: e.target.value }))} className="w-full bg-transparent text-sm font-bold outline-none" />
+              </div>
             </div>
           </div>
         </div>
