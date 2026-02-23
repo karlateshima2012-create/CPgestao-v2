@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\ServiceRecord;
 use App\Models\Customer;
-use App\Utils\ApiResponse;
+use App\Http\Responses\ApiResponse;
 use Illuminate\Support\Facades\DB;
 
 class ServiceRecordController extends Controller

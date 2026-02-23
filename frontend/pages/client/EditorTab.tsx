@@ -566,9 +566,19 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
                 </select>
               </div>
 
-              <div className="pt-4 flex gap-3">
-                <Button onClick={() => setServiceModal(false)} className="flex-1 bg-gray-100 text-gray-600 font-black uppercase text-[11px] hover:bg-gray-200">Cancelar</Button>
-                <Button onClick={handleAddService} className="flex-2 bg-gray-900 text-white font-black uppercase text-[11px] shadow-lg shadow-gray-900/20">Registrar</Button>
+              <div className="pt-8 flex flex-col items-center gap-4">
+                <Button
+                  onClick={handleAddService}
+                  className="w-full h-14 bg-gray-900 text-white font-black uppercase text-[13px] shadow-2xl shadow-gray-900/30 rounded-[18px] hover:scale-[1.02] active:scale-[0.98] transition-all"
+                >
+                  Registrar Movimentação
+                </Button>
+                <button
+                  onClick={() => setServiceModal(false)}
+                  className="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-gray-600 transition-colors py-2"
+                >
+                  Cancelar e voltar
+                </button>
               </div>
             </div>
           </Card>
