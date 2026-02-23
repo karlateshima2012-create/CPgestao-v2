@@ -283,19 +283,31 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
 
   const handleAddService = async () => {
     if (!selectedContact?.id || !serviceForm.service_name || !serviceForm.amount) return;
+
+    // Garantir que o valor seja um número puro, tratando pontos ou vírgulas
+    const cleanAmount = parseFloat(serviceForm.amount.toString().replace(',', '.'));
+
     try {
-      await api.post(`/client/contacts/${selectedContact.id}/service-records`, serviceForm);
+      await api.post(`/client/contacts/${selectedContact.id}/service-records`, {
+        ...serviceForm,
+        amount: cleanAmount
+      });
       setServiceModal(false);
       setServiceForm({ service_name: '', amount: '', payment_method: '', notes: '', service_date: new Date().toISOString().split('T')[0] });
       loadHistory(selectedContact.id);
 
       // Atualizar métricas localmente ou recarregar contato
       const res = await api.get(`/client/contacts/${selectedContact.id}`);
-      if (res.data) setFormData(prev => ({ ...prev, ...res.data }));
+      if (res.data && res.data.data) {
+        setFormData(prev => ({ ...prev, ...res.data.data }));
+      } else if (res.data) {
+        setFormData(prev => ({ ...prev, ...res.data }));
+      }
 
       setSystemModal({ isOpen: true, title: 'Sucesso', message: 'Movimentação registrada com sucesso!', type: 'success' });
     } catch (err: any) {
-      setSystemModal({ isOpen: true, title: 'Erro', message: 'Erro ao registrar movimentação.', type: 'error' });
+      console.error('Erro ao salvar movimentação:', err);
+      setSystemModal({ isOpen: true, title: 'Erro', message: err.response?.data?.message || 'Erro ao registrar movimentação.', type: 'error' });
     }
   };
 
@@ -487,7 +499,7 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
         </h3>
         {!selectedContact ? <div className="text-center p-10 bg-gray-50 dark:bg-gray-800 rounded-[20px] border border-dashed border-gray-300"><p className="text-sm font-bold text-gray-500">Salve o cadastro primeiro.</p></div> : <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
           {!serviceHistory.length ? <div className="p-8 text-center bg-gray-50 dark:bg-gray-800 rounded-[20px] border border-gray-100"><p className="text-xs font-black text-gray-400 uppercase">Nenhum atendimento.</p></div> : <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {serviceHistory.map(r => <div key={r.id} className="p-5 bg-white dark:bg-gray-900 rounded-[16px] border border-gray-200 flex justify-between items-center shadow-sm"><div><p className="font-bold text-sm">{r.service_name}</p><p className="text-[10px] font-black text-gray-400 uppercase mt-1 tracking-widest">{new Date(r.service_date).toLocaleDateString('pt-BR')}</p></div><p className="font-black text-lg">¥{parseFloat(r.amount).toLocaleString()}</p></div>)}
+            {serviceHistory.map(r => <div key={r.id} className="p-5 bg-white dark:bg-gray-900 rounded-[16px] border border-gray-200 flex justify-between items-center shadow-sm"><div><p className="font-bold text-sm">{r.service_name}</p><p className="text-[10px] font-black text-gray-400 uppercase mt-1 tracking-widest">{new Date(r.service_date).toLocaleDateString('pt-BR')}</p></div><p className="font-black text-lg text-gray-900 dark:text-white">¥ {Math.floor(Number(r.amount)).toLocaleString('ja-JP')}</p></div>)}
           </div>}
         </div>}
       </Card>
@@ -519,10 +531,13 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
               <div className="grid grid-cols-2 gap-4">
                 <Input
                   label="VALOR (¥) *"
-                  type="number"
+                  type="text"
                   placeholder="0"
                   value={serviceForm.amount}
-                  onChange={e => setServiceForm(p => ({ ...p, amount: e.target.value }))}
+                  onChange={e => {
+                    const val = e.target.value.replace(/[^\d.,]/g, '');
+                    setServiceForm(p => ({ ...p, amount: val }));
+                  }}
                 />
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">DATA</label>
