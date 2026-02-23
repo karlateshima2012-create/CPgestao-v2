@@ -37,6 +37,15 @@ class ClientController extends Controller
         return ApiResponse::ok($contacts);
     }
 
+    public function getContact(Request $request, $id)
+    {
+        $customer = Customer::with(['devices' => function($q) {
+                $q->where('status', 'linked')->where('type', 'premium');
+            }])->findOrFail($id);
+            
+        return ApiResponse::ok($customer);
+    }
+
     public function storeContact(Request $request)
     {
         $request->validate([

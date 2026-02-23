@@ -298,10 +298,22 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
 
       // Atualizar métricas localmente ou recarregar contato
       const res = await api.get(`/client/contacts/${selectedContact.id}`);
-      if (res.data && res.data.data) {
-        setFormData(prev => ({ ...prev, ...res.data.data }));
-      } else if (res.data) {
-        setFormData(prev => ({ ...prev, ...res.data }));
+      let updatedData = res.data?.data || res.data;
+
+      if (updatedData) {
+        // Mapear campos snake_case para camelCase como feito em App.tsx
+        const mappedData = {
+          ...updatedData,
+          pointsBalance: updatedData.points_balance ?? updatedData.pointsBalance ?? 0,
+          isPremium: updatedData.is_premium ?? updatedData.isPremium ?? false,
+          loyaltyLevel: updatedData.loyalty_level ?? updatedData.loyaltyLevel ?? 1,
+          postalCode: updatedData.postal_code ?? updatedData.postalCode,
+          totalSpent: updatedData.total_spent ?? updatedData.totalSpent ?? 0,
+          averageTicket: updatedData.average_ticket ?? updatedData.averageTicket ?? 0,
+          attendanceCount: updatedData.attendance_count ?? updatedData.attendanceCount ?? 0,
+          lastActivityAt: updatedData.last_activity_at ?? updatedData.lastActivityAt
+        };
+        setFormData(prev => ({ ...prev, ...mappedData }));
       }
 
       setSystemModal({ isOpen: true, title: 'Sucesso', message: 'Movimentação registrada com sucesso!', type: 'success' });

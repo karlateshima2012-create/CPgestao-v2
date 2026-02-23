@@ -45,6 +45,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // =========================================================================
     Route::prefix('client')->middleware(['role:client', 'tenant.status'])->group(function () {
         Route::get('/contacts', [ClientController::class, 'getContacts']);
+        Route::get('/contacts/{id}', [ClientController::class, 'getContact']);
         Route::post('/contacts', [ClientController::class, 'storeContact']);
         Route::patch('/contacts/{id}', [ClientController::class, 'updateContact']);
         Route::delete('/contacts/{id}', [ClientController::class, 'deleteContact']);
