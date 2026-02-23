@@ -259,19 +259,27 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
   const loadHistory = async (id: string, page: number = 1) => {
     try {
       const res = await api.get(`/client/contacts/${id}/service-records?page=${page}`);
-      // ApiResponse wraps in 'data', Laravel Pagination wraps items in 'data' too
-      const paginator = res.data?.data || res.data;
+
+      // Tentar extrair os dados de diferentes níveis (devido a possíveis interceptores do Axios)
+      const rawData = res.data?.data || res.data;
+      const paginator = rawData?.data ? rawData : (res.data?.data?.data ? res.data.data : null);
+
       if (paginator && paginator.data) {
         setServiceHistory(paginator.data);
         setHistoryPagination({
-          current_page: paginator.current_page,
-          last_page: paginator.last_page,
-          total: paginator.total
+          current_page: paginator.current_page || 1,
+          last_page: paginator.last_page || 1,
+          total: paginator.total || paginator.data.length
         });
       } else {
-        setServiceHistory(Array.isArray(res.data) ? res.data : []);
+        const list = Array.isArray(rawData) ? rawData : (Array.isArray(rawData?.data) ? rawData.data : []);
+        setServiceHistory(list);
+        setHistoryPagination({ current_page: 1, last_page: 1, total: list.length });
       }
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error('Erro ao carregar histórico:', e);
+      setServiceHistory([]);
+    }
   };
 
   const loadTags = async () => {
@@ -309,10 +317,10 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
       loadHistory(selectedContact.id);
 
       // Atualizar métricas localmente ou recarregar contato
-      const res = await api.get(`/client/contacts/${selectedContact.id}`);
-      let updatedData = res.data?.data || res.data;
+      const contactRes = await api.get(`/client/contacts/${selectedContact.id}`);
+      const updatedData = contactRes.data?.data || contactRes.data;
 
-      if (updatedData) {
+      if (updatedData && typeof updatedData === 'object') {
         // Mapear campos snake_case para camelCase como feito em App.tsx
         const mappedData = {
           ...updatedData,
@@ -330,8 +338,13 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
 
       setSystemModal({ isOpen: true, title: 'Sucesso', message: 'Movimentação registrada com sucesso!', type: 'success' });
     } catch (err: any) {
-      console.error('Erro ao salvar movimentação:', err);
-      setSystemModal({ isOpen: true, title: 'Erro', message: err.response?.data?.message || 'Erro ao registrar movimentação.', type: 'error' });
+      console.error('Erro detalhado ao salvar movimentação:', err);
+      setSystemModal({
+        isOpen: true,
+        title: 'Erro',
+        message: err.response?.data?.message || err.message || 'Erro ao registrar movimentação.',
+        type: 'error'
+      });
     }
   };
 
