@@ -284,8 +284,8 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
   const handleAddService = async () => {
     if (!selectedContact?.id || !serviceForm.service_name || !serviceForm.amount) return;
 
-    // Garantir que o valor seja um número puro, tratando pontos ou vírgulas
-    const cleanAmount = parseFloat(serviceForm.amount.toString().replace(',', '.'));
+    // Para Yen, removemos qualquer caractere que não seja número (pontos, vírgulas, etc)
+    const cleanAmount = parseInt(serviceForm.amount.toString().replace(/\D/g, '')) || 0;
 
     try {
       await api.post(`/client/contacts/${selectedContact.id}/service-records`, {
