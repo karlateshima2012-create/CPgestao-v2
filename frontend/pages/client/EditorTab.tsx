@@ -281,6 +281,24 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
     }
   };
 
+  const handleAddService = async () => {
+    if (!selectedContact?.id || !serviceForm.service_name || !serviceForm.amount) return;
+    try {
+      await api.post(`/client/contacts/${selectedContact.id}/service-records`, serviceForm);
+      setServiceModal(false);
+      setServiceForm({ service_name: '', amount: '', payment_method: '', notes: '', service_date: new Date().toISOString().split('T')[0] });
+      loadHistory(selectedContact.id);
+
+      // Atualizar métricas localmente ou recarregar contato
+      const res = await api.get(`/client/contacts/${selectedContact.id}`);
+      if (res.data) setFormData(prev => ({ ...prev, ...res.data }));
+
+      setSystemModal({ isOpen: true, title: 'Sucesso', message: 'Movimentação registrada com sucesso!', type: 'success' });
+    } catch (err: any) {
+      setSystemModal({ isOpen: true, title: 'Erro', message: 'Erro ao registrar movimentação.', type: 'error' });
+    }
+  };
+
   const deleteTag = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
@@ -463,7 +481,10 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
       </Card>
 
       <Card className="p-8 border border-gray-200 dark:border-gray-800 w-full rounded-[24px]">
-        <h3 className="text-sm font-black uppercase tracking-widest flex items-center justify-between mb-8"><span className="flex items-center gap-2"><FileText className="w-5 h-5 text-gray-400" /> Movimentação</span></h3>
+        <h3 className="text-sm font-black uppercase tracking-widest flex items-center justify-between mb-8">
+          <span className="flex items-center gap-2"><FileText className="w-5 h-5 text-gray-400" /> Movimentação</span>
+          {selectedContact && <Button onClick={() => setServiceModal(true)} className="h-8 px-4 text-[10px] bg-primary-500 text-white font-black uppercase rounded-[10px] shadow-lg shadow-primary-500/20 hover:scale-105 active:scale-95 transition-all">+ Novo</Button>}
+        </h3>
         {!selectedContact ? <div className="text-center p-10 bg-gray-50 dark:bg-gray-800 rounded-[20px] border border-dashed border-gray-300"><p className="text-sm font-bold text-gray-500">Salve o cadastro primeiro.</p></div> : <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
           {!serviceHistory.length ? <div className="p-8 text-center bg-gray-50 dark:bg-gray-800 rounded-[20px] border border-gray-100"><p className="text-xs font-black text-gray-400 uppercase">Nenhum atendimento.</p></div> : <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {serviceHistory.map(r => <div key={r.id} className="p-5 bg-white dark:bg-gray-900 rounded-[16px] border border-gray-200 flex justify-between items-center shadow-sm"><div><p className="font-bold text-sm">{r.service_name}</p><p className="text-[10px] font-black text-gray-400 uppercase mt-1 tracking-widest">{new Date(r.service_date).toLocaleDateString('pt-BR')}</p></div><p className="font-black text-lg">¥{parseFloat(r.amount).toLocaleString()}</p></div>)}
@@ -473,6 +494,71 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
 
       {systemModal.isOpen && <StatusModal isOpen={systemModal.isOpen} title={systemModal.title} message={systemModal.message} type={systemModal.type} onClose={() => setSystemModal(p => ({ ...p, isOpen: false }))} theme="accent" />}
       {tagModal && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"><Card className="w-full max-w-sm p-8 bg-white dark:bg-gray-900 rounded-[24px] relative"><button onClick={() => setTagModal(false)} className="absolute top-5 right-5 p-2 text-gray-400">✕</button><h2 className="text-xl font-black mb-6">Nova Tag</h2><div className="space-y-5"><Input label="Nome" value={newTagForm.name} onChange={e => setNewTagForm(p => ({ ...p, name: e.target.value }))} /><Button onClick={createTag} className="w-full bg-gray-900 text-white font-black uppercase text-[12px]">Criar Tag</Button></div></Card></div>}
+
+      {serviceModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <Card className="w-full max-w-md p-8 bg-white dark:bg-gray-900 rounded-[32px] relative shadow-2xl border border-gray-100 dark:border-gray-800 animate-in zoom-in-95 duration-200">
+            <button onClick={() => setServiceModal(false)} className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-600 transition-colors">✕</button>
+            <div className="flex items-center gap-3 mb-8">
+              <div className="p-3 bg-primary-50 dark:bg-primary-900/20 rounded-2xl text-primary-600">
+                <FileText className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-xl font-black tracking-tight">Nova Movimentação</h2>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Registrar Atendimento</p>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <Input
+                label="SERVIÇO / PRODUTO *"
+                placeholder="Ex: Corte e Barba"
+                value={serviceForm.service_name}
+                onChange={e => setServiceForm(p => ({ ...p, service_name: e.target.value }))}
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="VALOR (¥) *"
+                  type="number"
+                  placeholder="0"
+                  value={serviceForm.amount}
+                  onChange={e => setServiceForm(p => ({ ...p, amount: e.target.value }))}
+                />
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">DATA</label>
+                  <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-[15px] h-11 flex items-center px-4">
+                    <input
+                      type="date"
+                      value={serviceForm.service_date}
+                      onChange={e => setServiceForm(p => ({ ...p, service_date: e.target.value }))}
+                      className="w-full bg-transparent text-sm font-bold outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">PAGAMENTO</label>
+                <select
+                  className="w-full h-11 px-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-[15px] font-bold text-sm"
+                  value={serviceForm.payment_method}
+                  onChange={e => setServiceForm(p => ({ ...p, payment_method: e.target.value }))}
+                >
+                  <option value="">Selecione...</option>
+                  <option value="Dinheiro">Dinheiro</option>
+                  <option value="Cartão">Cartão</option>
+                  <option value="PayPay">PayPay</option>
+                  <option value="Transferência">Transferência</option>
+                </select>
+              </div>
+
+              <div className="pt-4 flex gap-3">
+                <Button onClick={() => setServiceModal(false)} className="flex-1 bg-gray-100 text-gray-600 font-black uppercase text-[11px] hover:bg-gray-200">Cancelar</Button>
+                <Button onClick={handleAddService} className="flex-2 bg-gray-900 text-white font-black uppercase text-[11px] shadow-lg shadow-gray-900/20">Registrar</Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };
