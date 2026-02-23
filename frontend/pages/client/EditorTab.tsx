@@ -94,6 +94,114 @@ const ComboboxDate = ({ value, onChange, options = [], placeholder, isDay }: any
   );
 };
 
+const getTimeDisplay = (t24?: string) => {
+  if (!t24 || !t24.includes(':')) return { time: '', period: 'AM' };
+  const p = t24.split(':');
+  let h = parseInt(p[0]);
+  const m = p[1];
+  const per = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  return { time: `${h.toString().padStart(2, '0')}:${m}`, period: per };
+};
+
+const ComboboxTime = ({ value, onChange, placeholder }: any) => {
+  const [open, setOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  const { time: display, period } = getTimeDisplay(value);
+  const [hour, minute] = display.includes(':') ? display.split(':').map(n => parseInt(n)) : [12, 0];
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSelect = (h: number, m: number, p: string) => {
+    let finalH = h;
+    if (p === 'PM' && h < 12) finalH += 12;
+    if (p === 'AM' && h === 12) finalH = 0;
+    onChange(`${finalH.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
+  };
+
+  const handleType = (val: string) => {
+    const clean = val.replace(/\D/g, '').slice(0, 4);
+    let h = parseInt(clean.slice(0, 2) || '12');
+    let m = parseInt(clean.slice(2, 4) || '0');
+    if (h > 12) h = 12;
+    if (m > 59) m = 59;
+    handleSelect(h, m, period);
+  };
+
+  const commonHours = [8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  const minutes = [0, 15, 30, 45];
+
+  return (
+    <div ref={wrapperRef} className="relative flex-1">
+      <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-[15px] h-11 px-3 shadow-sm focus-within:ring-2 focus-within:ring-gray-300 dark:focus-within:ring-gray-600 transition-all">
+        <Clock className="w-4 h-4 text-gray-400" />
+        <input
+          type="text"
+          placeholder={placeholder}
+          className="w-14 bg-transparent text-sm font-bold outline-none text-gray-700 dark:text-gray-300"
+          value={value ? `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}` : ''}
+          onChange={e => handleType(e.target.value)}
+          onFocus={() => setOpen(true)}
+        />
+        <div className="flex bg-white dark:bg-gray-900/50 p-0.5 rounded-lg ml-auto border border-gray-100 dark:border-gray-700">
+          {['AM', 'PM'].map(p => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => handleSelect(hour, minute, p)}
+              className={`px-2 py-0.5 rounded-md text-[9px] font-black transition-all ${period === p ? 'bg-gray-600 text-white shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {open && (
+        <div className="absolute top-[calc(100%+8px)] left-0 right-0 md:right-auto md:w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-[20px] shadow-2xl z-50 p-4 animate-in fade-in zoom-in duration-200">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-[9px] font-black text-gray-400 uppercase mb-2 ml-1">Horas</p>
+              <div className="grid grid-cols-3 gap-1.5 h-32 overflow-y-auto no-scrollbar pr-1">
+                {commonHours.map((h, i) => (
+                  <button
+                    key={`${h}-${i}`}
+                    onClick={() => handleSelect(h, minute, period)}
+                    className={`h-8 rounded-lg text-xs font-bold transition-all ${hour === h ? 'bg-primary-500 text-white' : 'bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                  >
+                    {h}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-[9px] font-black text-gray-400 uppercase mb-2 ml-1">Minutos</p>
+              <div className="grid grid-cols-2 gap-1.5 h-32 overflow-y-auto no-scrollbar pr-1">
+                {minutes.map(m => (
+                  <button
+                    key={m}
+                    onClick={() => handleSelect(hour, m, period)}
+                    className={`h-8 rounded-lg text-xs font-bold transition-all ${minute === m ? 'bg-primary-500 text-white' : 'bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                  >
+                    {m.toString().padStart(2, '0')}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const BirthdayInput = ({ value, onChange }: { value: string, onChange: (v: string) => void }) => {
   const y = '2000';
   const valStr = value || '';
@@ -241,24 +349,6 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
     } else setFormData(prev => ({ ...prev, [field]: val || '' }));
   };
 
-  const getTimeDisplay = (t24?: string) => {
-    if (!t24 || !t24.includes(':')) return { time: '', period: 'AM' };
-    const p = t24.split(':');
-    let h = parseInt(p[0]);
-    const m = p[1];
-    const per = h >= 12 ? 'PM' : 'AM';
-    h = h % 12 || 12;
-    return { time: `${h.toString().padStart(2, '0')}:${m}`, period: per };
-  };
-
-  const updateTimeFromDisplay = (t12: string, per: string) => {
-    let c = t12.replace(/\D/g, '').slice(0, 4);
-    let h = parseInt(c.slice(0, 2) || '0'), m = parseInt(c.slice(2, 4) || '0');
-    if (h > 12) h = 12; if (m > 59) m = 59;
-    if (per === 'PM' && h < 12) h += 12; if (per === 'AM' && h === 12) h = 0;
-    setFormData(prev => ({ ...prev, reminderTime: `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}` }));
-  };
-
   const { time: displayTime, period } = getTimeDisplay(formData.reminderTime);
 
   return (
@@ -377,13 +467,7 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">HORÁRIO</label>
-                <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 rounded-[15px] h-11 px-3 shadow-inner">
-                  <Clock className="w-4 h-4 text-gray-400" />
-                  <input type="text" placeholder="00:00" value={displayTime} onChange={e => updateTimeFromDisplay(e.target.value, period)} className="w-14 bg-transparent text-sm font-bold outline-none" />
-                  <div className="flex bg-white dark:bg-gray-900/50 p-0.5 rounded-lg ml-auto border border-gray-200">
-                    {['AM', 'PM'].map(p => <button key={p} type="button" onClick={() => updateTimeFromDisplay(displayTime, p)} className={`px-2.5 py-1 rounded-md text-[9px] font-black ${period === p ? 'bg-gray-600 text-white' : 'text-gray-400'}`}>{p}</button>)}
-                  </div>
-                </div>
+                <ComboboxTime value={formData.reminderTime} onChange={(t: string) => setFormData(p => ({ ...p, reminderTime: t }))} placeholder="00:00" />
               </div>
             </div>
             <div className="space-y-2">
