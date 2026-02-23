@@ -238,6 +238,7 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
     service_name: '', amount: '', payment_method: '', notes: '', service_date: new Date().toISOString().split('T')[0]
   });
   const [serviceHistory, setServiceHistory] = useState<any[]>([]);
+  const [historyPagination, setHistoryPagination] = useState({ current_page: 1, last_page: 1, total: 0 });
   const [systemModal, setSystemModal] = useState<{ isOpen: boolean; title: string; message: string; type: 'success' | 'error' | 'info' | 'warning' }>({ isOpen: false, title: '', message: '', type: 'info' });
   const [availableTags, setAvailableTags] = useState<TenantTag[]>([]);
   const [tagModal, setTagModal] = useState(false);
@@ -255,10 +256,21 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
     }
   }, [selectedContact, initialData]);
 
-  const loadHistory = async (id: string) => {
+  const loadHistory = async (id: string, page: number = 1) => {
     try {
-      const res = await api.get(`/client/contacts/${id}/service-records`);
-      setServiceHistory(Array.isArray(res.data) ? res.data : []);
+      const res = await api.get(`/client/contacts/${id}/service-records?page=${page}`);
+      // ApiResponse wraps in 'data', Laravel Pagination wraps items in 'data' too
+      const paginator = res.data?.data || res.data;
+      if (paginator && paginator.data) {
+        setServiceHistory(paginator.data);
+        setHistoryPagination({
+          current_page: paginator.current_page,
+          last_page: paginator.last_page,
+          total: paginator.total
+        });
+      } else {
+        setServiceHistory(Array.isArray(res.data) ? res.data : []);
+      }
     } catch (e) { console.error(e); }
   };
 
@@ -532,6 +544,30 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
               </div>
             ))}
           </div>}
+
+          {historyPagination.last_page > 1 && (
+            <div className="mt-6 flex items-center justify-between border-t border-gray-100 dark:border-gray-800 pt-4 px-2">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                Página {historyPagination.current_page} de {historyPagination.last_page}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  disabled={historyPagination.current_page === 1}
+                  onClick={() => selectedContact?.id && loadHistory(selectedContact.id, historyPagination.current_page - 1)}
+                  className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-gray-50 dark:bg-gray-800 text-gray-500 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  Anterior
+                </button>
+                <button
+                  disabled={historyPagination.current_page === historyPagination.last_page}
+                  onClick={() => selectedContact?.id && loadHistory(selectedContact.id, historyPagination.current_page + 1)}
+                  className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-gray-900 text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-black transition-colors"
+                >
+                  Próximo
+                </button>
+              </div>
+            </div>
+          )}
         </div>}
       </Card>
 

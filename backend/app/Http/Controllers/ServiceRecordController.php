@@ -18,7 +18,7 @@ class ServiceRecordController extends Controller
         $records = ServiceRecord::where('tenant_id', $tenant->id)
             ->where('customer_id', $customer->id)
             ->orderBy('service_date', 'desc')
-            ->get();
+            ->paginate(10);
 
         return ApiResponse::ok($records);
     }
