@@ -165,35 +165,19 @@ const ComboboxTime = ({ value, onChange, placeholder }: any) => {
       </div>
 
       {open && (
-        <div className="absolute top-[calc(100%+8px)] left-0 right-0 md:right-auto md:w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-[20px] shadow-2xl z-50 p-4 animate-in fade-in zoom-in duration-200">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-[9px] font-black text-gray-400 uppercase mb-2 ml-1">Horas</p>
-              <div className="grid grid-cols-3 gap-1.5 h-32 overflow-y-auto no-scrollbar pr-1">
-                {commonHours.map((h, i) => (
-                  <button
-                    key={`${h}-${i}`}
-                    onClick={() => handleSelect(h, minute, period)}
-                    className={`h-8 rounded-lg text-xs font-bold transition-all ${hour === h ? 'bg-primary-500 text-white' : 'bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
-                  >
-                    {h}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <p className="text-[9px] font-black text-gray-400 uppercase mb-2 ml-1">Minutos</p>
-              <div className="grid grid-cols-2 gap-1.5 h-32 overflow-y-auto no-scrollbar pr-1">
-                {minutes.map(m => (
-                  <button
-                    key={m}
-                    onClick={() => handleSelect(hour, m, period)}
-                    className={`h-8 rounded-lg text-xs font-bold transition-all ${minute === m ? 'bg-primary-500 text-white' : 'bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
-                  >
-                    {m.toString().padStart(2, '0')}
-                  </button>
-                ))}
-              </div>
+        <div className="absolute top-[calc(100%+8px)] left-0 w-full md:w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-[20px] shadow-2xl z-50 p-4 animate-in fade-in zoom-in duration-200">
+          <div>
+            <p className="text-[9px] font-black text-gray-400 uppercase mb-2 ml-1">Selecionar Hora</p>
+            <div className="grid grid-cols-3 gap-1.5 h-32 overflow-y-auto no-scrollbar pr-1">
+              {commonHours.map((h, i) => (
+                <button
+                  key={`${h}-${i}`}
+                  onClick={() => { handleSelect(h, minute, period); setOpen(false); }}
+                  className={`h-8 rounded-lg text-xs font-bold transition-all ${hour === h ? 'bg-primary-500 text-white' : 'bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                >
+                  {h}
+                </button>
+              ))}
             </div>
           </div>
         </div>
