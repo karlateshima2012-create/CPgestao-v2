@@ -135,8 +135,7 @@ const ComboboxTime = ({ value, onChange, placeholder }: any) => {
     handleSelect(h, m, period);
   };
 
-  const commonHours = [8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-  const minutes = [0, 15, 30, 45];
+  const hours = Array.from({ length: 12 }, (_, i) => i + 1);
 
   return (
     <div ref={wrapperRef} className="relative flex-1">
@@ -165,20 +164,19 @@ const ComboboxTime = ({ value, onChange, placeholder }: any) => {
       </div>
 
       {open && (
-        <div className="absolute top-[calc(100%+8px)] left-0 w-full md:w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-[20px] shadow-2xl z-50 p-4 animate-in fade-in zoom-in duration-200">
-          <div>
-            <p className="text-[9px] font-black text-gray-400 uppercase mb-2 ml-1">Selecionar Hora</p>
-            <div className="grid grid-cols-3 gap-1.5 h-32 overflow-y-auto no-scrollbar pr-1">
-              {commonHours.map((h, i) => (
-                <button
-                  key={`${h}-${i}`}
-                  onClick={() => { handleSelect(h, minute, period); setOpen(false); }}
-                  className={`h-8 rounded-lg text-xs font-bold transition-all ${hour === h ? 'bg-primary-500 text-white' : 'bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
-                >
-                  {h}
-                </button>
-              ))}
-            </div>
+        <div className="absolute bottom-full left-0 mb-2 w-full min-w-[120px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-[20px] shadow-2xl z-50 p-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <p className="text-[9px] font-black text-gray-400 uppercase mb-2 ml-2 tracking-widest text-center mt-1">Selecionar Hora</p>
+          <div className="max-h-48 overflow-y-auto custom-scrollbar space-y-1">
+            {hours.map((h) => (
+              <button
+                key={h}
+                onClick={() => { handleSelect(h, minute, period); setOpen(false); }}
+                className={`w-full py-2.5 px-4 rounded-[12px] text-sm font-bold transition-all text-left flex items-center justify-between ${hour === h ? 'bg-primary-500 text-white' : 'hover:bg-gray-50 dark:hover:bg-gray-900 text-gray-600 dark:text-gray-400'}`}
+              >
+                <span>{h.toString().padStart(2, '0')}</span>
+                {hour === h && <Check className="w-3 h-3" />}
+              </button>
+            ))}
           </div>
         </div>
       )}
