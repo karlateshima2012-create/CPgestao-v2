@@ -510,8 +510,20 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
           {selectedContact && <Button onClick={() => setServiceModal(true)} className="h-8 px-4 text-[10px] bg-primary-500 text-white font-black uppercase rounded-[10px] shadow-lg shadow-primary-500/20 hover:scale-105 active:scale-95 transition-all">+ Novo</Button>}
         </h3>
         {!selectedContact ? <div className="text-center p-10 bg-gray-50 dark:bg-gray-800 rounded-[20px] border border-dashed border-gray-300"><p className="text-sm font-bold text-gray-500">Salve o cadastro primeiro.</p></div> : <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-          {!serviceHistory.length ? <div className="p-8 text-center bg-gray-50 dark:bg-gray-800 rounded-[20px] border border-gray-100"><p className="text-xs font-black text-gray-400 uppercase">Nenhum atendimento.</p></div> : <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {serviceHistory.map(r => <div key={r.id} className="p-5 bg-white dark:bg-gray-900 rounded-[16px] border border-gray-200 flex justify-between items-center shadow-sm"><div><p className="font-bold text-sm">{r.service_name}</p><p className="text-[10px] font-black text-gray-400 uppercase mt-1 tracking-widest">{new Date(r.service_date).toLocaleDateString('pt-BR')}</p></div><p className="font-black text-lg text-gray-900 dark:text-white">¥ {Math.floor(Number(r.amount)).toLocaleString('ja-JP')}</p></div>)}
+          {!serviceHistory.length ? <div className="p-8 text-center bg-gray-50 dark:bg-gray-800 rounded-[20px] border border-gray-100"><p className="text-xs font-black text-gray-400 uppercase">Nenhum atendimento.</p></div> : <div className="flex flex-col gap-2">
+            {serviceHistory.map(r => (
+              <div key={r.id} className="group px-4 py-3 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-[15px] border border-gray-100 dark:border-gray-800 flex items-center gap-4 transition-all shadow-sm">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter bg-gray-50 dark:bg-gray-800 px-2 py-1 rounded-md shrink-0 ring-1 ring-gray-100 dark:ring-gray-700">
+                  {new Date(r.service_date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                </span>
+                <p className="font-bold text-sm text-gray-700 dark:text-gray-300 flex-1 truncate" title={r.service_name}>
+                  {r.service_name}
+                </p>
+                <p className="font-black text-sm text-gray-900 dark:text-white shrink-0">
+                  ¥ {Math.floor(Number(r.amount)).toLocaleString('ja-JP')}
+                </p>
+              </div>
+            ))}
           </div>}
         </div>}
       </Card>
