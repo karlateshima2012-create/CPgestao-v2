@@ -1,0 +1,16 @@
+# Root .gitignore for CPgestao-v2
+.DS_Store
+.env
+node_modules/
+vendor/
+dist/
+public/build/
+storage/*.key
+backend/database/*.sqlite
+backend/storage/logs/*.log
+backend/storage/framework/sessions/*
+backend/storage/framework/views/*
+backend/storage/framework/cache/*
+frontend/dist/
+.vscode/
+.idea/

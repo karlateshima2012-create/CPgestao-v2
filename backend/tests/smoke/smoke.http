@@ -1,0 +1,143 @@
+### CPgestao-fidelidadeV1 - Smoke Test Pack
+# For use with REST Client (VSCode)
+
+@baseUrl = http://localhost:8000/api
+@adminEmail = admin@creativeprint.com
+@adminPass = admin123
+@clientEmail = dono-v3@loja.com
+@clientPass = loja123
+@slug = loja-smoke-v3
+@uid = premium-device-v3
+@phone = 5511999999999
+@pin = 1234
+
+### 1. AUTHENTICATION
+
+# @name adminLogin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+    "email": "{{adminEmail}}",
+    "password": "{{adminPass}}"
+}
+
+###
+
+@adminToken = {{adminLogin.response.body.access_token}}
+
+# @name clientLogin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+    "email": "{{clientEmail}}",
+    "password": "{{clientPass}}"
+}
+
+###
+
+@clientToken = {{clientLogin.response.body.access_token}}
+
+# Get Me
+GET {{baseUrl}}/me
+Authorization: Bearer {{clientToken}}
+
+###
+
+# Logout
+POST {{baseUrl}}/auth/logout
+Authorization: Bearer {{clientToken}}
+
+
+### 2. RBAC (Security)
+
+# Client trying to access Admin
+GET {{baseUrl}}/admin/tenants
+Authorization: Bearer {{clientToken}}
+# Expected: 403 Forbidden
+
+###
+
+# Admin trying to access Client (unless admin has dual role)
+GET {{baseUrl}}/client/contacts
+Authorization: Bearer {{adminToken}}
+# Expected: 403 Forbidden
+
+
+### 3. PUBLIC TERMINAL (Secure)
+
+# Get Terminal Info (Sanitized)
+# If UID is a LINKED PREMIUM device, it should return 'prefill_phone'
+# If UID is a TOTEM (assigned/unlinked), it should return 'prefill_phone': null
+GET {{baseUrl}}/public/terminal/{{slug}}/{{uid}}
+# Expected: 200 OK with prefill_phone if premium & linked
+
+###
+
+# Customer Lookup (Sanitized)
+POST {{baseUrl}}/public/terminal/{{slug}}/{{uid}}/lookup
+Content-Type: application/json
+
+{
+    "phone": "{{phone}}"
+}
+# Expected: 200 OK with sanitized JSON (customer_exists, balance, etc)
+
+###
+
+# Invalid Device Check
+POST {{baseUrl}}/public/terminal/wrong-slug/invalid-uid/lookup
+Content-Type: application/json
+
+{
+    "phone": "{{phone}}"
+}
+# Expected: 404 Not Found (RESOLUTE RULE)
+
+###
+
+# Validate PIN (Anti-brute force via throttle)
+POST {{baseUrl}}/public/terminal/{{slug}}/{{uid}}/validate-pin
+Content-Type: application/json
+
+{
+    "pin": "0000"
+}
+# Expected: 401 Unauthorized or 429 Too Many Requests after retries
+
+###
+
+# Earn Points (Requires PIN)
+POST {{baseUrl}}/public/terminal/{{slug}}/{{uid}}/earn
+Content-Type: application/json
+
+{
+    "phone": "{{phone}}",
+    "pin": "{{pin}}"
+}
+# Expected: 200 OK or 429 if within 60s (Cooldown)
+
+###
+
+# Redeem (Requires balance)
+POST {{baseUrl}}/public/terminal/{{slug}}/{{uid}}/redeem
+Content-Type: application/json
+
+{
+    "phone": "{{phone}}",
+    "pin": "{{pin}}"
+}
+# Expected: 200 OK or 409 Insufficient balance
+
+
+### 4. MULTI-TENANT SCOPE
+# (Manual instruction: Try to use a client token from Tenant A to PATCH a contact from Tenant B)
+PATCH {{baseUrl}}/client/contacts/some-uuid-from-other-tenant
+Authorization: Bearer {{clientToken}}
+Content-Type: application/json
+
+{
+    "name": "Hacker"
+}
+# Expected: 404 Not Found
