@@ -519,9 +519,16 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
                 <p className="font-bold text-sm text-gray-700 dark:text-gray-300 flex-1 truncate" title={r.service_name}>
                   {r.service_name}
                 </p>
-                <p className="font-black text-sm text-gray-900 dark:text-white shrink-0">
-                  ¥ {Math.floor(Number(r.amount)).toLocaleString('ja-JP')}
-                </p>
+                <div className="flex items-center gap-3 shrink-0">
+                  {r.payment_method && (
+                    <span className="text-[9px] font-black text-gray-400 uppercase bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded-md">
+                      {r.payment_method}
+                    </span>
+                  )}
+                  <p className="font-black text-sm text-gray-900 dark:text-white">
+                    ¥ {Math.floor(Number(r.amount)).toLocaleString('ja-JP')}
+                  </p>
+                </div>
               </div>
             ))}
           </div>}
