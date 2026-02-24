@@ -9,9 +9,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 use App\Traits\BelongsToTenant;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 class Customer extends Model
 {
-    use HasUuids, BelongsToTenant;
+    use HasUuids, BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -41,6 +43,7 @@ class Customer extends Model
     ];
 
     protected $casts = [
+        'is_premium' => 'boolean',
         'birthday' => 'date',
         'tags' => 'array',
         'preferences' => 'array',

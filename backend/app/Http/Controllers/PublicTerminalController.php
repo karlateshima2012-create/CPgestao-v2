@@ -78,6 +78,10 @@ class PublicTerminalController extends Controller
             return [$tenant, null];
         }
 
+        if (!\App\Utils\Luhn::validate($uid)) {
+            abort(400, 'Identificador de dispositivo inválido');
+        }
+
         // New Device structure: uid is now nfc_uid
         $device = Device::where('nfc_uid', $uid)
             ->where('tenant_id', $tenant->id)
@@ -137,6 +141,7 @@ class PublicTerminalController extends Controller
             'device_mode' => $device ? $device->mode : 'standard',
             'token_valid' => $tokenValid,
             'tenant_name' => $tenant->name,
+            'tenant_plan' => $tenant->plan,
             'levels_config' => $tenant->loyaltySettings ? $tenant->loyaltySettings->levels_config : null,
         ]);
     }
@@ -222,6 +227,11 @@ class PublicTerminalController extends Controller
         return DB::transaction(function () use ($request, $slug, $uid) {
             $token = $request->token;
             [$tenant, $device] = $this->validateDevice($slug, $uid, $token);
+            
+            // CLASSIC PLAN PROTECTION: Passive totem
+            if ($tenant->plan === 'Classic' || $tenant->plan === 'classic') {
+                return ApiResponse::error('Este totem não permite pontuação direta. Consulte o atendente no balcão.', 'PASSIVE_TOTEM', 403);
+            }
 
             $phone = PhoneHelper::normalize($request->phone);
 
@@ -240,7 +250,15 @@ class PublicTerminalController extends Controller
                     'last_activity_at' => now()
                 ]);
 
-                $this->telegramService->sendMessage($tenant->id, "🆕 <b>Novo Cliente (Pontuação Balcão)</b>\n\n<b>Telefone:</b> {$customer->phone}");
+                $escPhone = TelegramService::escapeMarkdownV2($customer->phone);
+                $newMessage = "🆕 *Novo Cliente \(Pontuação Balcão\)*\n\n"
+                            . "📞 *Telefone:* {$escPhone}";
+                
+                if ($device && $device->telegram_chat_id) {
+                    $this->telegramService->sendDirectMessage($device->telegram_chat_id, $newMessage);
+                } else {
+                    $this->telegramService->sendMessage($tenant->id, $newMessage);
+                }
             }
 
             // Consumption of token if present
@@ -323,24 +341,52 @@ class PublicTerminalController extends Controller
             ]);
 
             // Flow 3: AUTO-APPROVE Logic
-            $canAutoApprove = ($device && $device->auto_approve && $this->planService->canAutoApprove($tenant)); 
+            $isElite = (strtolower($tenant->plan) === 'elite');
+            $isPro = (strtolower($tenant->plan) === 'pro');
             
+            // Elite: 100% automatic (per Requirement 3)
+            // Pro: Mandatory Telegram approval (per Requirement 3), regardless of device settings
+            $canAutoApprove = false;
+            if ($isElite) {
+                $canAutoApprove = true;
+            } elseif ($isPro) {
+                $canAutoApprove = false;
+            } else {
+                // Other plans (e.g. Trial/Custom) follow device settings and policy
+                $canAutoApprove = ($device && $device->auto_approve && $this->planService->canAutoApprove($tenant));
+            }
+
             if ($canAutoApprove) {
                 $this->pointRequestService->applyPoints($requestRecord);
                 $requestRecord->update(['status' => 'auto_approved', 'approved_at' => now()]);
-            } elseif ($device && $device->telegram_chat_id && $requestRecord->status === 'pending') {
-                // Not auto-approved: Send Telegram notification to the responsible party
-                $message = "🔹 *Novo Pedido de Ponto*\n\n"
-                         . "👤 *Cliente:* {$customer->name}\n"
-                         . "📱 *Telefone:* {$customer->phone}\n"
-                         . "🎁 *Pontos:* +{$pointsToAdd}\n"
-                         . "📍 *Totem:* {$device->name}\n\n"
-                         . "Acesse o painel para Aprovar ou Recusar.";
-                         
-                $settings = TenantSetting::where('tenant_id', $tenant->id)->first();
-                $disableSound = $settings ? !$settings->telegram_sound_points : false;
                 
-                $this->telegramService->sendDirectMessage($device->telegram_chat_id, $message, $disableSound);
+                event(new \App\Events\PointRequestStatusUpdated($requestRecord));
+            } elseif ($requestRecord->status === 'pending') {
+                $settings = \App\Models\TenantSetting::where('tenant_id', $tenant->id)->first();
+                $targetChatId = ($device && $device->telegram_chat_id) ? $device->telegram_chat_id : ($settings ? $settings->telegram_chat_id : null);
+
+                if ($targetChatId) {
+                    // Not auto-approved: Send Telegram notification with interactive buttons
+                    $locationName = $device ? ($device->responsible_name ?: $device->name) : 'Terminal Público';
+                    
+                    $escName = TelegramService::escapeMarkdownV2($customer->name);
+                    $escLoc = TelegramService::escapeMarkdownV2($locationName);
+                    
+                    $message = "🔔 *Solicitação no Totem\!*\n\n"
+                             . "O cliente *{$escName}* solicitou um ponto no *{$escLoc}*\. Aprovar?";
+                    
+                    $replyMarkup = [
+                        'inline_keyboard' => [
+                            [
+                                ['text' => '✅ APROVAR', 'callback_data' => "approve_request:{$requestRecord->id}"],
+                                ['text' => '❌ RECUSAR', 'callback_data' => "reject_request:{$requestRecord->id}"]
+                            ]
+                        ]
+                    ];
+                    
+                    $disableSound = $settings ? !$settings->telegram_sound_points : false;
+                    $this->telegramService->sendDirectMessage($targetChatId, $message, $disableSound, $replyMarkup);
+                }
             }
 
             $customer->update(['last_activity_at' => now()]);
@@ -358,6 +404,7 @@ class PublicTerminalController extends Controller
             }
 
             return ApiResponse::ok([
+                'request_id' => $requestRecord->id,
                 'points_earned' => $pointsToAdd, 
                 'new_balance' => $newBalance,
                 'message' => $msg,
@@ -375,6 +422,12 @@ class PublicTerminalController extends Controller
 
         return DB::transaction(function () use ($request, $slug, $uid) {
             [$tenant, $device] = $this->validateDevice($slug, $uid);
+
+            // CLASSIC PLAN PROTECTION: Passive totem
+            if ($tenant->plan === 'Classic' || $tenant->plan === 'classic') {
+                return ApiResponse::error('Este totem não permite resgates diretos. Consulte o atendente no balcão.', 'PASSIVE_TOTEM', 403);
+            }
+
 
             $phone = PhoneHelper::normalize($request->phone);
             $customer = Customer::where('tenant_id', $tenant->id)->where('phone', $phone)->first();
@@ -431,22 +484,34 @@ class PublicTerminalController extends Controller
                 $this->pointRequestService->applyPoints($requestRecord);
                 $requestRecord->update(['status' => 'auto_approved', 'approved_at' => now()]);
             } elseif ($device && $device->telegram_chat_id && $requestRecord->status === 'pending') {
-                $message = "👑 *Novo Pedido de Resgate VIP*\n\n"
-                         . "👤 *Cliente:* {$customer->name}\n"
-                         . "📱 *Telefone:* {$customer->phone}\n"
-                         . "📍 *Totem:* {$device->name}\n\n"
-                         . "Acesse o painel para verificar o prêmio e Aprovar o resgate.";
+                $levelName = $customer->loyalty_level_name;
+                $locationName = $device->responsible_name ?: $device->name;
+                $message = "👑 <b>Pedido de Resgate VIP - {$tenant->name}</b>\n"
+                         . "📍 <b>Local:</b> {$locationName}\n"
+                         . "👤 <b>Cliente:</b> {$customer->name} ({$customer->phone})\n"
+                         . "📈 <b>Nível Atual:</b> {$levelName}\n\n"
+                         . "Deseja aprovar o resgate de prêmio para este cliente?";
+                
+                $replyMarkup = [
+                    'inline_keyboard' => [
+                        [
+                            ['text' => '✅ APROVAR', 'callback_data' => "approve_request:{$requestRecord->id}"],
+                            ['text' => '❌ RECUSAR', 'callback_data' => "reject_request:{$requestRecord->id}"]
+                        ]
+                    ]
+                ];
                          
                 $settings = TenantSetting::where('tenant_id', $tenant->id)->first();
                 $disableSound = $settings ? !$settings->telegram_sound_points : false;
                 
-                $this->telegramService->sendDirectMessage($device->telegram_chat_id, $message, $disableSound);
+                $this->telegramService->sendDirectMessage($device->telegram_chat_id, $message, $disableSound, $replyMarkup);
             }
 
             $customer->update(['last_activity_at' => now()]);
             $newBalance = $customer->fresh()->points_balance;
 
             return ApiResponse::ok([
+                'request_id' => $requestRecord->id,
                 'new_balance' => $newBalance,
                 'message' => 'Solicitação de resgate enviada com sucesso.',
                 'auto_approved' => $canAutoApprove
@@ -461,6 +526,9 @@ class PublicTerminalController extends Controller
             'email' => 'nullable|email|max:100',
             'city' => 'nullable|string|max:100',
             'province' => 'nullable|string|max:100',
+            'postal_code' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:255',
+            'birthday' => 'nullable|date',
         ]);
 
         return DB::transaction(function () use ($request, $slug, $uid) {
@@ -480,17 +548,37 @@ class PublicTerminalController extends Controller
                 'email' => $request->email,
                 'city' => $request->city,
                 'province' => $request->province,
+                'postal_code' => $request->postal_code,
+                'address' => $request->address,
+                'birthday' => $request->birthday,
                 'source' => 'terminal',
                 'last_activity_at' => now()
             ]);
 
-            $this->telegramService->sendMessage($tenant->id, "✨ <b>Novo Cliente Cadastrado (Totem)</b>\n\n<b>Nome:</b> {$customer->name}\n<b>Telefone:</b> {$customer->phone}");
+            $escName = TelegramService::escapeMarkdownV2($customer->name);
+            $escPhone = TelegramService::escapeMarkdownV2($customer->phone);
+            $regMessage = "✨ *Novo Cliente Cadastrado \(Totem\)*\n\n"
+                        . "👤 *Nome:* {$escName}\n"
+                        . "📞 *Telefone:* {$escPhone}";
+
+            if ($device && $device->telegram_chat_id) {
+                $this->telegramService->sendDirectMessage($device->telegram_chat_id, $regMessage);
+            } else {
+                $this->telegramService->sendMessage($tenant->id, $regMessage);
+            }
 
             $loyalty = $tenant->loyaltySettings ?: \App\Models\LoyaltySetting::create(['tenant_id' => $tenant->id]);
             
+            $bonus = 0;
+            $levels = $loyalty->levels_config;
+            if ($levels && count($levels) > 0 && isset($levels[0]['points_per_signup'])) {
+                $bonus = (int)$levels[0]['points_per_signup'];
+            } else {
+                $bonus = (int)$loyalty->signup_bonus_points;
+            }
+
             $bonusMessage = "";
-            if ($loyalty->signup_bonus_points > 0) {
-                $bonus = $loyalty->signup_bonus_points;
+            if ($bonus > 0) {
 
                 // Create Point Request (New Layer)
                 $requestRecord = $this->createPointRequest([
@@ -511,11 +599,26 @@ class PublicTerminalController extends Controller
                 $bonusMessage = " (Bônus de boas-vindas aplicado!)";
             }
 
+            $successMsg = "✅ Cadastro realizado com sucesso!{$bonusMessage}";
+            
+            if ($bonus > 0) {
+                $bonusMsg = "🎁 <b>Bônus de Cadastro Aplicado</b>\n"
+                          . "👤 <b>Cliente:</b> {$customer->name}\n"
+                          . "💰 <b>Pontos:</b> {$bonus}";
+                
+                if ($device && $device->telegram_chat_id) {
+                    $this->telegramService->sendDirectMessage($device->telegram_chat_id, $bonusMsg);
+                } else {
+                    $this->telegramService->sendMessage($tenant->id, $bonusMsg);
+                }
+            }
+
             return ApiResponse::ok([
                 'customer_exists' => true,
                 'points_balance' => $customer->fresh()->points_balance,
-                'is_premium' => false
-            ], "✅ Cadastro realizado com sucesso!{$bonusMessage}");
+                'is_premium' => false,
+                'message' => $successMsg
+            ], $successMsg);
         });
     }
 
@@ -567,5 +670,32 @@ class PublicTerminalController extends Controller
 
             return ApiResponse::ok(null, 'Cartão VIP vinculado com sucesso');
         });
+    }
+
+    public function getRequestStatus($slug, $uid, $requestId)
+    {
+        $requestRecord = \App\Models\PointRequest::with(['customer', 'store.loyaltySettings'])->findOrFail($requestId);
+        
+        $customer = $requestRecord->customer;
+        $tenant = $requestRecord->store;
+        $loyalty = $tenant->loyaltySettings;
+        
+        $levelsConfig = $loyalty ? $loyalty->levels_config : null;
+        $currentLevel = $customer->loyalty_level ?? 0;
+        
+        $goal = $tenant->points_goal;
+        if (is_array($levelsConfig) && isset($levelsConfig[$currentLevel])) {
+            $goal = (int)($levelsConfig[$currentLevel]['goal'] ?? $goal);
+        }
+
+        return ApiResponse::ok([
+            'status' => $requestRecord->status,
+            'customer_name' => $customer->name,
+            'points_balance' => $customer->points_balance,
+            'loyalty_level_name' => $customer->loyalty_level_name,
+            'points_goal' => $goal,
+            'remaining_points' => max(0, $goal - $customer->points_balance),
+            'tenant_name' => $tenant->name
+        ]);
     }
 }

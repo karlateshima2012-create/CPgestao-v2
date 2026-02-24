@@ -50,7 +50,7 @@ export const tenantsService = {
     delete: (id: string) => api.delete(`/admin/tenants/${id}`),
     exportBatch: (id: string, batchId: string) => api.get(`/admin/tenants/${id}/premium-batches/${batchId}/export`, { responseType: 'blob' }),
     getDevices: (id: string) => api.get(`/admin/tenants/${id}/devices`),
-    createDevice: (id: string, data: { name: string; mode: string }) => api.post(`/admin/tenants/${id}/devices`, data),
+    createDevice: (id: string, data: { name: string; mode: string; telegram_chat_id?: string; responsible_name?: string }) => api.post(`/admin/tenants/${id}/devices`, data),
     updateDevice: (tenantId: string, deviceId: string, data: Partial<{ name: string; mode: string; telegram_chat_id: string; responsible_name: string }>) => api.put(`/admin/tenants/${tenantId}/devices/${deviceId}`, data),
     deleteDevice: (id: string, deviceId: string) => api.delete(`/admin/tenants/${id}/devices/${deviceId}`),
     getGlobalMetrics: () => api.get('/admin/metrics'),
@@ -86,9 +86,11 @@ export const terminalService = {
     redeem: (slug: string, uid: string | null, phone: string) => uid
         ? api.post(`/public/terminal/${slug}/${uid}/redeem`, { phone })
         : api.post(`/public/p/${slug}/redeem`, { phone }),
-    register: (slug: string, uid: string | null, data: { name: string, phone: string, email?: string, city?: string, province?: string }) => uid
+    register: (slug: string, uid: string | null, data: { name: string, phone: string, email?: string, city?: string, province?: string, postal_code?: string, address?: string, birthday?: string }) => uid
         ? api.post(`/public/terminal/${slug}/${uid}/register`, data)
         : api.post(`/public/p/${slug}/register`, data),
     linkVip: (slug: string, uid: string, data: { phone: string, target_uid: string }) =>
         api.post(`/public/terminal/${slug}/${uid}/link-vip`, data),
+    getRequestStatus: (slug: string, uid: string, requestId: string) =>
+        api.get(`/public/terminal/${slug}/${uid}/point-requests/${requestId}/status`),
 };

@@ -190,6 +190,11 @@ export const AccountTab: React.FC = () => {
 
   return (
     <div className="max-w-3xl mx-auto py-10 animate-fade-in space-y-8">
+      <div>
+        <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Minha Conta</h1>
+        <p className="text-lg text-gray-500 dark:text-gray-400 mt-1">Gerencie as informações e configurações da sua loja.</p>
+      </div>
+
       <Card className="p-8">
         <div className="flex flex-col md:flex-row items-center gap-8 mb-8 pb-8 border-b border-gray-100 dark:border-gray-800">
           <div className="relative group">
@@ -228,9 +233,9 @@ export const AccountTab: React.FC = () => {
           </div>
 
           <div className="flex-1 text-center md:text-left">
-            <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">{tenantInfo.name || 'Loja'}</h2>
-            <p className="text-sm text-gray-500 mb-4 font-medium leading-relaxed">
-              Configure as informações básicas da sua conta.
+            <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-none mb-2">{tenantInfo.name || 'Loja'}</h2>
+            <p className="text-base text-gray-500 mb-4 font-medium leading-relaxed">
+              Configurações gerais do estabelecimento.
             </p>
             <div className="flex flex-wrap justify-center md:justify-start gap-2">
               <Badge color="blue">{tenantInfo.plan || 'Carregando...'}</Badge>

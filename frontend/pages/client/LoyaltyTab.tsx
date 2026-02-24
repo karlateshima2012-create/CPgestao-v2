@@ -11,14 +11,15 @@ interface LevelConfig {
    reward: string;
    points_per_visit: number;
    days_to_downgrade: number;
+   points_per_signup: number;
    active?: boolean;
 }
 
 const defaultLevels: LevelConfig[] = [
-   { name: 'Bronze', goal: 10, reward: '', points_per_visit: 1, days_to_downgrade: 0, active: true },
-   { name: 'Prata', goal: 20, reward: '', points_per_visit: 2, days_to_downgrade: 30, active: true },
-   { name: 'Ouro', goal: 30, reward: '', points_per_visit: 3, days_to_downgrade: 30, active: true },
-   { name: 'Diamante', goal: 50, reward: '', points_per_visit: 4, days_to_downgrade: 30, active: true }
+   { name: 'Bronze', goal: 10, reward: '', points_per_visit: 1, points_per_signup: 1, days_to_downgrade: 0, active: true },
+   { name: 'Prata', goal: 20, reward: '', points_per_visit: 2, points_per_signup: 1, days_to_downgrade: 30, active: true },
+   { name: 'Ouro', goal: 30, reward: '', points_per_visit: 3, points_per_signup: 1, days_to_downgrade: 30, active: true },
+   { name: 'Diamante', goal: 50, reward: '', points_per_visit: 4, points_per_signup: 1, days_to_downgrade: 30, active: true }
 ];
 
 interface LoyaltyTabProps {
@@ -137,15 +138,6 @@ export const LoyaltyTab: React.FC<LoyaltyTabProps> = ({ tenantPlan, contacts = [
                         />
                      </div>
 
-                     <div className="space-y-1.5">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Bônus de Cadastro</label>
-                        <input
-                           type="number"
-                           value={loyaltySettings.signup_bonus_points}
-                           onChange={e => setLoyaltySettings({ ...loyaltySettings, signup_bonus_points: parseInt(e.target.value) })}
-                           className="w-full h-10 px-4 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-[15px] font-bold text-sm outline-none focus:ring-2 focus:ring-primary-500/20 transition-all"
-                        />
-                     </div>
 
                   </div>
                </Card>
@@ -161,7 +153,12 @@ export const LoyaltyTab: React.FC<LoyaltyTabProps> = ({ tenantPlan, contacts = [
                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {loyaltySettings.levels_config.map((level, idx) => (
                      <Card key={idx} className={`p-6 border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden group ${level.active === false ? 'opacity-50 grayscale select-none' : ''}`}>
-                        <div className={`absolute top-0 left-0 w-2 h-full ${level.active === false ? 'bg-gray-300' : 'bg-primary-500/50'}`}></div>
+                        <div className={`absolute top-0 left-0 w-2 h-full ${level.active === false ? 'bg-gray-300' :
+                           idx === 0 ? 'bg-orange-400' :
+                              idx === 1 ? 'bg-slate-400' :
+                                 idx === 2 ? 'bg-yellow-400' :
+                                    'bg-cyan-400'
+                           }`}></div>
                         <div className="flex justify-between items-start mb-4">
                            <Badge
                               color={idx === 3 ? 'diamond' : idx === 2 ? 'gold' : idx === 1 ? 'silver' : 'bronze'}
@@ -205,6 +202,19 @@ export const LoyaltyTab: React.FC<LoyaltyTabProps> = ({ tenantPlan, contacts = [
                                  onChange={e => {
                                     const newLevels = [...loyaltySettings.levels_config];
                                     newLevels[idx].points_per_visit = parseInt(e.target.value) || 1;
+                                    setLoyaltySettings({ ...loyaltySettings, levels_config: newLevels });
+                                 }}
+                                 className="w-full h-10 px-4 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-[15px] font-bold text-sm outline-none focus:ring-2 focus:ring-primary-500/20"
+                              />
+                           </div>
+                           <div className="space-y-1.5">
+                              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Ponto por cadastro</label>
+                              <input
+                                 type="number"
+                                 value={level.points_per_signup}
+                                 onChange={e => {
+                                    const newLevels = [...loyaltySettings.levels_config];
+                                    newLevels[idx].points_per_signup = parseInt(e.target.value) || 0;
                                     setLoyaltySettings({ ...loyaltySettings, levels_config: newLevels });
                                  }}
                                  className="w-full h-10 px-4 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-[15px] font-bold text-sm outline-none focus:ring-2 focus:ring-primary-500/20"

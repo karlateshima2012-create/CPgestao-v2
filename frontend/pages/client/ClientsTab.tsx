@@ -39,16 +39,16 @@ export const ClientsTab: React.FC<ClientsTabProps> = ({ contacts, onEdit, onDele
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex justify-between items-center px-1">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-1">
         <div>
-          <h1 className="text-2xl font-black tracking-tight text-gray-900 dark:text-white uppercase tracking-widest text-[10px]">Base de Clientes</h1>
-          <p className="text-xs font-bold text-gray-500 dark:text-gray-400 mt-1 uppercase tracking-widest">Gerencie seu portfólio de {contacts.length} clientes</p>
+          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Base de Clientes</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1 text-lg text-left">Gerencie seu portfólio de {contacts.length} clientes.</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="secondary" onClick={onRefresh} className="h-10 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border-none bg-white dark:bg-gray-800 shadow-sm">
+          <Button variant="secondary" onClick={onRefresh} className="h-11 px-6 rounded-xl text-[11px] font-black uppercase tracking-widest border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-all">
             Atualizar
           </Button>
-          <Button onClick={onNew} className="h-10 px-5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-gray-900 text-white dark:bg-white dark:text-gray-900 shadow-lg shadow-gray-200 dark:shadow-black">
+          <Button onClick={onNew} className="h-11 px-6 rounded-xl text-[11px] font-black uppercase tracking-widest bg-primary-600 text-white shadow-lg shadow-primary-500/20 hover:bg-primary-700 transition-all">
             + Novo Cliente
           </Button>
         </div>
@@ -102,7 +102,9 @@ export const ClientsTab: React.FC<ClientsTabProps> = ({ contacts, onEdit, onDele
                             )}
                           </Badge>
                         </div>
-                        <span className="text-xs text-gray-400 font-medium mt-1 tracking-tight">{contact.phone}</span>
+                        <span className="text-xs text-gray-400 font-medium mt-1 tracking-tight">
+                          {(contact.phone || '').replace(/(\d{3})(\d{4})(\d{4})/, '$1 $2 $3')}
+                        </span>
                       </div>
                     </div>
                   </td>

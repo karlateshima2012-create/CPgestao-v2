@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Input, Badge, StatusModal } from '../../components/ui';
 import {
-    Smartphone, Plus, Monitor, ArrowUpCircle, Shield, Trash2, Copy,
-    ArrowDownLeft, Crown, Search, CheckCircle2, X, MessageCircle
+    Smartphone, Monitor, Copy,
+    ArrowDownLeft, Crown, Search, CheckCircle2, X, MessageCircle, HelpCircle
 } from 'lucide-react';
 import { Device, Contact, DeviceBatch, PlanType } from '../../types';
 import api from '../../services/api';
@@ -24,9 +24,10 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug, 
 
     // Totem State
     const [devices, setDevices] = useState<any[]>([]);
-    const [newDeviceData, setNewDeviceData] = useState({ name: '', mode: 'manual' });
     const [editingTelegram, setEditingTelegram] = useState<string | null>(null);
-    const [telegramData, setTelegramData] = useState({ chat_id: '', name: '' });
+    const [telegramData, setTelegramData] = useState({ chat_id: '' });
+    const [generalTelegramId, setGeneralTelegramId] = useState('');
+    const [isEditingGeneral, setIsEditingGeneral] = useState(false);
 
     // Cards State
     const [selectedBatch, setSelectedBatch] = useState<DeviceBatch | null>(null);
@@ -39,6 +40,7 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug, 
 
     useEffect(() => {
         fetchDevices();
+        fetchGeneralSettings();
         if (tenantPlan === PlanType.CLASSIC) {
             fetchBatches();
         }
@@ -53,63 +55,55 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug, 
         }
     }, []);
 
-    // --- Totem Methods ---
+    const fetchGeneralSettings = async () => {
+        try {
+            const res = await api.get('/client/settings');
+            setGeneralTelegramId(res.data.settings?.telegram_chat_id || '');
+        } catch (error) {
+            console.error('Error fetching general settings', error);
+        }
+    };
+
     const fetchDevices = async () => {
         try {
             const res = await api.get('/client/devices?type=default');
-            setDevices(res.data || []);
+            setDevices(Array.isArray(res.data) ? res.data : []);
         } catch (error) {
             console.error('Error fetching devices', error);
         }
     };
 
-    const handleCreateDevice = async () => {
+    const handleUpdateGeneralTelegram = async () => {
         setIsLoading(true);
         try {
-            await api.post('/client/devices', newDeviceData);
-            setModal({
-                isOpen: true, title: 'Totem Criado',
-                message: 'O novo totem foi registrado com sucesso.', type: 'success'
+            await api.patch('/client/settings', {
+                telegram_chat_id: generalTelegramId
             });
-            setNewDeviceData({ name: '', mode: 'manual' });
-            fetchDevices();
-        } catch (error: any) {
             setModal({
-                isOpen: true, title: 'Erro ao Criar',
-                message: error.response?.data?.message || 'Erro ao registrar o totem.', type: 'error'
+                isOpen: true, title: 'Configuração Salva',
+                message: 'O Chat ID para notificações gerais foi atualizado.', type: 'success'
+            });
+            setIsEditingGeneral(false);
+        } catch (error) {
+            setModal({
+                isOpen: true, title: 'Erro ao Salvar',
+                message: 'Não foi possível salvar o Chat ID.', type: 'error'
             });
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleDeleteDevice = async (deviceId: string) => {
-        if (!window.confirm('Tem certeza que deseja excluir este totem? Ele não funcionará mais.')) return;
-        try {
-            await api.delete(`/client/devices/${deviceId}`);
-            setModal({
-                isOpen: true, title: 'Totem Excluído',
-                message: 'O totem foi removido.', type: 'success'
-            });
-            fetchDevices();
-        } catch (error) {
-            setModal({
-                isOpen: true, title: 'Erro ao Excluir',
-                message: 'Não foi possível excluir o totem.', type: 'error'
-            });
-        }
-    };
 
     const handleUpdateTelegram = async (deviceId: string) => {
         setIsLoading(true);
         try {
             await api.put(`/client/devices/${deviceId}`, {
-                telegram_chat_id: telegramData.chat_id,
-                responsible_name: telegramData.name
+                telegram_chat_id: telegramData.chat_id
             });
             setModal({
-                isOpen: true, title: 'Telegram Configurado!',
-                message: 'O bot enviará notificações de aprovação de pontos para este chat.', type: 'success'
+                isOpen: true, title: 'Configuração Salva',
+                message: 'O Chat ID do Telegram foi atualizado com sucesso.', type: 'success'
             });
             setEditingTelegram(null);
             fetchDevices();
@@ -229,9 +223,61 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug, 
 
     return (
         <div className="space-y-6 animate-fade-in pb-12 w-full max-w-5xl mx-auto pt-6">
-            <div>
-                <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Gerenciar Dispositivos</h1>
-                <p className="text-gray-500 dark:text-gray-400 mt-1 text-lg">Configure os totens e liste os cartões vinculados a esta loja.</p>
+            {/* SESSSÃO: CONFIGURAÇÃO DE NOTIFICAÇÃO CENTRAL */}
+            <div className="bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 p-6 rounded-[15px] space-y-4">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h3 className="text-sm font-black text-blue-700 dark:text-blue-500 uppercase tracking-widest flex items-center gap-2">
+                            <MessageCircle className="w-5 h-5" /> ID para Aprovação de Pontos (Telegram)
+                        </h3>
+                        <p className="text-[10px] text-blue-600/70 font-bold mt-1">
+                            Este ID receberá os pedidos de aprovação dos Totens e Cartões NFC.
+                        </p>
+                    </div>
+                    {!isEditingGeneral && (
+                        <Button
+                            size="sm"
+                            variant="secondary"
+                            className="bg-white dark:bg-blue-900/40 text-blue-600 border-blue-200"
+                            onClick={() => setIsEditingGeneral(true)}
+                        >
+                            {generalTelegramId ? 'Alterar ID' : 'Configurar'}
+                        </Button>
+                    )}
+                </div>
+
+                {isEditingGeneral ? (
+                    <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30 space-y-3 animate-fade-in shadow-sm">
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Seu Chat ID do Telegram</label>
+                                <a
+                                    href="https://t.me/cpgestao_fidelidade_bot"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[9px] font-bold text-blue-500 hover:underline flex items-center gap-1 uppercase"
+                                >
+                                    <HelpCircle className="w-3 h-3" /> Abrir Bot e pegar ID
+                                </a>
+                            </div>
+                            <Input
+                                placeholder="Ex: 123456789"
+                                value={generalTelegramId}
+                                onChange={e => setGeneralTelegramId(e.target.value)}
+                            />
+                        </div>
+                        <div className="flex gap-2 justify-end">
+                            <Button size="sm" variant="secondary" onClick={() => { setIsEditingGeneral(false); fetchGeneralSettings(); }}>Cancelar</Button>
+                            <Button size="sm" onClick={handleUpdateGeneralTelegram} disabled={isLoading} className="bg-blue-600 text-white hover:bg-blue-700">Salvar ID</Button>
+                        </div>
+                    </div>
+                ) : generalTelegramId && (
+                    <div className="flex items-center gap-2 text-[11px] font-black">
+                        <span className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 px-3 py-1.5 rounded-lg border border-blue-200 dark:border-blue-800">
+                            ATIVO: {generalTelegramId}
+                        </span>
+                    </div>
+                )}
             </div>
 
             {/* SESSÃO: GERENCIAR TOTENS */}
@@ -242,42 +288,6 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug, 
                             <Smartphone className="w-5 h-5 text-primary-500" /> Gerenciar Totens
                         </h3>
                     </div>
-
-                    <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-[1rem] border border-gray-100 dark:border-gray-800">
-                        <h5 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                            <Plus className="w-4 h-4" /> Novo Totem (QR Code)
-                        </h5>
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <Input
-                                    label="Nome do Local"
-                                    placeholder="Ex: Balcão Principal"
-                                    value={newDeviceData.name}
-                                    onChange={(e) => setNewDeviceData({ ...newDeviceData, name: e.target.value.replace(/(?:^|\s)\S/g, a => a.toUpperCase()) })}
-                                />
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Modo de Operação</label>
-                                    <select
-                                        className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-[15px] px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 transition-all outline-none"
-                                        value={newDeviceData.mode}
-                                        onChange={(e) => setNewDeviceData({ ...newDeviceData, mode: e.target.value })}
-                                    >
-                                        <option value="manual">⚪ CLASSIC (Aprovação Manual c/ Cartão)</option>
-                                        <option value="approval">🔵 PRO (Aprovação Semi-Automática)</option>
-                                        <option value="auto_checkin">🟣 ELITE (Aprovação Automática)</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <Button
-                                className="w-full bg-blue-600 text-white py-3 font-bold"
-                                onClick={handleCreateDevice}
-                                disabled={isLoading || !newDeviceData.name}
-                            >
-                                {isLoading ? 'Registrando...' : 'Registrar Novo Totem'}
-                            </Button>
-                        </div>
-                    </div>
-
                     <div className="space-y-4">
                         <h4 className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
                             <Monitor className="w-4 h-4" /> Totens Ativos
@@ -291,90 +301,86 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug, 
                                 {devices.map((device) => (
                                     <div key={device.id} className="bg-gray-50 dark:bg-gray-800/30 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between group gap-4">
                                         <div className="flex items-center gap-3">
-                                            <div className={`p-2 rounded-xl ${device.mode === 'auto_checkin' ? 'bg-purple-100 text-purple-600' : 'bg-orange-100 text-orange-600'}`}>
-                                                {device.mode === 'auto_checkin' ? <ArrowUpCircle className="w-5 h-5" /> : <Shield className="w-5 h-5" />}
+                                            <div className="p-2 rounded-xl bg-blue-100 text-blue-600">
+                                                <Monitor className="w-5 h-5" />
                                             </div>
                                             <div>
                                                 <p className="font-bold text-gray-700 dark:text-gray-200">{device.name}</p>
-                                                <p className="text-[10px] text-gray-400 font-mono select-all">ID: {device.nfc_uid}</p>
+                                                <p className="text-[10px] text-gray-400 font-mono select-all uppercase">UID: {device.nfc_uid}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-4 justify-between md:justify-end">
                                             <div className="text-right">
-                                                <p className="text-[10px] font-black uppercase text-gray-400">Página do Totem</p>
+                                                <p className="text-[10px] font-black uppercase text-gray-400">Página do Terminal</p>
                                                 <button
                                                     onClick={() => {
                                                         if (tenantSlug) copyToClipboard(`${window.location.origin}/terminal/${tenantSlug}/${device.nfc_uid}`)
                                                     }}
                                                     className="text-xs text-blue-500 hover:underline flex items-center gap-1"
                                                 >
-                                                    <Copy className="w-3 h-3" /> Copiar Link
+                                                    <Copy className="w-3.5 h-3.5" /> Copiar Link
                                                 </button>
                                             </div>
-                                            <button
-                                                onClick={() => handleDeleteDevice(device.id)}
-                                                className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-colors"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
                                         </div>
 
-                                        {/* Telegram Settings for PRO (approval) mode Totems */}
-                                        {device.mode === 'approval' && (
-                                            <div className="w-full mt-2 pt-4 border-t border-gray-100 dark:border-gray-800">
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <p className="text-xs font-bold text-gray-500 flex items-center gap-1">
-                                                        <MessageCircle className="w-3.5 h-3.5 text-blue-500" /> Notificações Telegram
-                                                    </p>
-                                                    {editingTelegram !== device.id && (
-                                                        <button
-                                                            onClick={() => {
-                                                                setEditingTelegram(device.id);
-                                                                setTelegramData({ chat_id: device.telegram_chat_id || '', name: device.responsible_name || '' });
-                                                            }}
-                                                            className="text-[10px] text-blue-500 hover:underline font-bold uppercase tracking-widest"
-                                                        >
-                                                            {device.telegram_chat_id ? 'Editar Bot' : 'Configurar Bot'}
-                                                        </button>
-                                                    )}
-                                                </div>
-
-                                                {editingTelegram === device.id ? (
-                                                    <div className="bg-white dark:bg-gray-800 p-3 rounded-xl border border-blue-100 dark:border-blue-900/30 space-y-3 mt-2 animate-fade-in">
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                            <div>
-                                                                <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1 block">Nome do Responsável</label>
-                                                                <input
-                                                                    type="text" placeholder="Ex: Cadeira 1, João"
-                                                                    className="w-full text-xs p-2 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 outline-none focus:border-blue-500"
-                                                                    value={telegramData.name} onChange={e => setTelegramData({ ...telegramData, name: e.target.value.replace(/(?:^|\s)\S/g, a => a.toUpperCase()) })}
-                                                                />
-                                                            </div>
-                                                            <div>
-                                                                <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1 block">Chat ID do Telegram</label>
-                                                                <input
-                                                                    type="text" placeholder="Ex: 123456789"
-                                                                    className="w-full text-xs p-2 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 outline-none focus:border-blue-500"
-                                                                    value={telegramData.chat_id} onChange={e => setTelegramData({ ...telegramData, chat_id: e.target.value })}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex gap-2 justify-end">
-                                                            <Button size="sm" variant="secondary" onClick={() => setEditingTelegram(null)}>Cancelar</Button>
-                                                            <Button size="sm" onClick={() => handleUpdateTelegram(device.id)} disabled={isLoading}>Salvar</Button>
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    device.telegram_chat_id ? (
-                                                        <p className="text-[10px] text-gray-600 dark:text-gray-400 font-mono">
-                                                            Ativo para: {device.responsible_name || 'Desconhecido'} ({device.telegram_chat_id})
-                                                        </p>
-                                                    ) : (
-                                                        <p className="text-[10px] text-gray-400 italic">Nenhuma notificação configurada. O lojista não receberá alertas imediatos.</p>
-                                                    )
+                                        {/* Telegram Notification Management */}
+                                        <div className="w-full mt-2 pt-4 border-t border-gray-100 dark:border-gray-800">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <p className="text-xs font-bold text-gray-500 flex items-center gap-1">
+                                                    <MessageCircle className="w-3.5 h-3.5 text-blue-500" /> Notificação Telegram
+                                                </p>
+                                                {editingTelegram !== device.id && (
+                                                    <button
+                                                        onClick={() => {
+                                                            setEditingTelegram(device.id);
+                                                            setTelegramData({ chat_id: device.telegram_chat_id || '' });
+                                                        }}
+                                                        className="text-[10px] text-blue-500 hover:underline font-bold uppercase tracking-widest disabled:opacity-50"
+                                                    >
+                                                        {device.telegram_chat_id ? 'Alterar Chat ID' : 'Configurar Telegram'}
+                                                    </button>
                                                 )}
                                             </div>
-                                        )}
+
+                                            {editingTelegram === device.id ? (
+                                                <div className="bg-white dark:bg-gray-800 p-3 rounded-xl border border-blue-100 dark:border-blue-900/30 space-y-3 mt-2 animate-fade-in">
+                                                    <div className="space-y-2">
+                                                        <div className="flex items-center justify-between">
+                                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">ID de Notificação (Telegram)</label>
+                                                            <a
+                                                                href="https://t.me/cpgestao_fidelidade_bot"
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="text-[9px] font-bold text-blue-500 hover:underline flex items-center gap-1 uppercase"
+                                                            >
+                                                                <HelpCircle className="w-3 h-3" /> Como pegar meu ID?
+                                                            </a>
+                                                        </div>
+                                                        <Input
+                                                            placeholder="Ex: 123456789"
+                                                            value={telegramData.chat_id}
+                                                            onChange={e => setTelegramData({ chat_id: e.target.value })}
+                                                        />
+                                                    </div>
+                                                    <div className="flex gap-2 justify-end">
+                                                        <Button size="sm" variant="secondary" onClick={() => setEditingTelegram(null)}>Cancelar</Button>
+                                                        <Button size="sm" onClick={() => handleUpdateTelegram(device.id)} disabled={isLoading}>Salvar</Button>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                (device.telegram_chat_id && tenantPlan !== PlanType.CLASSIC) ? (
+                                                    <div className="flex items-center gap-4 text-[10px] font-medium text-gray-600 dark:text-gray-400">
+                                                        <span className="bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-md border border-blue-100 dark:border-blue-900/30">
+                                                            <b className="text-blue-500">CANAL ATIVO (CHAT ID):</b> {device.telegram_chat_id}
+                                                        </span>
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-[10px] text-gray-400 italic">
+                                                        Notificações desativadas para este totem.
+                                                    </p>
+                                                )
+                                            )}
+                                        </div>
                                     </div>
                                 ))}
                             </div>

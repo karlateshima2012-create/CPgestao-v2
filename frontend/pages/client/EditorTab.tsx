@@ -50,7 +50,11 @@ const ComboboxDate = ({ value, onChange, options = [], placeholder, isDay }: any
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [search, options, onChange, isDay, value]);
 
+  const selectedLabel = (options || []).find((o: any) => o.value === value)?.label;
+  const isExactMatch = search === selectedLabel;
+
   const filtered = (options || []).filter((o: any) =>
+    !search || isExactMatch ||
     (o.label || '').toLowerCase().includes((search || '').toLowerCase()) ||
     (o.value || '').includes(search || '')
   );
@@ -402,10 +406,19 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
 
   return (
     <div className="max-w-4xl mx-auto animate-fade-in pb-20 space-y-8 flex flex-col items-center">
-      <div className="w-full flex items-center justify-between">
+      <div className="w-full">
         <div className="flex items-center gap-4">
-          <button onClick={onCancel} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-full transition-colors"><ArrowLeft className="w-5 h-5" /></button>
-          <h1 className="text-2xl font-black">{selectedContact ? 'Ficha do Cliente' : 'Novo Cadastro'}</h1>
+          <button onClick={onCancel} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+            <ArrowLeft className="w-6 h-6 text-gray-400 hover:text-gray-900 dark:text-gray-500 dark:hover:text-white" />
+          </button>
+          <div>
+            <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+              {selectedContact ? 'Ficha do Cliente' : 'Novo Cadastro'}
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400 mt-1 text-lg">
+              {selectedContact ? 'Visualize e edite as informações do seu cliente.' : 'Cadastre um novo cliente no seu programa.'}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -425,7 +438,7 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
           </div>
           <div className="flex flex-col items-end text-right">
             <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Total Gasto</p>
-            <p className="text-3xl font-black">¥ {Number(formData.totalSpent || 0).toLocaleString()}</p>
+            <p className="text-3xl font-black">¥ {Number(formData.totalSpent || 0).toLocaleString('en-US')}</p>
           </div>
         </Card>
       )}
@@ -440,21 +453,23 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
           <Input label="CÓDIGO POSTAL" value={formData.postalCode || ''} onChange={e => setFormData(p => ({ ...p, postalCode: e.target.value }))} />
           <Input label="PROVÍNCIA" value={formData.province || ''} onChange={e => handleCapitalize('province', e.target.value)} />
           <Input label="CIDADE" value={formData.city || ''} onChange={e => handleCapitalize('city', e.target.value)} />
-          <div className="md:col-span-2"><Input label="ENDEREÇO" value={formData.address || ''} onChange={e => handleCapitalize('address', e.target.value)} /></div>
-          <div className="space-y-2">
+          <div className="md:col-span-3"><Input label="ENDEREÇO" value={formData.address || ''} onChange={e => handleCapitalize('address', e.target.value)} /></div>
+
+          <div className="md:col-span-1 space-y-2">
+            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">ORIGEM</label>
+            <select className="w-full h-11 px-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-[15px] font-bold text-sm" value={formData.source || ''} onChange={e => setFormData(p => ({ ...p, source: e.target.value }))}>
+              <option value="">Selecione...</option><option value="Indicação">Indicação</option><option value="Instagram">Instagram</option><option value="Facebook">Facebook</option><option value="Google">Google</option><option value="Outro">Outro</option>
+            </select>
+          </div>
+
+          <div className="md:col-span-2 space-y-2">
             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">NOTAS / OBSERVAÇÕES</label>
             <textarea
               value={formData.notes || ''}
               onChange={e => handleCapitalize('notes', e.target.value)}
               placeholder="Algum detalhe importante sobre este cliente..."
-              className="w-full h-24 p-4 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-[15px] font-medium text-sm outline-none focus:ring-2 focus:ring-primary-500/20 transition-all resize-none"
+              className="w-full h-11 p-3 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-[15px] font-medium text-sm outline-none focus:ring-2 focus:ring-primary-500/20 transition-all resize-none"
             />
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">ORIGEM</label>
-            <select className="w-full h-11 px-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-[15px] font-bold text-sm" value={formData.source || ''} onChange={e => setFormData(p => ({ ...p, source: e.target.value }))}>
-              <option value="">Selecione...</option><option value="Indicação">Indicação</option><option value="Instagram">Instagram</option><option value="Facebook">Facebook</option><option value="Google">Google</option><option value="Outro">Outro</option>
-            </select>
           </div>
         </div>
       </Card>
@@ -473,10 +488,10 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
           </div>
           <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 border border-gray-200 flex flex-col items-center">
             <p className="text-[10px] font-black text-gray-400 uppercase mb-1">Ticket Médio</p>
-            <p className="text-2xl font-black">¥{Number(formData.averageTicket || 0).toFixed(2)}</p>
+            <p className="text-2xl font-black">¥ {Number(formData.averageTicket || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           </div>
           <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 border border-gray-200 flex flex-col items-center">
-            <p className="text-[10px] font-black text-gray-400 uppercase mb-1">Atividades</p>
+            <p className="text-[10px] font-black text-gray-400 uppercase mb-1">Movimentações</p>
             <p className="text-2xl font-black">{formData.attendanceCount || 0}</p>
           </div>
         </div>
@@ -528,67 +543,75 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
             <div className="space-y-2">
               <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">MOTIVO DO LEMBRETE</label>
               <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 rounded-[15px] h-11 flex items-center px-4">
-                <input type="text" placeholder="Ex: Retornar para agendar serviço..." value={formData.reminderText || ''} onChange={e => setFormData(p => ({ ...p, reminderText: e.target.value }))} className="w-full bg-transparent text-sm font-bold outline-none" />
+                <input type="text" placeholder="..." value={formData.reminderText || ''} onChange={e => setFormData(p => ({ ...p, reminderText: e.target.value }))} className="w-full bg-transparent text-sm font-bold outline-none" />
               </div>
             </div>
           </div>
         </div>
       </Card>
 
-      <Card className="p-8 border border-gray-200 dark:border-gray-800 w-full rounded-[24px]">
-        <h3 className="text-sm font-black uppercase tracking-widest flex items-center justify-between mb-8">
-          <span className="flex items-center gap-2"><FileText className="w-5 h-5 text-gray-400" /> Movimentação</span>
-          {selectedContact && <Button onClick={() => setServiceModal(true)} className="h-8 px-4 text-[10px] bg-primary-500 text-white font-black uppercase rounded-[10px] shadow-lg shadow-primary-500/20 hover:scale-105 active:scale-95 transition-all">+ Novo</Button>}
-        </h3>
-        {!selectedContact ? <div className="text-center p-10 bg-gray-50 dark:bg-gray-800 rounded-[20px] border border-dashed border-gray-300"><p className="text-sm font-bold text-gray-500">Salve o cadastro primeiro.</p></div> : <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-          {!serviceHistory.length ? <div className="p-8 text-center bg-gray-50 dark:bg-gray-800 rounded-[20px] border border-gray-100"><p className="text-xs font-black text-gray-400 uppercase">Nenhum atendimento.</p></div> : <div className="flex flex-col gap-2">
-            {serviceHistory.map(r => (
-              <div key={r.id} className="group px-4 py-3 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-[15px] border border-gray-100 dark:border-gray-800 flex items-center gap-4 transition-all shadow-sm">
-                <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter bg-gray-50 dark:bg-gray-800 px-2 py-1 rounded-md shrink-0 ring-1 ring-gray-100 dark:ring-gray-700">
-                  {new Date(r.service_date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
-                </span>
-                <p className="font-bold text-sm text-gray-700 dark:text-gray-300 flex-1 truncate" title={r.service_name}>
-                  {r.service_name}
-                </p>
-                <div className="flex items-center gap-3 shrink-0">
-                  {r.payment_method && (
-                    <span className="text-[9px] font-black text-gray-400 uppercase bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded-md">
-                      {r.payment_method}
+      {selectedContact && (
+        <Card className="p-8 border border-gray-200 dark:border-gray-800 w-full rounded-[24px]">
+          <h3 className="text-sm font-black uppercase tracking-widest flex items-center justify-between mb-8">
+            <span className="flex items-center gap-2"><FileText className="w-5 h-5 text-gray-400" /> Movimentação</span>
+            <Button onClick={() => setServiceModal(true)} className="h-8 px-4 text-[10px] bg-primary-500 text-white font-black uppercase rounded-[10px] shadow-lg shadow-primary-500/20 hover:scale-105 active:scale-95 transition-all">+ Novo</Button>
+          </h3>
+          <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+            {!serviceHistory.length ? (
+              <div className="p-8 text-center bg-gray-50 dark:bg-gray-800 rounded-[20px] border border-gray-100">
+                <p className="text-xs font-black text-gray-400 uppercase">Nenhum atendimento.</p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {serviceHistory.map(r => (
+                  <div key={r.id} className="group px-4 py-3 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-[15px] border border-gray-100 dark:border-gray-800 flex items-center gap-4 transition-all shadow-sm">
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter bg-gray-50 dark:bg-gray-800 px-2 py-1 rounded-md shrink-0 ring-1 ring-gray-100 dark:ring-gray-700">
+                      {new Date(r.service_date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
                     </span>
-                  )}
-                  <p className="font-black text-sm text-gray-900 dark:text-white">
-                    ¥ {Math.floor(Number(r.amount)).toLocaleString('ja-JP')}
-                  </p>
+                    <p className="font-bold text-sm text-gray-700 dark:text-gray-300 flex-1 truncate" title={r.service_name}>
+                      {r.service_name}
+                    </p>
+                    <div className="flex items-center gap-3 shrink-0">
+                      {r.payment_method && (
+                        <span className="text-[9px] font-black text-gray-400 uppercase bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded-md">
+                          {r.payment_method}
+                        </span>
+                      )}
+                      <p className="font-black text-sm text-gray-900 dark:text-white">
+                        ¥ {Math.floor(Number(r.amount)).toLocaleString('ja-JP')}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {historyPagination.last_page > 1 && (
+              <div className="mt-6 flex items-center justify-between border-t border-gray-100 dark:border-gray-800 pt-4 px-2">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                  Página {historyPagination.current_page} de {historyPagination.last_page}
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    disabled={historyPagination.current_page === 1}
+                    onClick={() => selectedContact?.id && loadHistory(selectedContact.id, historyPagination.current_page - 1)}
+                    className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-gray-50 dark:bg-gray-800 text-gray-500 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    Anterior
+                  </button>
+                  <button
+                    disabled={historyPagination.current_page === historyPagination.last_page}
+                    onClick={() => selectedContact?.id && loadHistory(selectedContact.id, historyPagination.current_page + 1)}
+                    className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-gray-900 text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-black transition-colors"
+                  >
+                    Próximo
+                  </button>
                 </div>
               </div>
-            ))}
-          </div>}
-
-          {historyPagination.last_page > 1 && (
-            <div className="mt-6 flex items-center justify-between border-t border-gray-100 dark:border-gray-800 pt-4 px-2">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                Página {historyPagination.current_page} de {historyPagination.last_page}
-              </p>
-              <div className="flex gap-2">
-                <button
-                  disabled={historyPagination.current_page === 1}
-                  onClick={() => selectedContact?.id && loadHistory(selectedContact.id, historyPagination.current_page - 1)}
-                  className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-gray-50 dark:bg-gray-800 text-gray-500 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                >
-                  Anterior
-                </button>
-                <button
-                  disabled={historyPagination.current_page === historyPagination.last_page}
-                  onClick={() => selectedContact?.id && loadHistory(selectedContact.id, historyPagination.current_page + 1)}
-                  className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-gray-900 text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-black transition-colors"
-                >
-                  Próximo
-                </button>
-              </div>
-            </div>
-          )}
-        </div>}
-      </Card>
+            )}
+          </div>
+        </Card>
+      )}
 
       <div className="w-full pt-8 pb-12 border-t border-gray-100 dark:border-gray-800">
         <Button

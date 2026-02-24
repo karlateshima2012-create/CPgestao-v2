@@ -104,6 +104,7 @@ Route::prefix('public')->group(function () {
         Route::post('/redeem', [PublicTerminalController::class, 'redeem'])->middleware('throttle:20,1');
         Route::post('/register', [PublicTerminalController::class, 'register'])->middleware('throttle:10,1');
         Route::post('/link-vip', [PublicTerminalController::class, 'linkVip'])->middleware('throttle:10,1');
+        Route::get('/point-requests/{requestId}/status', [PublicTerminalController::class, 'getRequestStatus']);
     });
 
     // Alias endpoints for UID-less operations if called via /p/{slug} in front
@@ -112,6 +113,9 @@ Route::prefix('public')->group(function () {
         Route::post('/register', [PublicTerminalController::class, 'register']);
     });
 });
+
+// Webhooks
+Route::post('/webhooks/telegram', [\App\Http\Controllers\Webhooks\TelegramWebhookController::class, 'handle']);
 
 // =========================================================================
 // VIP CARD NFC ROUTES

@@ -7,8 +7,8 @@ export const VipPointHandler: React.FC = () => {
     // Extract uid from path: /vip/xxx
     const uid = window.location.pathname.split('/').pop() || '';
 
-    // modes: loading, owner_prompt, success, error, public_view
-    const [mode, setMode] = useState<'loading' | 'owner_prompt' | 'success' | 'error' | 'public_view'>('loading');
+    // modes: loading, owner_prompt, success, error, public_view, pending
+    const [mode, setMode] = useState<'loading' | 'owner_prompt' | 'success' | 'error' | 'public_view' | 'pending'>('loading');
     const [data, setData] = useState<any>(null);
     const [errorMsg, setErrorMsg] = useState('');
     const [loadingPoint, setLoadingPoint] = useState(false);
@@ -47,7 +47,12 @@ export const VipPointHandler: React.FC = () => {
                 new_balance: res.data.new_balance,
                 success_message: res.data.message
             });
-            setMode('success');
+
+            if (res.data.auto_approved === false) {
+                setMode('pending');
+            } else {
+                setMode('success');
+            }
         } catch (err: any) {
             setErrorMsg(err.response?.data?.error || 'Erro ao adicionar ponto.');
             setMode('error');
@@ -119,7 +124,7 @@ export const VipPointHandler: React.FC = () => {
                             isLoading={loadingPoint}
                             className="w-full h-14 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-2xl text-lg shadow-lg shadow-emerald-500/20"
                         >
-                            Confirmar +1 Ponto
+                            Confirmar +{data.points_to_add || 1} Ponto{data.points_to_add > 1 ? 's' : ''}
                         </Button>
                         <button
                             onClick={() => window.location.href = '/client'}
@@ -127,6 +132,31 @@ export const VipPointHandler: React.FC = () => {
                         >
                             Cancelar
                         </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (mode === 'pending') {
+        return (
+            <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4 font-sans text-white">
+                <div className="bg-slate-800 rounded-3xl p-8 max-w-sm w-full shadow-2xl space-y-6 animate-fade-in text-center border border-slate-700 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-2 bg-blue-500"></div>
+                    <div className="w-24 h-24 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto">
+                        <Smartphone className="w-14 h-14 text-blue-500 animate-pulse" />
+                    </div>
+                    <div className="space-y-2">
+                        <h2 className="text-2xl font-bold tracking-tight">Aguardando Aprovação</h2>
+                        <p className="text-slate-400 font-medium">Enviamos um pedido de confirmação para o Telegram do lojista.</p>
+                    </div>
+                    <div className="pt-2 w-full">
+                        <Button
+                            onClick={() => window.location.href = '/client'}
+                            className="w-full h-14 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-2xl"
+                        >
+                            Voltar ao Painel
+                        </Button>
                     </div>
                 </div>
             </div>

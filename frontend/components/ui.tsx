@@ -98,7 +98,7 @@ export const Badge: React.FC<{ children: React.ReactNode; color?: 'blue' | 'gree
     red: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
     yellow: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
     gray: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
-    bronze: 'bg-amber-100 text-amber-800 border border-amber-300 dark:bg-amber-900/50 dark:text-amber-300 dark:border-amber-700',
+    bronze: 'bg-orange-100 text-orange-900 border border-orange-200 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-800',
     silver: 'bg-slate-100 text-slate-700 border border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-600',
     gold: 'bg-yellow-100 text-yellow-800 border border-yellow-400 dark:bg-yellow-900/50 dark:text-yellow-400 dark:border-yellow-700',
     diamond: 'bg-cyan-100 text-cyan-800 border border-cyan-300 dark:bg-cyan-900/50 dark:text-cyan-300 dark:border-cyan-700',

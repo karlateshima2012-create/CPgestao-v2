@@ -63,12 +63,12 @@ export const PointRequestsTab: React.FC = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Solicitações Pendentes</h2>
-                    <p className="text-gray-500">Gerencie as solicitações de pontos dos seus clientes.</p>
+                    <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Solicitações Pendentes</h1>
+                    <p className="text-gray-500 dark:text-gray-400 mt-1 text-lg">Gerencie as solicitações de pontos dos seus clientes.</p>
                 </div>
-                <Button onClick={fetchRequests} variant="ghost" size="sm" className="text-primary-600">
+                <Button onClick={fetchRequests} className="h-11 px-6 rounded-xl text-[11px] font-black uppercase tracking-widest border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 text-gray-700 shadow-sm hover:shadow-md transition-all">
                     Atualizar Lista
                 </Button>
             </div>

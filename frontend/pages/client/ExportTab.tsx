@@ -81,12 +81,9 @@ export const ExportTab: React.FC<ExportTabProps> = ({ contacts, onExportSuccess 
 
   return (
     <div className="max-w-5xl mx-auto py-10 animate-fade-in">
-      <div className="text-center mb-12">
-        <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Download className="text-primary-600 w-8 h-8" />
-        </div>
-        <h2 className="text-2xl font-bold">Exportação de Dados</h2>
-        <p className="text-gray-500 text-sm">Prepare seus relatórios e backups.</p>
+      <div className="mb-12">
+        <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Exportação de Dados</h1>
+        <p className="text-lg text-gray-500 dark:text-gray-400 mt-1">Prepare seus relatórios e backups da base de clientes.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">

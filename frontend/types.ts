@@ -21,6 +21,7 @@ export interface Device {
   linked_customer_id?: string;
   customer?: Contact;
   uid_formatted?: string;
+  telegram_chat_id?: string;
 }
 
 export interface DeviceBatch {

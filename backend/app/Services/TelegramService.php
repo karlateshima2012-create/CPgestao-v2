@@ -34,7 +34,7 @@ class TelegramService
             $response = Http::post($url, [
                 'chat_id' => $settings->telegram_chat_id,
                 'text' => $message,
-                'parse_mode' => 'HTML',
+                'parse_mode' => 'MarkdownV2',
                 'disable_notification' => $disableNotification,
             ]);
 
@@ -49,7 +49,7 @@ class TelegramService
     /**
      * Send a notification to a specific Chat ID using the central app bot.
      */
-    public function sendDirectMessage(string $chatId, string $message, bool $disableNotification = false): void
+    public function sendDirectMessage(string $chatId, string $message, bool $disableNotification = false, $replyMarkup = null): void
     {
         $botToken = env('TELEGRAM_BOT_TOKEN');
 
@@ -61,12 +61,18 @@ class TelegramService
         try {
             $url = "https://api.telegram.org/bot{$botToken}/sendMessage";
             
-            $response = Http::post($url, [
+            $payload = [
                 'chat_id' => $chatId,
                 'text' => $message,
-                'parse_mode' => 'HTML',
+                'parse_mode' => 'MarkdownV2',
                 'disable_notification' => $disableNotification,
-            ]);
+            ];
+
+            if ($replyMarkup) {
+                $payload['reply_markup'] = json_encode($replyMarkup);
+            }
+
+            $response = Http::post($url, $payload);
 
             if ($response->failed()) {
                 Log::error("Telegram direct notification failed for chat {$chatId}: " . $response->body());
@@ -74,5 +80,69 @@ class TelegramService
         } catch (\Exception $e) {
             Log::error("Telegram direct notification exception for chat {$chatId}: " . $e->getMessage());
         }
+    }
+
+    /**
+     * Update an existing Telegram message (e.g., after a button click).
+     */
+    public function editMessage(string $chatId, int $messageId, string $text, $replyMarkup = null): void
+    {
+        $botToken = env('TELEGRAM_BOT_TOKEN');
+
+        if (!$botToken) return;
+
+        try {
+            $url = "https://api.telegram.org/bot{$botToken}/editMessageText";
+            
+            $payload = [
+                'chat_id' => $chatId,
+                'message_id' => $messageId,
+                'text' => $text,
+                'send_sound' => false,
+                'parse_mode' => 'MarkdownV2',
+            ];
+
+            if ($replyMarkup) {
+                $payload['reply_markup'] = json_encode($replyMarkup);
+            }
+
+            Http::post($url, $payload);
+        } catch (\Exception $e) {
+            Log::error("Telegram editMessage exception: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Answer a callback query to stop the loading spinner on the button.
+     */
+    public function answerCallbackQuery(string $callbackQueryId, string $text = '', bool $showAlert = false): void
+    {
+        $botToken = env('TELEGRAM_BOT_TOKEN');
+
+        if (!$botToken) return;
+
+        try {
+            $url = "https://api.telegram.org/bot{$botToken}/answerCallbackQuery";
+            
+            $payload = [
+                'callback_query_id' => $callbackQueryId,
+                'text' => $text,
+                'show_alert' => $showAlert,
+            ];
+
+            Http::post($url, $payload);
+        } catch (\Exception $e) {
+            Log::error("Telegram answerCallbackQuery exception: " . $e->getMessage());
+        }
+    }
+
+    public static function escapeMarkdownV2(string $text): string
+    {
+        $specialChars = ['\\', '_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!'];
+        $escapedChars = [];
+        foreach ($specialChars as $char) {
+            $escapedChars[] = '\\' . $char;
+        }
+        return str_replace($specialChars, $escapedChars, $text);
     }
 }

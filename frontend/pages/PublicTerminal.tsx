@@ -17,9 +17,12 @@ import {
   Target,
   ShieldCheck,
   X,
-  AlertCircle
+  AlertCircle,
+  Calendar,
+  MapPin
 } from 'lucide-react';
 import { terminalService } from '../services/api';
+import { PlanType } from '../types';
 
 const DefaultLogo: React.FC<{ className?: string }> = ({ className = "w-32 h-32" }) => (
   <div className={`grid grid-cols-4 grid-rows-4 gap-[8%] bg-white dark:bg-gray-800 p-6 rounded-[15px] shadow-inner ${className}`}>
@@ -45,7 +48,8 @@ type TerminalMode =
   | 'ERROR'
   | 'LOADING'
   | 'INVALID_DEVICE'
-  | 'REGISTER';
+  | 'REGISTER'
+  | 'WAITING_APPROVAL';
 
 interface PublicTerminalProps {
   slug?: string;
@@ -69,8 +73,25 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
     name: '',
     email: '',
     city: '',
-    province: ''
+    province: '',
+    postalCode: '',
+    address: '',
+    birthday: ''
   });
+  const [bDay, setBDay] = useState('');
+  const [bMonth, setBMonth] = useState('');
+
+  useEffect(() => {
+    if (bDay && bMonth) {
+      const monthMap: { [key: string]: string } = {
+        'Janeiro': '01', 'Fevereiro': '02', 'Março': '03', 'Abril': '04',
+        'Maio': '05', 'Junho': '06', 'Julho': '07', 'Agosto': '08',
+        'Setembro': '09', 'Outubro': '10', 'Novembro': '11', 'Dezembro': '12'
+      };
+      const mVal = monthMap[bMonth] || bMonth.padStart(2, '0');
+      setCustomerData(p => ({ ...p, birthday: `2000-${mVal}-${bDay.padStart(2, '0')}` }));
+    }
+  }, [bDay, bMonth]);
 
   const [loading, setLoading] = useState(false);
   const [modal, setModal] = useState<{
@@ -90,12 +111,43 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   const [qrToken, setQrToken] = useState<string | null>(null);
   const [tenantSlug, setTenantSlug] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [requestId, setRequestId] = useState<string | null>(null);
+  const [approvedData, setApprovedData] = useState<any>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
     if (token) setQrToken(token);
   }, []);
+
+  // Polling for Approval
+  useEffect(() => {
+    let interval: any;
+    if (mode === 'WAITING_APPROVAL' && requestId && tenantSlug && deviceUid) {
+      interval = setInterval(async () => {
+        try {
+          const res = await terminalService.getRequestStatus(tenantSlug, deviceUid, requestId);
+          if (res.data.status === 'approved') {
+            setApprovedData(res.data);
+            setMode('SUCCESS');
+            clearInterval(interval);
+          } else if (res.data.status === 'rejected') {
+            setModal({
+              isOpen: true,
+              title: 'Solicitação Recusada',
+              message: 'Sua solicitação não foi aprovada pelo gerente.',
+              type: 'error'
+            });
+            setMode('RESULT_CLIENT');
+            clearInterval(interval);
+          }
+        } catch (error) {
+          console.error('Polling error:', error);
+        }
+      }, 3000);
+    }
+    return () => clearInterval(interval);
+  }, [mode, requestId, tenantSlug, deviceUid]);
 
   const formatJapanesePhone = (val: string) => {
     const digits = val.replace(/\D/g, '').slice(0, 11);
@@ -236,15 +288,19 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
     try {
       const res = await terminalService.earn(tenantSlug, deviceUid, phone, qrToken);
       const isAuto = res.data.auto_approved;
-      setModal({
-        isOpen: true,
-        title: isAuto ? 'Ponto Adicionado!' : 'Solicitação Enviada!',
-        message: isAuto
-          ? `SENSACIONAL! ${res.data.points_earned} PONTO ADICIONADO COM SUCESSO!`
-          : `SOLICITAÇÃO DE ${res.data.points_earned} PONTO(S) ENVIADA PARA APROVAÇÃO.`,
-        type: 'success'
-      });
-      setMode(isAuto ? 'AUTO_SUCCESS' : 'SUCCESS');
+      setRequestId(res.data.request_id);
+      if (isAuto) {
+        setApprovedData({
+          customer_name: foundCustomer.name,
+          points_balance: res.data.new_balance,
+          loyalty_level_name: foundCustomer.loyalty_level_name,
+          points_goal: storeInfo?.levels_config?.[foundCustomer.loyalty_level || 0]?.goal || storeInfo.points_goal,
+          tenant_name: storeInfo.name
+        });
+        setMode('AUTO_SUCCESS');
+      } else {
+        setMode('WAITING_APPROVAL');
+      }
 
       // Clear token after use if it was used successfully
       if (qrToken) setQrToken(null);
@@ -265,15 +321,19 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
     try {
       const res = await terminalService.redeem(tenantSlug, deviceUid, phone);
       const isAuto = res.data.auto_approved;
-      setModal({
-        isOpen: true,
-        title: isAuto ? 'Prêmio Resgatado!' : 'Resgate Solicitado!',
-        message: isAuto
-          ? (res.data.message || 'O prêmio foi processado e o saldo atualizado com sucesso!')
-          : 'Sua solicitação de resgate foi enviada para o gerente. Aguarde a confirmação no balcão.',
-        type: 'success'
-      });
-      setMode(isAuto ? 'AUTO_SUCCESS' : 'SUCCESS');
+      setRequestId(res.data.request_id);
+      if (isAuto) {
+        setApprovedData({
+          customer_name: foundCustomer.name,
+          points_balance: res.data.new_balance,
+          loyalty_level_name: foundCustomer.loyalty_level_name,
+          points_goal: storeInfo?.levels_config?.[foundCustomer.loyalty_level || 0]?.goal || storeInfo.points_goal,
+          tenant_name: storeInfo.name
+        });
+        setMode('AUTO_SUCCESS');
+      } else {
+        setMode('WAITING_APPROVAL');
+      }
     } catch (error: any) {
       setModal({
         isOpen: true,
@@ -310,7 +370,10 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         phone: phone,
         email: customerData.email,
         city: customerData.city,
-        province: customerData.province
+        province: customerData.province,
+        postal_code: customerData.postalCode,
+        address: customerData.address,
+        birthday: customerData.birthday
       });
       setModal({
         isOpen: true,
@@ -320,10 +383,19 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
       });
       handleLookup();
     } catch (error: any) {
+      let msg = error.response?.data?.message || 'Não foi possível completar seu cadastro agora.';
+
+      // Tradução simples de erros comuns do Laravel
+      if (msg.includes('The phone field is required')) msg = 'O campo telefone é obrigatório.';
+      if (msg.includes('The name field is required')) msg = 'O campo nome é obrigatório.';
+      if (msg.includes('The city field is required')) msg = 'O campo cidade é obrigatório.';
+      if (msg.includes('The email has already been taken')) msg = 'Este e-mail já está cadastrado.';
+      if (msg.includes('The selected phone is invalid')) msg = 'O telefone informado é inválido.';
+
       setModal({
         isOpen: true,
         title: 'Erro no Cadastro',
-        message: error.response?.data?.message || 'Não foi possível completar seu cadastro agora.',
+        message: msg,
         type: 'error'
       });
     } finally {
@@ -335,8 +407,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
   const reset = () => {
     setMode('CONSULT');
-    setPhone('');
-    setCustomerData({ name: '', email: '', city: '', province: '' });
+    setCustomerData({ name: '', email: '', city: '', province: '', postalCode: '', address: '', birthday: '' });
+    setBDay('');
+    setBMonth('');
     setFoundCustomer(null);
     setLoading(false);
   };
@@ -466,7 +539,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             </div>
 
             <div className="text-center">
-              <Badge className="font-semibold uppercase tracking-wide" color={foundCustomer.is_vip ? 'purple' : 'gray'}>
+              <Badge className="font-semibold uppercase tracking-wide" color="gray">
                 {storeInfo?.levels_config && storeInfo.levels_config[foundCustomer.loyalty_level || 0]
                   ? storeInfo.levels_config[foundCustomer.loyalty_level || 0].name
                   : (foundCustomer.is_vip ? 'Cliente VIP' : 'Cliente Padrão')}
@@ -491,7 +564,27 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             </div>
 
             <div className="pt-6">
-              {storeInfo.device_mode === 'manual' ? (
+              {storeInfo.tenant_plan === PlanType.CLASSIC ? (
+                <div className="text-center p-6 bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-100 dark:border-amber-900/30 space-y-4">
+                  <div className="flex justify-center flex-col items-center gap-2">
+                    <p className="text-sm font-bold text-amber-700 dark:text-amber-400">TOTEM INFORMATIVO</p>
+                    <p className="text-sm font-medium text-amber-600 dark:text-amber-500 leading-relaxed">
+                      Este terminal é apenas para consulta. Para ganhar seus pontos ou resgatar prêmios, por favor consulte o atendente no balcão.
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => {
+                      const domain = window.location.host.includes('.cp-fidelidade.com')
+                        ? 'cp-fidelidade.com'
+                        : window.location.host.split('.').slice(-2).join('.');
+                      window.open(`https://${storeInfo.slug}.${domain}`, '_blank');
+                    }}
+                    className="w-full h-12 bg-slate-800 text-white font-bold rounded-xl"
+                  >
+                    Visitar Página Pública da Loja
+                  </Button>
+                </div>
+              ) : storeInfo.device_mode === 'manual' ? (
                 <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
                   <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
                     Apresente seu Cartão VIP ou informe seu telefone ao atendente para pontuar ou resgatar prêmios.
@@ -500,7 +593,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               ) : (
                 <div className="grid grid-cols-2 gap-3">
                   <Button variant="secondary" onClick={() => handleAction('earn')} isLoading={loading} className="h-14 bg-slate-800 text-white hover:bg-slate-700 rounded-[15px] font-bold text-sm transition-colors">
-                    <Trophy className="w-4 h-4 mr-2" /> {storeInfo.device_mode === 'auto_checkin' ? 'Check-in' : 'Solicitar Ponto'}
+                    <Trophy className="w-4 h-4 mr-2" /> {storeInfo.device_mode === 'auto_checkin' || storeInfo.tenant_plan === PlanType.UNLIMITED ? 'Check-in' : 'Solicitar Ponto'}
                   </Button>
                   <Button variant="secondary" onClick={() => handleAction('redeem')} isLoading={loading} className="h-14 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-slate-100 border border-slate-200 dark:border-slate-700 rounded-[15px] font-bold text-sm transition-colors">
                     <Gift className="w-4 h-4 mr-2" /> Resgatar
@@ -536,63 +629,116 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 </div>
                 <div className="space-y-4">
                   <Input
-                    label="Seu Nome *"
+                    label="Nome Completo *"
                     placeholder="Ex: João Silva"
                     value={customerData.name}
                     onChange={e => setCustomerData({ ...customerData, name: normalizeText(e.target.value) })}
-                    className="h-12 rounded-[15px]"
-                  />
-                  <Input
-                    label="E-mail (Opcional)"
-                    type="email"
-                    placeholder="seu@email.com"
-                    value={customerData.email}
-                    onChange={e => setCustomerData({ ...customerData, email: e.target.value })}
-                    className="h-12 rounded-[15px]"
+                    className="h-12 rounded-[15px] focus:ring-slate-300"
                   />
                   <div className="grid grid-cols-2 gap-3">
                     <Input
-                      label="Cidade"
-                      placeholder="Sua Cidade"
-                      value={customerData.city}
-                      onChange={e => setCustomerData({ ...customerData, city: normalizeText(e.target.value) })}
-                      className="h-12 rounded-[15px]"
+                      label="Seu Telefone *"
+                      placeholder="090-0000-0000"
+                      value={phone}
+                      onChange={e => setPhone(formatJapanesePhone(e.target.value))}
+                      className="h-11 rounded-[15px] bg-slate-100 border-transparent font-black focus:ring-slate-300"
                     />
+                    <Input
+                      label="E-mail"
+                      type="email"
+                      placeholder="seu@email.com"
+                      value={customerData.email}
+                      onChange={e => setCustomerData({ ...customerData, email: e.target.value })}
+                      className="h-11 rounded-[15px] focus:ring-slate-300"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 text-slate-400">ANIVERSÁRIO (OPCIONAL)</label>
+                      <div className="flex gap-2">
+                        <div className="flex-1 relative">
+                          <input
+                            list="days"
+                            placeholder="Dia"
+                            className="w-full h-11 px-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[15px] text-sm font-bold outline-none text-slate-600 focus:ring-2 focus:ring-slate-300 transition-all"
+                            value={bDay}
+                            onChange={e => {
+                              const v = e.target.value.replace(/\D/g, '').slice(0, 2);
+                              if (parseInt(v) > 31) return;
+                              setBDay(v);
+                            }}
+                          />
+                          <datalist id="days">
+                            {Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2, '0')).map(d => <option key={d} value={d} />)}
+                          </datalist>
+                        </div>
+                        <div className="flex-1 relative">
+                          <input
+                            list="months"
+                            placeholder="Mês"
+                            className="w-full h-11 px-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[15px] text-sm font-bold outline-none text-slate-600 focus:ring-2 focus:ring-slate-300 transition-all"
+                            value={bMonth}
+                            onChange={e => setBMonth(e.target.value)}
+                          />
+                          <datalist id="months">
+                            {['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'].map(m => <option key={m} value={m} />)}
+                          </datalist>
+                        </div>
+                      </div>
+                    </div>
+                    <Input
+                      label="Código Postal"
+                      placeholder="000-0000"
+                      value={customerData.postalCode}
+                      onChange={e => setCustomerData({ ...customerData, postalCode: e.target.value })}
+                      className="h-11 rounded-[15px] focus:ring-slate-300"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
                     <Input
                       label="Província"
                       placeholder="Ex: Aichi"
                       value={customerData.province}
                       onChange={e => setCustomerData({ ...customerData, province: normalizeText(e.target.value) })}
-                      className="h-12 rounded-[15px]"
+                      className="h-11 rounded-[15px] focus:ring-slate-300"
+                    />
+                    <Input
+                      label="Cidade"
+                      placeholder="Sua Cidade"
+                      value={customerData.city}
+                      onChange={e => setCustomerData({ ...customerData, city: normalizeText(e.target.value) })}
+                      className="h-11 rounded-[15px] focus:ring-slate-300"
                     />
                   </div>
+
                   <Input
-                    label="Seu Telefone *"
-                    placeholder="090-0000-0000"
-                    value={phone}
-                    onChange={e => setPhone(formatJapanesePhone(e.target.value))}
-                    className="h-12 rounded-[15px] bg-slate-50 border-transparent"
-                    readOnly
+                    label="Endereço"
+                    placeholder="Nome da rua, número, apto..."
+                    value={customerData.address}
+                    onChange={e => setCustomerData({ ...customerData, address: normalizeText(e.target.value) })}
+                    className="h-11 rounded-[15px] focus:ring-slate-300"
                   />
                 </div>
                 <Button
                   type="submit"
                   isLoading={loading}
                   variant="secondary"
-                  className="w-full h-14 bg-slate-800 text-white hover:bg-slate-700 rounded-[15px] font-bold shadow-lg shadow-slate-900/10 transition-colors"
+                  className="w-full h-14 bg-slate-500 hover:bg-slate-600 text-white rounded-[20px] font-black uppercase tracking-widest shadow-lg shadow-slate-500/10 transition-all transform active:scale-[0.98]"
                   onClick={(e) => {
                     if (!customerData.name) {
                       e.preventDefault();
                       setModal({
                         isOpen: true,
                         title: 'Campos Obrigatórios',
-                        message: 'Por favor, preencha seu nome e cidade.',
+                        message: 'Por favor, preencha o seu nome.',
                         type: 'info'
                       });
                     }
                   }}
                 >
-                  Finalizar Cadastro
+                  CADASTRAR
                 </Button>
               </form>
             </div>
@@ -600,42 +746,90 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         }
 
         {
-          mode === 'SUCCESS' && (
-            <div className="bg-white dark:bg-slate-900 rounded-xl p-8 shadow-xl border border-slate-100 dark:border-slate-800 text-center py-10 animate-fade-in space-y-6">
-              <div className="w-24 h-24 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto">
-                <CheckCircle2 className="w-12 h-12 text-slate-800 dark:text-white" />
+          mode === 'WAITING_APPROVAL' && (
+            <div className="bg-white dark:bg-slate-900 rounded-xl p-8 shadow-xl border border-slate-100 dark:border-slate-800 text-center py-12 animate-fade-in space-y-8">
+              <div className="relative mx-auto w-24 h-24">
+                <div className="absolute inset-0 bg-blue-500/20 rounded-full animate-ping"></div>
+                <div className="relative w-24 h-24 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center border-4 border-blue-100 dark:border-blue-900/30">
+                  <Smartphone className="w-10 h-10 text-blue-500 animate-bounce" />
+                </div>
               </div>
-              <div className="space-y-1">
-                <h2 className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight leading-tight mb-2">Operação Concluída!</h2>
-                <p className="text-sm text-slate-500 font-medium mx-auto">O saldo do cliente foi atualizado com sucesso.</p>
+              <div className="space-y-3">
+                <h2 className="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tighter">Aguardando Aprovação</h2>
+                <p className="text-sm text-slate-600 dark:text-slate-400 font-medium max-w-[280px] mx-auto leading-relaxed">
+                  Sua solicitação foi enviada para o gerente. Confirme no balcão para ganhar seu ponto!
+                </p>
               </div>
-              <div className="pt-4">
-                <Button variant="secondary" onClick={reset} className="px-8 h-12 font-bold bg-slate-800 hover:bg-slate-700 text-white rounded-[15px] transition-colors">
-                  Fechar
-                </Button>
+              <div className="flex justify-center gap-2">
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
               </div>
             </div>
           )
         }
 
-        {
-          mode === 'AUTO_SUCCESS' && (
-            <div className="bg-white dark:bg-slate-900 rounded-xl p-8 shadow-xl border border-slate-100 dark:border-slate-800 text-center py-10 animate-fade-in space-y-6">
-              <div className="w-24 h-24 bg-emerald-50 dark:bg-emerald-900/20 rounded-full flex items-center justify-center mx-auto border-4 border-emerald-100 dark:border-emerald-800">
-                <CheckCircle2 className="w-12 h-12 text-emerald-500" />
-              </div>
-              <div className="space-y-1">
-                <h2 className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 tracking-tight leading-tight mb-2">Sucesso!</h2>
-                <p className="text-sm text-slate-500 font-medium mx-auto">Sua operação foi aprovada automaticamente.</p>
-              </div>
-              <div className="pt-4">
-                <Button variant="secondary" onClick={reset} className="px-8 h-12 font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-[15px] transition-colors">
-                  Fechar
-                </Button>
-              </div>
+        {(mode === 'SUCCESS' || mode === 'AUTO_SUCCESS') && approvedData && (
+          <div className="bg-white dark:bg-slate-900 rounded-xl p-8 shadow-2xl border border-slate-100 dark:border-slate-800 text-center py-10 animate-fade-in relative overflow-hidden">
+            {/* Background Decorative Element */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-green-500/5 rounded-full blur-3xl -z-10"></div>
+
+            <div className="w-24 h-24 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-green-100 dark:border-green-900/30">
+              <CheckCircle2 className="w-12 h-12 text-green-500" />
             </div>
-          )
-        }
+
+            <div className="space-y-2 mb-8">
+              <h2 className="text-3xl font-black text-slate-800 dark:text-white tracking-tighter uppercase italic">🎉 Ponto Confirmado!</h2>
+              <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
+                Parabéns, <span className="text-slate-800 dark:text-white">{approvedData.customer_name}</span>! Seu ponto foi registrado com sucesso.
+              </p>
+            </div>
+
+            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 space-y-6 mb-8">
+              <div className="space-y-1">
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center justify-center gap-1">
+                  <Target className="w-3 h-3" /> Seu Progresso Atual
+                </h3>
+                <div className="flex items-baseline justify-center gap-1">
+                  <span className="text-5xl font-black text-slate-800 dark:text-white tracking-tighter">{approvedData.points_balance}</span>
+                  <span className="text-sm font-bold text-slate-400 uppercase">pontos</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 flex flex-col items-center gap-1 shadow-sm">
+                  <Trophy className="w-4 h-4 text-amber-500" />
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Nível</span>
+                  <span className="text-xs font-bold text-slate-800 dark:text-white">{approvedData.loyalty_level_name}</span>
+                </div>
+                <div className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 flex flex-col items-center gap-1 shadow-sm">
+                  <Gift className="w-4 h-4 text-blue-500" />
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Faltam</span>
+                  <span className="text-xs font-bold text-slate-800 dark:text-white">{Math.max(0, approvedData.points_goal - approvedData.points_balance)} pontos</span>
+                </div>
+              </div>
+
+              <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-slate-800 dark:bg-slate-100 transition-all duration-1000"
+                  style={{ width: `${Math.min(100, (approvedData.points_balance / approvedData.points_goal) * 100)}%` }}
+                ></div>
+              </div>
+
+              <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 italic">
+                🎁 Faltam apenas {Math.max(0, approvedData.points_goal - approvedData.points_balance)} pontos para você desbloquear o seu próximo prêmio!
+              </p>
+            </div>
+
+            <p className="text-xs font-medium text-slate-400 mb-6 px-4">
+              Agradecemos a sua visita na <span className="font-bold text-slate-600 dark:text-slate-300">{approvedData.tenant_name}</span>!
+            </p>
+
+            <Button variant="secondary" onClick={reset} className="w-full h-14 font-black uppercase tracking-widest bg-slate-800 hover:bg-slate-700 text-white rounded-[15px] shadow-lg shadow-slate-900/20 transition-all">
+              Tirar essa tela
+            </Button>
+          </div>
+        )}
 
         {
           mode === 'ERROR' && (
@@ -682,7 +876,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             title={modal.title}
             message={modal.message}
             type={modal.type}
-            theme="accent"
+            theme="neutral"
             onClose={() => {
               setModal(prev => ({ ...prev, isOpen: false }));
               if (mode === 'SUCCESS' || mode === 'AUTO_SUCCESS') {

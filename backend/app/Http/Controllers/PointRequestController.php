@@ -59,6 +59,8 @@ class PointRequestController extends Controller
             'approved_at' => now(),
         ]);
 
+        event(new \App\Events\PointRequestStatusUpdated($request));
+
         return ApiResponse::ok($request, 'Solicitação aprovada com sucesso.');
     }
 
@@ -79,6 +81,8 @@ class PointRequestController extends Controller
             'approved_by' => Auth::id(),
             'approved_at' => now(), // Still use approved_at as processed_at
         ]);
+
+        event(new \App\Events\PointRequestStatusUpdated($request));
 
         return ApiResponse::ok($request, 'Solicitação recusada.');
     }

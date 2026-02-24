@@ -23,6 +23,10 @@ class VipCardController extends Controller
 
     public function resolve(Request $request, $uid)
     {
+        if (!\App\Utils\Luhn::validate($uid)) {
+            return ApiResponse::error('Cartão inválido.', 'INVALID_CARD', 400);
+        }
+
         // Ignorar escopo global pois usuários públicos/deslogados podem acessar
         $card = LoyaltyCard::withoutGlobalScopes()->where('uid', $uid)->where('type', 'premium')->first();
 
@@ -30,6 +34,7 @@ class VipCardController extends Controller
             return ApiResponse::error('Cartão não encontrado.', 'CARD_NOT_FOUND', 404);
         }
 
+        $tenant = $card->tenant;
         if (!$tenant || !$tenant->active) {
             return ApiResponse::error('Loja indisponível.', 'TENANT_INACTIVE', 403);
         }
@@ -74,11 +79,28 @@ class VipCardController extends Controller
             ],
             'goal' => $tenant->points_goal,
             'card_uid' => $card->uid,
+            'points_to_add' => $this->calculatePointsToAdd($customer, $tenant)
         ]);
+    }
+
+    protected function calculatePointsToAdd($customer, $tenant)
+    {
+        $loyalty = $tenant->loyaltySettings;
+        $currentLevel = $customer->loyalty_level ?? 0;
+        $levelsConfig = $loyalty ? $loyalty->levels_config : null;
+
+        if (is_array($levelsConfig) && isset($levelsConfig[$currentLevel]) && isset($levelsConfig[$currentLevel]['points_per_visit'])) {
+            return (int) $levelsConfig[$currentLevel]['points_per_visit'];
+        }
+        return $loyalty ? ($loyalty->vip_points_per_scan ?? 2) : 2;
     }
 
     public function addPoint(Request $request, $uid)
     {
+        if (!\App\Utils\Luhn::validate($uid)) {
+            return ApiResponse::error('Cartão inválido.', 'INVALID_CARD', 400);
+        }
+
         // Rota protegida auth:sanctum & role:client. BelongsToTenant ativo automaticamente.
         $card = LoyaltyCard::where('uid', $uid)->where('type', 'premium')->first();
 
@@ -95,37 +117,79 @@ class VipCardController extends Controller
             $tenant = $card->tenant;
             
             $loyalty = $tenant->loyaltySettings;
-            $pointsToAdd = $loyalty ? ($loyalty->vip_points_per_scan ?? 2) : 2;
+            $pointsToAdd = 1;
+
+            $currentLevel = $customer->loyalty_level ?? 0;
+            $levelsConfig = $loyalty ? $loyalty->levels_config : null;
+
+            if (is_array($levelsConfig) && isset($levelsConfig[$currentLevel]) && isset($levelsConfig[$currentLevel]['points_per_visit'])) {
+                $pointsToAdd = (int) $levelsConfig[$currentLevel]['points_per_visit'];
+            } else {
+                $pointsToAdd = $loyalty ? ($loyalty->vip_points_per_scan ?? 2) : 2;
+            }
 
             $requestRecord = $this->createPointRequest([
                 'tenant_id' => $tenant->id,
                 'customer_id' => $customer->id,
                 'phone' => $customer->phone,
                 'device_id' => null,
-                'source' => 'nfc_scan_classic', // Identificador da origem
+                'source' => 'nfc_scan', 
                 'status' => 'pending',
                 'requested_points' => $pointsToAdd,
                 'meta' => ['is_nfc_scan' => true]
             ]);
 
-            // Auto-aprova pois é o lojista quem está encostando o cartão
-            $this->pointRequestService->applyPoints($requestRecord);
-            $requestRecord->update(['status' => 'auto_approved', 'approved_at' => now()]);
+            $isElite = (strtolower($tenant->plan) === 'elite');
             
-            $customer->update(['last_activity_at' => now()]);
-            
-            $newBalance = $customer->fresh()->points_balance;
-            
-            $msg = "+ {$pointsToAdd} pontos computados com sucesso!";
-            if ($newBalance >= $tenant->points_goal) {
-                $msg .= " 🎉 A meta foi atingida!";
+            if ($isElite) {
+                // Elite matches Requirement 3: Auto-credit without Telegram
+                $this->pointRequestService->applyPoints($requestRecord);
+                $requestRecord->update(['status' => 'auto_approved', 'approved_at' => now()]);
+                
+                event(new \App\Events\PointRequestStatusUpdated($requestRecord));
+
+                $customer->update(['last_activity_at' => now()]);
+                $newBalance = $customer->fresh()->points_balance;
+                
+                return ApiResponse::ok([
+                    'points_earned' => $pointsToAdd,
+                    'new_balance' => $newBalance,
+                    'message' => "+ {$pointsToAdd} pontos computados com sucesso!",
+                    'auto_approved' => true
+                ]);
+            } else {
+                // Classic/Pro follows Requirement 2: Send Telegram Inline Keyboard
+                $settings = \App\Models\TenantSetting::where('tenant_id', $tenant->id)->first();
+                $chatId = $settings ? $settings->telegram_chat_id : null;
+
+                if ($chatId) {
+                    $escName = TelegramService::escapeMarkdownV2($customer->name);
+                    $message = "💳 *Leitura de Cartão\!*\n\n"
+                             . "Deseja confirmar *{$pointsToAdd} ponto\(s\)* para o cliente *{$escName}*?";
+
+                    $replyMarkup = [
+                        'inline_keyboard' => [
+                            [
+                                ['text' => '✅ APROVAR', 'callback_data' => "approve_request:{$requestRecord->id}"],
+                                ['text' => '❌ RECUSAR', 'callback_data' => "reject_request:{$requestRecord->id}"]
+                            ]
+                        ]
+                    ];
+
+                    $this->telegramService->sendDirectMessage($chatId, $message, false, $replyMarkup);
+                    
+                    return ApiResponse::ok([
+                        'request_id' => $requestRecord->id,
+                        'message' => 'Solicitação de pontuação enviada para o Telegram.',
+                        'auto_approved' => false
+                    ]);
+                } else {
+                    // Fallback to auto-approve if no telegram set? 
+                    // Actually, the requirement says it MUST use telegram. 
+                    // But if they haven't set it up, let's at least not break the flow or inform them.
+                    return ApiResponse::error('ID de Notificação Telegram não configurado.', 'TELEGRAM_NOT_CONFIGURED', 400);
+                }
             }
-            
-            return ApiResponse::ok([
-                'points_earned' => $pointsToAdd,
-                'new_balance' => $newBalance,
-                'message' => $msg
-            ]);
         });
     }
 
