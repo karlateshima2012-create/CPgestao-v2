@@ -1,4 +1,4 @@
-name: Debug Server Paths
+name: Find Project Root
 
 on:
   push:
@@ -6,10 +6,10 @@ on:
       - master
 
 jobs:
-  debug_paths:
+  find_root:
     runs-on: ubuntu-latest
     steps:
-      - name: SSH and List Folders
+      - name: Search for Artisan
         uses: appleboy/ssh-action@master
         with:
           host: 46.202.186.144
@@ -17,13 +17,11 @@ jobs:
           password: ${{ secrets.HOSTINGER_PASSWORD }}
           port: 65002
           script: |
-            echo "--- PWD ---"
-            pwd
-            echo "--- LS RAÍZ ---"
-            ls -F
-            echo "--- LS domains/ ---"
-            ls -F domains/ 2>/dev/null || echo "domains/ não encontrado"
-            echo "--- LS public_html/ ---"
-            ls -F public_html/ 2>/dev/null || echo "public_html/ não encontrado"
-            echo "--- BUSCANDO BACKEND ---"
-            find . -name "backend" -type d -maxdepth 5
+            echo "--- BUSCANDO ARTISAN ---"
+            find . -name "artisan" -maxdepth 6
+            
+            echo "--- ESTRUTURA domains/creativeprintjp.com ---"
+            ls -F domains/creativeprintjp.com/ 2>/dev/null || echo "not found"
+            
+            echo "--- ESTRUTURA domains/creativeprintjp.com/public_html ---"
+            ls -F domains/creativeprintjp.com/public_html/ 2>/dev/null || echo "not found"
