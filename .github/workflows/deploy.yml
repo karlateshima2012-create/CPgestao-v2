@@ -1,4 +1,4 @@
-name: Comprehensive Deploy CPgestao
+name: Build and Sync Deploy - CPgestao
 
 on:
   push:
@@ -6,10 +6,69 @@ on:
       - master
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Execute Deploy via SSH
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build Frontend
+        working-directory: ./frontend
+        run: |
+          npm install
+          npm run build
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_pgsql, pgsql
+          coverage: none
+
+      - name: Install Backend Dependencies
+        working-directory: ./backend
+        run: |
+          composer install --no-dev --optimize-autoloader
+
+      - name: Prepare Deployment Package
+        run: |
+          mkdir -p deploy_package/api_backend
+          cp -r frontend/dist/* deploy_package/
+          cp -r backend/* deploy_package/api_backend/
+          
+          # Root .htaccess
+          cat <<'EOT' > deploy_package/.htaccess
+          <IfModule mod_rewrite.c>
+              RewriteEngine On
+              RewriteBase /
+              RewriteRule ^api/(.*)$ api_backend/public/$1 [L]
+              RewriteRule ^index\.html$ - [L]
+              RewriteCond %{REQUEST_FILENAME} !-f
+              RewriteCond %{REQUEST_FILENAME} !-d
+              RewriteRule . /index.html [L]
+          </IfModule>
+          EOT
+          
+          cd deploy_package
+          zip -r ../deploy_package.zip .
+          cd ..
+
+      - name: Upload Package to Hostinger
+        uses: appleboy/scp-action@master
+        with:
+          host: 46.202.186.144
+          username: u176367625
+          password: ${{ secrets.HOSTINGER_PASSWORD }}
+          port: 65002
+          source: "deploy_package.zip"
+          target: "domains/creativeprintjp.com/public_html/cpgestao/"
+
+      - name: Extract and Finish Deploy
         uses: appleboy/ssh-action@master
         with:
           host: 46.202.186.144
@@ -17,97 +76,29 @@ jobs:
           password: ${{ secrets.HOSTINGER_PASSWORD }}
           port: 65002
           script: |
-            echo "--- SEARCHING FOR PHP BINARIES ---"
-            ls -F /usr/bin/php*
-            ls -F /usr/local/bin/php*
-            
-            # Check a few common Hostinger paths
-            /usr/bin/php8.2 -m 2>/dev/null | grep pgsql || echo "php82 no pgsql"
-            /usr/bin/php8.3 -m 2>/dev/null | grep pgsql || echo "php83 no pgsql"
-            
-            # Rest of the script... (I'll keep it for now but I know git will fail)
             cd domains/creativeprintjp.com/public_html/cpgestao
-            # ...
-
-
+            unzip -o deploy_package.zip
+            rm deploy_package.zip
             
-            # 2. Identificar diretório do Backend
-            if [ -d "backend" ]; then
-                B_DIR="backend"
-            elif [ -d "api_backend" ]; then
-                B_DIR="api_backend"
-            fi
-            
-            # 3. Configurar Backend (.env)
-            cd "$B_DIR"
-            echo "--- BACKEND: Gerando .env ---"
+            cd api_backend
             echo "APP_NAME=CPGestao" > .env
             echo "APP_ENV=production" >> .env
             echo "APP_KEY=${{ secrets.APP_KEY || 'base64:frVEFHT1ndFoOzJ0ugdv5C8xSHa6Y9ZcYJPXVbtYubI=' }}" >> .env
             echo "APP_DEBUG=false" >> .env
             echo "APP_URL=https://cpgestao.creativeprintjp.com" >> .env
-            echo "" >> .env
-            echo "DB_CONNECTION=${{ secrets.DB_CONNECTION || 'pgsql' }}" >> .env
+            echo "DB_CONNECTION=pgsql" >> .env
             echo "DB_HOST=${{ secrets.DB_HOST || 'aws-0-sa-east-1.pooler.supabase.com' }}" >> .env
             echo "DB_PORT=${{ secrets.DB_PORT || '6543' }}" >> .env
             echo "DB_DATABASE=${{ secrets.DB_DATABASE || 'postgres' }}" >> .env
-            echo "DB_USERNAME=${{ secrets.DB_USERNAME || 'postgres.seu-projeto' }}" >> .env
+            echo "DB_USERNAME=${{ secrets.DB_USERNAME || 'postgres.u176367625' }}" >> .env
             echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-            echo "" >> .env
             echo "SESSION_DRIVER=file" >> .env
             echo "CACHE_DRIVER=file" >> .env
             echo "QUEUE_CONNECTION=sync" >> .env
             
-            echo "--- BACKEND: Instalando dependências ---"
-            composer install --no-dev --optimize-autoloader
-            
-            echo "--- BACKEND: Migrações ---"
-            php artisan migrate --force || echo "ERRO: Migrações falharam. Verifique o driver."
-            
-            echo "--- BACKEND: Seeders ---"
-            php artisan db:seed --force || echo "ERRO: Seeders falharam."
-            
-            echo "--- BACKEND: Caching ---"
+            php artisan migrate --force || echo "ERRO: Migrações falharam."
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
-            cd ..
-            
-            # 4. Configurar Frontend
-            if [ -d "frontend" ]; then
-                echo "--- FRONTEND: Build ---"
-                cd frontend
-                npm install
-                npm run build
-                echo "--- FRONTEND: Movendo arquivos do build para a raiz ---"
-                cp -r dist/* ../
-                cd ..
-            fi
-            
-            # 5. Configurar Redirecionamentos (.htaccess)
-            echo "--- CONFIGURANDO .htaccess ---"
-            
-            # .htaccess na raiz para gerenciar API e SPA
-            echo "<IfModule mod_rewrite.c>" > .htaccess
-            echo "    RewriteEngine On" >> .htaccess
-            echo "    RewriteBase /" >> .htaccess
-            echo "    RewriteRule ^api/(.*)$ $B_DIR/public/\$1 [L]" >> .htaccess
-            echo "    RewriteRule ^index\.html$ - [L]" >> .htaccess
-            echo "    RewriteCond %{REQUEST_FILENAME} !-f" >> .htaccess
-            echo "    RewriteCond %{REQUEST_FILENAME} !-d" >> .htaccess
-            echo "    RewriteRule . /index.html [L]" >> .htaccess
-            echo "</IfModule>" >> .htaccess
-
-            # Remover a pasta api/ antiga para evitar conflitos se existir
-            rm -rf api
-            
-            # 6. Ajustar permissões
-            echo "--- AJUSTANDO PERMISSÕES ---"
-            chmod -R 775 "$B_DIR/storage" "$B_DIR/bootstrap/cache"
-            
-            echo "--- DEPLOY CONCLUÍDO COM SUCESSO ---"
-
-
-
-
-
+            chmod -R 775 storage bootstrap/cache
+            echo "--- DEPLOY FINALIZADO ---"
