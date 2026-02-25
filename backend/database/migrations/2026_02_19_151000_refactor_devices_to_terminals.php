@@ -11,8 +11,22 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // 1. Rename existing devices to loyalty_cards (they are mostly customer tags)
-        Schema::rename('devices', 'loyalty_cards');
+        // 1. Rename existing devices to loyalty_cards 
+        // No MariaDB, o nome da constraint de chave estrangeira NÃO muda automaticamente.
+        // Precisamos derrubar a constraint antes de renomear para evitar conflito com a nova tabela 'devices'.
+        if (Schema::hasTable('devices')) {
+            Schema::table('devices', function (Blueprint $table) {
+                // Tentar derrubar a chave estrangeira pelo nome padrão do Laravel
+                $table->dropForeign(['tenant_id']);
+            });
+            
+            Schema::rename('devices', 'loyalty_cards');
+
+            // Recriar a chave estrangeira na loyalty_cards com o nome correto
+            Schema::table('loyalty_cards', function (Blueprint $table) {
+                $table->foreign('tenant_id')->references('id')->on('tenants')->onDelete('cascade');
+            });
+        }
 
         // 2. Create new devices table (Terminals/Totems)
         Schema::create('devices', function (Blueprint $table) {
