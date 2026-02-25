@@ -1,4 +1,4 @@
-name: Inspect Project Structure
+name: Final Deploy CPgestao
 
 on:
   push:
@@ -6,10 +6,10 @@ on:
       - master
 
 jobs:
-  inspect:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: List Project Files
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@master
         with:
           host: 46.202.186.144
@@ -18,9 +18,44 @@ jobs:
           port: 65002
           script: |
             cd domains/creativeprintjp.com/public_html/cpgestao
-            echo "--- ESTRUTURA CPGESTAO ---"
-            ls -F
-            echo "--- ESTRUTURA api_backend ---"
-            ls -F api_backend/ 2>/dev/null || echo "api_backend not found"
-            echo "--- ESTRUTURA frontend ---"
-            ls -F frontend/ 2>/dev/null || echo "frontend not found"
+            
+            # Garantir que estamos com o código mais recente
+            git fetch --all
+            git reset --hard origin/master
+            
+            # 1. Configurar Backend
+            # O repositório usa 'backend/', o servidor usa 'api_backend/'
+            # Vamos sincronizar o conteúdo ou usar o 'backend/' do git
+            if [ -d "backend" ]; then
+                echo "Usando pasta 'backend' do repositório..."
+                B_DIR="backend"
+            elif [ -d "api_backend" ]; then
+                echo "Usando pasta 'api_backend' do servidor..."
+                B_DIR="api_backend"
+            else
+                echo "ERRO: Nenhuma pasta de backend encontrada!"
+                exit 1
+            fi
+            
+            cd "$B_DIR"
+            composer install --no-dev --optimize-autoloader
+            php artisan migrate --force
+            php artisan db:seed --force
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            cd ..
+            
+            # 2. Configurar Frontend
+            if [ -d "frontend" ]; then
+                cd frontend
+                npm install
+                npm run build
+                # Mover o build para a raiz de 'cpgestao'
+                cp -r dist/* ../
+                cd ..
+            fi
+            
+            # 3. Permissões
+            chmod -R 775 "$B_DIR/storage" "$B_DIR/bootstrap/cache"
+            echo "DEPLOY CONCLUÍDO COM SUCESSO!"
