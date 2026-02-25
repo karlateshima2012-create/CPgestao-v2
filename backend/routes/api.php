@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Auth
+Route::get('/version', function() {
+    return response()->json(['version' => '2.0.0-PRO-EXPANSION', 'time' => '2026-02-25 12:48']);
+});
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
