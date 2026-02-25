@@ -27,7 +27,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: mbstring, xml, ctype, iconv, intl, pdo_pgsql, pgsql
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, mysql
           coverage: none
 
       - name: Install Backend Dependencies
@@ -86,19 +86,23 @@ jobs:
             echo "APP_KEY=${{ secrets.APP_KEY || 'base64:frVEFHT1ndFoOzJ0ugdv5C8xSHa6Y9ZcYJPXVbtYubI=' }}" >> .env
             echo "APP_DEBUG=false" >> .env
             echo "APP_URL=https://cpgestao.creativeprintjp.com" >> .env
-            echo "DB_CONNECTION=pgsql" >> .env
-            echo "DB_HOST=${{ secrets.DB_HOST || 'aws-0-sa-east-1.pooler.supabase.com' }}" >> .env
-            echo "DB_PORT=${{ secrets.DB_PORT || '6543' }}" >> .env
-            echo "DB_DATABASE=${{ secrets.DB_DATABASE || 'postgres' }}" >> .env
-            echo "DB_USERNAME=${{ secrets.DB_USERNAME || 'postgres.u176367625' }}" >> .env
+            
+            # CONFIGURAÇÃO MARIADB (MySQL)
+            echo "DB_CONNECTION=mysql" >> .env
+            echo "DB_HOST=${{ secrets.DB_HOST || 'localhost' }}" >> .env
+            echo "DB_PORT=${{ secrets.DB_PORT || '3306' }}" >> .env
+            echo "DB_DATABASE=${{ secrets.DB_DATABASE }}" >> .env
+            echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
             echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+            
             echo "SESSION_DRIVER=file" >> .env
             echo "CACHE_DRIVER=file" >> .env
             echo "QUEUE_CONNECTION=sync" >> .env
             
-            php artisan migrate --force || echo "ERRO: Migrações falharam."
+            php artisan migrate --force || echo "ERRO: Migrações falharam. Verifique as credenciais do MariaDB."
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
             chmod -R 775 storage bootstrap/cache
-            echo "--- DEPLOY FINALIZADO ---"
+            echo "--- DEPLOY FINALIZADO (MARIADB) ---"
+

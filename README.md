@@ -1,18 +1,18 @@
-# CPgestao-fidelidadeV1 - Full-Stack CRM
+# CPGestao v2 - Full-Stack CRM & Fidelidade
 
-Este projeto é uma plataforma de CRM e Fidelidade com suporte a multi-tenancy, cartões Premium (VIP) via NFC e terminal de pontuação público.
+Plataforma de CRM e Fidelidade com suporte a multi-tenancy, cartões Premium (VIP) via NFC e terminal de pontuação público.
 
 ## Estrutura do Projeto
 
-- `/backend`: API Laravel ligada ao Supabase (Postgres).
+- `/backend`: API Laravel ligada ao banco de dados MariaDB.
 - `/frontend`: Interface React (Vite) consumindo a API Laravel.
 
 ## Requisitos
 
-- PHP 8.2+
+- PHP 8.4+
 - Composer
 - Node.js & NPM
-- Conta no Supabase (PostgreSQL)
+- MariaDB / MySQL
 
 ## Configuração do Backend (Laravel)
 
@@ -26,20 +26,20 @@ Este projeto é uma plataforma de CRM e Fidelidade com suporte a multi-tenancy, 
    ```
 3. Configure o arquivo `.env`:
    - Copie o `.env.example` para `.env`.
-   - Configure as credenciais do Supabase (fornecidas no terminal):
+   - Configure as credenciais do MariaDB (Hostinger):
      ```env
-     DB_CONNECTION=pgsql
-     DB_HOST=db.qxhvuqwvoeegvhycncuy.supabase.co
-     DB_PORT=5432
-     DB_DATABASE=postgres
-     DB_USERNAME=postgres
-     DB_PASSWORD=SUA_SENHA_AQUI
+     DB_CONNECTION=mysql
+     DB_HOST=127.0.0.1
+     DB_PORT=3306
+     DB_DATABASE=seu_banco
+     DB_USERNAME=seu_usuario
+     DB_PASSWORD=sua_senha
      ```
-4. Execute as migrações e o seeder:
+4. Execute as migrações:
    ```bash
-   php artisan migrate:fresh --seed
+   php artisan migrate
    ```
-5. Inicie o servidor:
+5. Inicie o servidor (localmente):
    ```bash
    php artisan serve
    ```
@@ -59,28 +59,10 @@ Este projeto é uma plataforma de CRM e Fidelidade com suporte a multi-tenancy, 
    npm run dev
    ```
 
-## Credenciais de Teste (Seeded)
-
-- **Admin Master (Super Admin):**
-  - Email: `admin@creativeprint.com`
-  - Senha: `admin123`
-- **Loja Teste (Client):**
-  - Email: `dono@loja.com`
-  - Senha: `loja123`
-- **PIN da Loja Teste:** `1234`
-
-## Uso do Terminal Público
-
-O terminal é dinâmico e resolve a loja e o dispositivo via URL:
-`http://localhost:5173/terminal/loja-teste/UID-DISPOSITIVO`
-
-Para testes, você pode usar os links de "Acesso Rápido" na tela de login ou acessar diretamente via parâmetros de busca se não tiver configurado o roteamento de caminhos:
-`http://localhost:5173/?slug=loja-teste&uid=1234567812345678`
-
-## Funcionalidades Implementadas
+## Funcionalidades Principais
 
 - **Multi-tenancy:** Isolamento total de dados por `tenant_id`.
-- **Cartões Premium:** Geração automática de números únicos (Algoritmo de Luhn) e vínculo com clientes.
-- **PIN Seguro:** PINs de lojistas armazenados com Hash (Bcrypt/Argon).
-- **Dashboard KPI:** 6 métricas essenciais para o lojista.
-- **Integração Real:** Frontend consome dados via base API Axios com interceptores de token.
+- **Cartões Premium:** Geração automática de números únicos e vínculo com clientes.
+- **PIN Seguro:** PINs de lojistas armazenados com Hash.
+- **Dashboard KPI:** Métricas essenciais de crescimento e retenção.
+- **Deploy Automático:** Pipeline GitHub Actions configurado para Hostinger.
