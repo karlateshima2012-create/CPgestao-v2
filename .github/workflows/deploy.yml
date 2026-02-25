@@ -19,6 +19,16 @@ jobs:
           script: |
             cd domains/creativeprintjp.com/public_html/cpgestao
             
+            echo "--- ESTRUTURA DE ARQUIVOS ---"
+            ls -F
+            echo "--- CONTEUDO .htaccess RAIZ ---"
+            cat .htaccess || echo "Não encontrado"
+            
+            if [ -d "api" ]; then
+                echo "--- CONTEUDO .htaccess EM api/ ---"
+                cat api/.htaccess || echo "Não encontrado"
+            fi
+
             echo "--- INICIANDO DEPLOY ---"
             
             # 1. Atualizar código via Git
