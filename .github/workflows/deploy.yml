@@ -18,13 +18,26 @@ jobs:
           port: 65002
           script: |
             cd domains/cpgestao.creativeprintjp.com/public_html
-            git pull origin master
+            git fetch --all
+            git reset --hard origin/master
+            
+            # Backend Setup
             cd backend
             composer install --no-dev --optimize-autoloader
             php artisan migrate --force
+            php artisan db:seed --force
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
+            
+            # Frontend Setup
             cd ../frontend
             npm install
             npm run build
+            
+            # Deploy Frontend to Root
+            cp -r dist/* ../
+            
+            # Fix Permissions
+            cd ../
+            chmod -R 775 backend/storage backend/bootstrap/cache
