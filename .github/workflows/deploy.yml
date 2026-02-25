@@ -17,32 +17,18 @@ jobs:
           password: ${{ secrets.HOSTINGER_PASSWORD }}
           port: 65002
           script: |
-            echo "--- CURRENT DIRECTORY ---"
-            pwd
-            ls -la
+            echo "--- SEARCHING FOR PHP BINARIES ---"
+            ls -F /usr/bin/php*
+            ls -F /usr/local/bin/php*
             
-            # Navegar para o diretório de deploy
-            TARGET_DIR="domains/creativeprintjp.com/public_html/cpgestao"
-            if [ -d "$TARGET_DIR" ]; then
-                cd "$TARGET_DIR"
-                echo "Entrou em $TARGET_DIR"
-            else
-                echo "ERRO: Diretório $TARGET_DIR não encontrado!"
-                exit 1
-            fi
+            # Check a few common Hostinger paths
+            /usr/bin/php8.2 -m 2>/dev/null | grep pgsql || echo "php82 no pgsql"
+            /usr/bin/php8.3 -m 2>/dev/null | grep pgsql || echo "php83 no pgsql"
             
-            echo "--- DEBUG PHP NO SERVIDOR ---"
-            php -v
-            php -m | grep -E "pdo|pgsql|sqlite"
-            
-            echo "--- VERIFICANDO GIT ---"
-            if [ -d ".git" ]; then
-                echo "Repositório Git encontrado."
-                git fetch --all
-                git reset --hard origin/master
-            else
-                echo "AVISO: .git não encontrado. Pulando git update."
-            fi
+            # Rest of the script... (I'll keep it for now but I know git will fail)
+            cd domains/creativeprintjp.com/public_html/cpgestao
+            # ...
+
 
             
             # 2. Identificar diretório do Backend
