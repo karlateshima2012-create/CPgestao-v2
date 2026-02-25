@@ -39,7 +39,12 @@ jobs:
         run: |
           mkdir -p deploy_package/api_backend
           cp -r frontend/dist/* deploy_package/
+          
+          # Copiar backend excluindo arquivos desnecessários
           cp -r backend/* deploy_package/api_backend/
+          rm -f deploy_package/api_backend/.env
+          rm -rf deploy_package/api_backend/storage/logs/*
+          rm -f deploy_package/api_backend/bootstrap/cache/*.php
           
           # Root .htaccess
           cat <<'EOT' > deploy_package/.htaccess
@@ -81,6 +86,10 @@ jobs:
             rm deploy_package.zip
             
             cd api_backend
+            
+            # Limpeza preventiva de cache do Laravel
+            rm -f bootstrap/cache/*.php
+            
             echo "APP_NAME=CPGestao" > .env
             echo "APP_ENV=production" >> .env
             echo "APP_KEY=${{ secrets.APP_KEY || 'base64:frVEFHT1ndFoOzJ0ugdv5C8xSHa6Y9ZcYJPXVbtYubI=' }}" >> .env
@@ -89,7 +98,7 @@ jobs:
             
             # CONFIGURAÇÃO MARIADB (MySQL)
             echo "DB_CONNECTION=mysql" >> .env
-            echo "DB_HOST=${{ secrets.DB_HOST || 'localhost' }}" >> .env
+            echo "DB_HOST=${{ secrets.DB_HOST || '127.0.0.1' }}" >> .env
             echo "DB_PORT=${{ secrets.DB_PORT || '3306' }}" >> .env
             echo "DB_DATABASE=${{ secrets.DB_DATABASE }}" >> .env
             echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
@@ -99,10 +108,12 @@ jobs:
             echo "CACHE_DRIVER=file" >> .env
             echo "QUEUE_CONNECTION=sync" >> .env
             
+            php artisan config:clear
             php artisan migrate --force || echo "ERRO: Migrações falharam. Verifique as credenciais do MariaDB."
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
             chmod -R 775 storage bootstrap/cache
             echo "--- DEPLOY FINALIZADO (MARIADB) ---"
+
 
