@@ -17,17 +17,33 @@ jobs:
           password: ${{ secrets.HOSTINGER_PASSWORD }}
           port: 65002
           script: |
-            cd domains/creativeprintjp.com/public_html/cpgestao
+            echo "--- CURRENT DIRECTORY ---"
+            pwd
+            ls -la
+            
+            # Navegar para o diretório de deploy
+            TARGET_DIR="domains/creativeprintjp.com/public_html/cpgestao"
+            if [ -d "$TARGET_DIR" ]; then
+                cd "$TARGET_DIR"
+                echo "Entrou em $TARGET_DIR"
+            else
+                echo "ERRO: Diretório $TARGET_DIR não encontrado!"
+                exit 1
+            fi
             
             echo "--- DEBUG PHP NO SERVIDOR ---"
             php -v
             php -m | grep -E "pdo|pgsql|sqlite"
             
-            echo "--- INICIANDO DEPLOY ---"
-            
-            # 1. Atualizar código via Git
-            git fetch --all
-            git reset --hard origin/master
+            echo "--- VERIFICANDO GIT ---"
+            if [ -d ".git" ]; then
+                echo "Repositório Git encontrado."
+                git fetch --all
+                git reset --hard origin/master
+            else
+                echo "AVISO: .git não encontrado. Pulando git update."
+            fi
+
             
             # 2. Identificar diretório do Backend
             if [ -d "backend" ]; then
