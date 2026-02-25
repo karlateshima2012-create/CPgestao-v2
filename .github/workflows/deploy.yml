@@ -1,4 +1,4 @@
-name: Deploy to Hostinger
+name: Debug Server Paths
 
 on:
   push:
@@ -6,10 +6,10 @@ on:
       - master
 
 jobs:
-  deploy:
+  debug_paths:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy via SSH
+      - name: SSH and List Folders
         uses: appleboy/ssh-action@master
         with:
           host: 46.202.186.144
@@ -17,38 +17,13 @@ jobs:
           password: ${{ secrets.HOSTINGER_PASSWORD }}
           port: 65002
           script: |
-            # Tentar encontrar a pasta raiz do projeto (onde está o 'backend' e 'frontend')
-            SEARCH_PATH=$(find . -name "backend" -type d -not -path "*/.*" | head -n 1)
-            
-            if [ -n "$SEARCH_PATH" ]; then
-                ROOT_DIR=$(dirname "$SEARCH_PATH")
-                echo "Projeto encontrado em: $ROOT_DIR"
-                cd "$ROOT_DIR"
-            else
-                echo "ERRO: Pasta 'backend' não encontrada no servidor!"
-                exit 1
-            fi
-            
-            git fetch --all
-            git reset --hard origin/master
-            
-            # Backend Setup
-            cd backend
-            composer install --no-dev --optimize-autoloader
-            php artisan migrate --force
-            php artisan db:seed --force
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
-            
-            # Frontend Setup
-            cd ../frontend
-            npm install
-            npm run build
-            
-            # Deploy Frontend to Root (um nível acima de frontend/)
-            cp -r dist/* ../
-            
-            # Fix Permissions
-            cd ../
-            chmod -R 775 backend/storage backend/bootstrap/cache
+            echo "--- PWD ---"
+            pwd
+            echo "--- LS RAÍZ ---"
+            ls -F
+            echo "--- LS domains/ ---"
+            ls -F domains/ 2>/dev/null || echo "domains/ não encontrado"
+            echo "--- LS public_html/ ---"
+            ls -F public_html/ 2>/dev/null || echo "public_html/ não encontrado"
+            echo "--- BUSCANDO BACKEND ---"
+            find . -name "backend" -type d -maxdepth 5
