@@ -35,17 +35,29 @@ jobs:
             
             # 3. Configurar Backend
             cd "$B_DIR"
+            echo "--- BACKEND: Verificando .env ---"
+            if [ -f ".env" ]; then
+                grep -E "DB_CONNECTION|DB_HOST|DB_PORT|DB_DATABASE" .env | grep -v "PASSWORD"
+            else
+                echo "AVISO: .env não encontrado! Usando .env.example..."
+                cp .env.example .env
+                php artisan key:generate
+            fi
+
             echo "--- BACKEND: Instalando dependências ---"
             composer install --no-dev --optimize-autoloader
             
             echo "--- BACKEND: Debug DB connection ---"
-            php artisan tinker --execute="echo 'DB Connection: ' . DB::connection()->getDriverName() . PHP_EOL . 'Total Tenants: ' . (class_exists('App\Models\Tenant') ? App\Models\Tenant::count() : 'Tenant model not found') . PHP_EOL;"
+            php artisan tinker --execute="echo 'DB Connection: ' . DB::connection()->getDriverName() . PHP_EOL . 'Database: ' . DB::connection()->getDatabaseName() . PHP_EOL . 'Total Tenants: ' . (class_exists('App\Models\Tenant') ? App\Models\Tenant::count() : 'Tenant model not found') . PHP_EOL;"
             
             echo "--- BACKEND: Migrações ---"
-            php artisan migrate --force
+            # Se estiver usando SQLite e falhando, talvez precise um migrate:fresh se for ambiente de teste
+            # Mas vamos tentar o migrate normal primeiro com verbose
+            php artisan migrate --force -v
             
             echo "--- BACKEND: Seeders ---"
-            php artisan db:seed --force
+            php artisan db:seed --force -v
+
             
             echo "--- BACKEND: Caching ---"
             php artisan config:cache
