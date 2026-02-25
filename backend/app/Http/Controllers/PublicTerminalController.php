@@ -142,6 +142,7 @@ class PublicTerminalController extends Controller
             'token_valid' => $tokenValid,
             'tenant_name' => $tenant->name,
             'tenant_plan' => $tenant->plan,
+            'is_limit_reached' => $tenant->isLimitReached(),
             'levels_config' => $tenant->loyaltySettings ? $tenant->loyaltySettings->levels_config : null,
         ]);
     }
@@ -241,6 +242,10 @@ class PublicTerminalController extends Controller
 
             $isNew = false;
             if (!$customer) {
+                if ($tenant->isLimitReached()) {
+                    $this->telegramService->sendMessage($tenant->id, "🚫 *Limite Atingido\!* O cadastro de novos clientes foi pausado\.");
+                    return ApiResponse::error('Limite de clientes atingido para esta loja.', 'PLAN_LIMIT_REACHED', 403);
+                }
                 $isNew = true;
                 $customer = Customer::create([
                     'tenant_id' => $tenant->id,
@@ -249,6 +254,8 @@ class PublicTerminalController extends Controller
                     'source' => 'terminal',
                     'last_activity_at' => now()
                 ]);
+
+                $tenant->verifyAndNotifyLimit();
 
                 $escPhone = TelegramService::escapeMarkdownV2($customer->phone);
                 $newMessage = "🆕 *Novo Cliente \(Pontuação Balcão\)*\n\n"
@@ -541,6 +548,12 @@ class PublicTerminalController extends Controller
                 return ApiResponse::error('Este número de telefone já está cadastrado nesta loja. Para visualizar os pontos, utilize a opção Consultar saldo.', 'DUPLICATE_PHONE', 409);
             }
 
+            // Limit Check
+            if ($tenant->isLimitReached()) {
+                $this->telegramService->sendMessage($tenant->id, "🚫 *Limite Atingido\!* O cadastro de novos clientes foi pausado\.");
+                return ApiResponse::error('Limite de clientes atingido para esta loja.', 'PLAN_LIMIT_REACHED', 403);
+            }
+
             $customer = Customer::create([
                 'tenant_id' => $tenant->id,
                 'name' => $request->name,
@@ -554,6 +567,8 @@ class PublicTerminalController extends Controller
                 'source' => 'terminal',
                 'last_activity_at' => now()
             ]);
+
+            $tenant->verifyAndNotifyLimit();
 
             $escName = TelegramService::escapeMarkdownV2($customer->name);
             $escPhone = TelegramService::escapeMarkdownV2($customer->phone);

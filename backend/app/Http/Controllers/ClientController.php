@@ -77,6 +77,10 @@ class ClientController extends Controller
         }
         $initialPoints = (int)($request->points_balance ?? 0);
 
+        if ($request->user()->tenant->isLimitReached()) {
+            return ApiResponse::error('Você atingiu o limite de contatos do seu plano. Realize o upgrade para continuar cadastrando.', 'PLAN_LIMIT_REACHED', 403);
+        }
+
         $customer = Customer::create([
             'name' => $request->name,
             'phone' => $phone,
@@ -97,6 +101,8 @@ class ClientController extends Controller
             'tags' => $request->tags ?? [],
             'preferences' => $request->preferences ?? [],
         ]);
+
+        $request->user()->tenant->verifyAndNotifyLimit();
 
         if ($initialPoints > 0) {
             \App\Models\PointMovement::create([
@@ -282,7 +288,8 @@ class ClientController extends Controller
                 'plan' => $tenant->plan,
                 'slug' => $tenant->slug,
                 'customers_count' => $customersCount,
-                'plan_limit' => $planLimit,
+                'plan_limit' => $tenant->total_contact_limit,
+                'extra_contacts_quota' => $tenant->extra_contacts_quota,
             ],
             'settings' => [
                 'telegram_bot_token' => $settings && $settings->telegram_bot_token ? '********' : null,

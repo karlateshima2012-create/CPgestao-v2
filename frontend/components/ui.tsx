@@ -91,7 +91,7 @@ export const Input: React.FC<InputProps> = ({ label, error, className = '', type
 };
 
 // --- Badge ---
-export const Badge: React.FC<{ children: React.ReactNode; color?: 'blue' | 'green' | 'red' | 'yellow' | 'gray' | 'bronze' | 'silver' | 'gold' | 'diamond'; className?: string }> = ({ children, color = 'blue', className = '' }) => {
+export const Badge: React.FC<{ children: React.ReactNode; color?: 'blue' | 'green' | 'red' | 'yellow' | 'gray' | 'bronze' | 'silver' | 'gold' | 'diamond' | 'orange' | 'purple'; className?: string }> = ({ children, color = 'blue', className = '' }) => {
   const colors = {
     blue: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
     green: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
@@ -102,6 +102,8 @@ export const Badge: React.FC<{ children: React.ReactNode; color?: 'blue' | 'gree
     silver: 'bg-slate-100 text-slate-700 border border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-600',
     gold: 'bg-yellow-100 text-yellow-800 border border-yellow-400 dark:bg-yellow-900/50 dark:text-yellow-400 dark:border-yellow-700',
     diamond: 'bg-cyan-100 text-cyan-800 border border-cyan-300 dark:bg-cyan-900/50 dark:text-cyan-300 dark:border-cyan-700',
+    orange: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+    purple: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
   };
   return (
     <span className={`inline-flex items-center gap-1.5 whitespace-nowrap px-2.5 py-0.5 rounded-[10px] text-xs font-medium ${colors[color]} ${className}`}>

@@ -16,7 +16,7 @@ class PlanSeeder extends Seeder
                 'slug' => 'classic',
                 'description' => 'Fluxo manual com cartão físico. O dono escaneia o cartão do cliente.',
                 'features' => [
-                    'contact_limit' => 8000,
+                    'contact_limit' => 2000,
                     'device_limit' => 999,
                     'user_limit' => 5,
                     'allow_auto_approve' => 1, // Automatic when owner scans card
@@ -29,7 +29,7 @@ class PlanSeeder extends Seeder
                 'slug' => 'pro',
                 'description' => 'Fluxo QR Online com aprovação manual. Sem cartões físicos.',
                 'features' => [
-                    'contact_limit' => 8000,
+                    'contact_limit' => 4000,
                     'device_limit' => 3,
                     'user_limit' => 3,
                     'allow_auto_approve' => 0, // Requires owner approval
@@ -43,7 +43,7 @@ class PlanSeeder extends Seeder
                 'slug' => 'elite',
                 'description' => 'Check-in 100% automático via QR. Sem cartões físicos.',
                 'features' => [
-                    'contact_limit' => 999999,
+                    'contact_limit' => 6000,
                     'device_limit' => 999999,
                     'user_limit' => 999999,
                     'allow_auto_approve' => 1, // Fully automatic

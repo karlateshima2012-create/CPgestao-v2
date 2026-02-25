@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Input, Badge, StatusModal } from '../components/ui';
-import { Users, AlertTriangle, Plus, Search, Edit2, Lock, Trash2, X, CheckCircle, CheckCircle2, Check, Copy, Calendar, RefreshCw, Save, ArrowUpCircle, Tag as TagIcon, Shield, Download, Crown, Smartphone, Monitor, HelpCircle } from 'lucide-react';
+import { Users, AlertTriangle, Plus, Search, Edit2, Lock, Trash2, X, CheckCircle, CheckCircle2, Check, Copy, Calendar, RefreshCw, Save, ArrowUpCircle, Tag as TagIcon, Shield, Download, Crown, Smartphone, Monitor, HelpCircle, ExternalLink } from 'lucide-react';
 import { Tenant, PlanType } from '../types';
 import { tenantsService } from '../services/api';
 import { copyToClipboard } from '../utils/clipboard';
@@ -15,6 +15,7 @@ const PLAN_LIMITS: Record<PlanType, number> = {
 export const AdminDashboard: React.FC = () => {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [search, setSearch] = useState('');
+  const [filterType, setFilterType] = useState<'all' | 'near_limit' | 'expired'>('all');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newTenantData, setNewTenantData] = useState({
     name: '',
@@ -23,6 +24,7 @@ export const AdminDashboard: React.FC = () => {
     phone: '',
     plan: PlanType.CLASSIC,
     custom_contact_limit: 2000,
+    extra_contacts_quota: 0,
     totems_count: 2,
     plan_expires_at: ''
   });
@@ -160,10 +162,21 @@ export const AdminDashboard: React.FC = () => {
     return `${y}-${mm}-${dd}`;
   };
 
-  const filteredTenants = tenants.filter(t =>
-    t.name.toLowerCase().includes(search.toLowerCase()) ||
-    t.email.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredTenants = tenants.filter(t => {
+    const matchesSearch = t.name.toLowerCase().includes(search.toLowerCase()) ||
+      t.email.toLowerCase().includes(search.toLowerCase());
+
+    if (filterType === 'near_limit') {
+      const limit = t.total_contact_limit || PLAN_LIMITS[t.plan] || 2000;
+      return matchesSearch && (t.customers_count || 0) / limit > 0.8;
+    }
+
+    if (filterType === 'expired') {
+      return matchesSearch && t.plan_expires_at && new Date(t.plan_expires_at) < new Date();
+    }
+
+    return matchesSearch;
+  });
 
   const capitalizeWords = (str: string) => {
     return str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
@@ -188,6 +201,7 @@ export const AdminDashboard: React.FC = () => {
         phone: '',
         plan: PlanType.CLASSIC,
         custom_contact_limit: 2000,
+        extra_contacts_quota: 0,
         totems_count: 2,
         plan_expires_at: ''
       });
@@ -316,6 +330,7 @@ export const AdminDashboard: React.FC = () => {
         plan: editingTenant.plan,
         plan_expires_at: editingTenant.plan_expires_at,
         status: editingTenant.status,
+        extra_contacts_quota: editingTenant.extra_contacts_quota,
       };
 
       await tenantsService.update(editingTenant.id, updateData);
@@ -542,31 +557,72 @@ export const AdminDashboard: React.FC = () => {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {[
-            { label: 'Lojas Ativas', value: tenants.length.toString(), icon: Users, sub: 'Clientes SaaS' },
-            { label: 'Próximas do Limite', value: tenants.filter(t => (t.customers_count || 0) / (PLAN_LIMITS[t.plan] || 1) > 0.8).length.toString(), icon: AlertTriangle, sub: 'Uso > 80%' },
-            { label: 'Planos Expirados', value: tenants.filter(t => t.plan_expires_at && new Date(t.plan_expires_at) < new Date()).length.toString(), icon: Shield, sub: 'Ação requerida' },
+            {
+              label: 'Próximas do Limite',
+              value: tenants.filter(t => {
+                const limit = t.total_contact_limit || PLAN_LIMITS[t.plan] || 2000;
+                return (t.customers_count || 0) / limit > 0.8;
+              }).length.toString(),
+              icon: AlertTriangle,
+              sub: 'Uso > 80%',
+              type: 'near_limit' as const,
+              color: 'orange'
+            },
+            {
+              label: 'Planos Expirados',
+              value: tenants.filter(t => t.plan_expires_at && new Date(t.plan_expires_at) < new Date()).length.toString(),
+              icon: Shield,
+              sub: 'Ação requerida',
+              type: 'expired' as const,
+              color: 'red'
+            },
           ].map((stat, i) => (
-            <Card key={i} className="p-6">
+            <Card
+              key={i}
+              className={`p-6 cursor-pointer transition-all hover:shadow-md ${filterType === stat.type
+                ? stat.color === 'orange'
+                  ? 'ring-2 ring-orange-500 ring-offset-2 shadow-lg'
+                  : 'ring-2 ring-red-500 ring-offset-2 shadow-lg'
+                : 'hover:border-gray-300'
+                }`}
+              onClick={() => setFilterType(filterType === stat.type ? 'all' : stat.type)}
+            >
               <div className="flex justify-between items-start mb-4">
-                <div className="p-3 rounded-[15px] bg-gray-100 dark:bg-gray-800">
-                  <stat.icon className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+                <div className={`p-3 rounded-[15px] ${stat.type === 'expired' ? 'bg-red-50' : 'bg-orange-50'}`}>
+                  <stat.icon className={`w-6 h-6 ${stat.type === 'expired' ? 'text-red-600' : 'text-orange-600'}`} />
                 </div>
-                <span className="text-xs font-medium text-gray-500 bg-gray-50 dark:bg-gray-900/50 px-2 py-1 rounded-full border border-gray-100 dark:border-gray-800">{stat.sub}</span>
+                <div className="flex flex-col items-end">
+                  <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-full ${stat.type === 'expired' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
+                    {stat.sub}
+                  </span>
+                  {filterType === stat.type && (
+                    <span className="text-[10px] text-gray-400 font-bold mt-1 uppercase flex items-center gap-1">
+                      <Check className="w-3 h-3" /> Filtro Ativo
+                    </span>
+                  )}
+                </div>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{stat.label}</p>
+              <h3 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">{stat.value}</h3>
+              <p className="text-sm font-bold text-gray-500 dark:text-gray-400 mt-1 uppercase tracking-widest">{stat.label}</p>
             </Card>
           ))}
         </div>
 
         <Card className="overflow-hidden">
           <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <h3 className="text-lg font-semibold">Clientes e CRM</h3>
+            <div className="flex items-center gap-4">
+              <h3 className="text-lg font-semibold">Clientes e CRM</h3>
+              {filterType !== 'all' && (
+                <Badge color="orange" className="cursor-pointer hover:bg-orange-200 py-1" onClick={() => setFilterType('all')}>
+                  {filterType === 'near_limit' ? 'Filtro: Próximas do Limite' : 'Filtro: Expirados'} <X className="w-3 h-3 ml-1" />
+                </Badge>
+              )}
+            </div>
             <div className="relative w-full sm:w-72">
               <Search className="absolute left-3 top-3.5 w-4 h-4 text-gray-700" />
-              <Input placeholder="Buscar lojas..." className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} />
+              <Input placeholder="Buscar lojas..." className="pl-10 h-11" value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
           </div>
           <div className="overflow-x-auto">
@@ -574,9 +630,10 @@ export const AdminDashboard: React.FC = () => {
               <thead className="text-xs text-gray-500 uppercase bg-gray-50 dark:bg-gray-800/50">
                 <tr>
                   <th className="px-6 py-4">Negócio</th>
-                  <th className="px-6 py-4">Uso do Plano</th>
+                  <th className="px-6 py-4">Contato</th>
+                  <th className="px-6 py-4">USO DO PLANO</th>
                   <th className="px-6 py-4">Vencimento</th>
-                  <th className="px-6 py-4">Dispositivos</th>
+                  <th className="px-6 py-4">Terminais</th>
                   <th className="px-6 py-4 text-right">Ações</th>
                 </tr>
               </thead>
@@ -591,35 +648,51 @@ export const AdminDashboard: React.FC = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className={`w-2 h-2 rounded-full ${isExpired ? 'bg-red-500 animate-pulse' : usage > 0.9 ? 'bg-amber-500' : 'bg-green-500'}`} />
-                          <div>
-                            <div className="font-medium text-gray-900">{tenant.name}</div>
-                            <div className="text-gray-500 text-xs">{tenant.email}</div>
-                          </div>
+                          <div className="font-bold text-gray-900">{tenant.name}</div>
+                        </div>
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className="text-gray-900 font-medium text-xs">{tenant.email}</span>
+                          {tenant.phone && (
+                            <a
+                              href={`https://wa.me/${tenant.phone.replace(/\D/g, '')}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-green-600 hover:text-green-700 text-[10px] font-black uppercase tracking-tight flex items-center gap-1 mt-1"
+                            >
+                              WhatsApp <ExternalLink className="w-2.5 h-2.5" />
+                            </a>
+                          )}
                         </div>
                       </td>
 
                       <td className="px-6 py-4">
                         <div className="space-y-1">
                           <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                            <span>{tenant.plan}</span>
-                            <span className={tenant.custom_contact_limit ? 'text-primary-600 font-black' : usage > 0.9 ? 'text-amber-500' : ''}>
-                              {tenant.customers_count || 0} / {limit} {tenant.custom_contact_limit && '⭐'}
+                            <span className="flex items-center gap-1">
+                              {tenant.plan === PlanType.UNLIMITED ? 'ELITE' : tenant.plan === PlanType.PRO ? 'PRO' : 'CLASSIC'}
+                              {tenant.extra_contacts_quota ? <Badge color="orange" className="text-[8px] px-1 py-0">+{(tenant.extra_contacts_quota / 1000).toFixed(0)}K</Badge> : null}
+                            </span>
+                            <span className={tenant.extra_contacts_quota ? 'text-primary-600 font-black' : usage > 0.9 ? 'text-amber-500' : ''}>
+                              {(tenant.customers_count || 0).toLocaleString()} / {(tenant.total_contact_limit || limit).toLocaleString()}
                             </span>
                           </div>
-                          <div className="w-32 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="w-32 h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden border border-gray-200/50">
                             <div
-                              className={`h-full transition-all ${usage > 0.9 ? 'bg-amber-500' : tenant.plan === PlanType.UNLIMITED ? 'bg-purple-500' : 'bg-blue-500'}`}
+                              className={`h-full transition-all ${usage > 0.9 ? 'bg-red-500' : usage > 0.8 ? 'bg-orange-500' : 'bg-blue-500'}`}
                               style={{ width: `${Math.min(100, usage * 100)}%` }}
                             />
                           </div>
-                          {isExpired && <p className="text-[10px] text-red-500 font-bold">EXPIRADO</p>}
+                          {isExpired && <p className="text-[10px] text-red-500 font-black tracking-widest uppercase">Plano Expirado</p>}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {tenant.plan_expires_at ? (
                           <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-gray-400" />
-                            <span className={`text-sm font-medium ${isExpired ? 'text-red-600' : 'text-gray-600'}`}>
+                            <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                            <span className={`text-xs font-bold ${isExpired ? 'text-red-600' : 'text-gray-600'}`}>
                               {new Date(tenant.plan_expires_at).toLocaleDateString('pt-BR')}
                             </span>
                           </div>
@@ -632,10 +705,10 @@ export const AdminDashboard: React.FC = () => {
                           <Button
                             variant="secondary"
                             size="sm"
-                            className="bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold flex items-center gap-2 border-primary-100"
+                            className="bg-gray-100 text-gray-700 hover:bg-gray-200 text-[10px] font-black uppercase tracking-widest py-1 h-auto"
                             onClick={() => handleOpenEditModal(tenant)}
                           >
-                            <Smartphone className="w-3.5 h-3.5" /> Gerenciar
+                            Configurar
                           </Button>
                         </div>
                       </td>
@@ -744,6 +817,37 @@ export const AdminDashboard: React.FC = () => {
                         </div>
                       </div>
                     </div>
+                  </div>
+
+                  {/* PACCOTES DE EXPANSÃO */}
+                  <div className="bg-white dark:bg-gray-900/50 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm">
+                    <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                      <ArrowUpCircle className="w-4 h-4 text-orange-500" /> Pacotes de Expansão (Pagamento Único)
+                    </h4>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                      {[
+                        { label: 'Nenhum', value: 0 },
+                        { label: 'Bronze (+1k)', value: 1000 },
+                        { label: 'Prata (+2k)', value: 2000 },
+                        { label: 'Ouro (+4k)', value: 4000 },
+                        { label: 'Infinity', value: -1 },
+                      ].map((pack) => (
+                        <button
+                          key={pack.label}
+                          onClick={() => setEditingTenant({ ...editingTenant, extra_contacts_quota: pack.value })}
+                          className={`px-4 py-3 rounded-xl border text-[10px] font-black uppercase tracking-tight transition-all
+                            ${editingTenant.extra_contacts_quota === pack.value
+                              ? 'bg-orange-500 text-white border-orange-500 shadow-lg shadow-orange-500/20'
+                              : 'bg-gray-50 dark:bg-gray-800 text-gray-500 border-gray-100 dark:border-gray-700 hover:border-orange-300'
+                            }`}
+                        >
+                          {pack.label}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-[9px] text-gray-400 font-bold uppercase mt-3 text-center">
+                      Limite Total: {(editingTenant.extra_contacts_quota === -1) ? 'ILIMITADO' : (editingTenant.custom_contact_limit || PLAN_LIMITS[editingTenant.plan] || 0) + (editingTenant.extra_contacts_quota || 0)}
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -1034,6 +1138,32 @@ export const AdminDashboard: React.FC = () => {
                           >
                             12 MESES
                           </button>
+                        </div>
+                      </div>
+
+                      <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Pacote de Expansão</label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {[
+                            { label: 'Off', value: 0 },
+                            { label: 'Bronze', value: 1000 },
+                            { label: 'Prata', value: 2000 },
+                            { label: 'Ouro', value: 4000 },
+                            { label: 'Infinity', value: -1 },
+                          ].map((pack) => (
+                            <button
+                              key={pack.label}
+                              type="button"
+                              onClick={() => setNewTenantData({ ...newTenantData, extra_contacts_quota: pack.value })}
+                              className={`py-2 rounded-lg border text-[9px] font-bold uppercase transition-all
+                                ${newTenantData.extra_contacts_quota === pack.value
+                                  ? 'bg-orange-500 text-white border-orange-500'
+                                  : 'bg-white text-gray-500 border-gray-200 hover:border-orange-200'
+                                }`}
+                            >
+                              {pack.label}
+                            </button>
+                          ))}
                         </div>
                       </div>
                       <Input

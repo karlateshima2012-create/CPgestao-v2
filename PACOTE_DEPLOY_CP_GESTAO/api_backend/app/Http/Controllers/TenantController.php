@@ -69,6 +69,7 @@ class TenantController extends Controller
             'plan' => 'required|string',
             'plan_expires_at' => 'nullable|date',
             'custom_contact_limit' => 'nullable|integer',
+            'extra_contacts_quota' => 'nullable|integer',
             'totems_count' => 'nullable|integer|min:0|max:10',
         ]);
 
@@ -80,6 +81,7 @@ class TenantController extends Controller
             'plan' => $request->plan,
             'plan_expires_at' => $request->plan_expires_at ?: now()->addDays(30),
             'custom_contact_limit' => $request->custom_contact_limit,
+            'extra_contacts_quota' => $request->extra_contacts_quota ?? 0,
             'slug' => Str::slug($request->name),
         ]);
 
@@ -145,6 +147,7 @@ class TenantController extends Controller
                 'plan' => 'sometimes|string',
                 'plan_expires_at' => 'sometimes|date|nullable',
                 'custom_contact_limit' => 'sometimes|integer|nullable',
+                'extra_contacts_quota' => 'sometimes|integer|nullable',
                 'loyalty_active' => 'sometimes|boolean',
                 'points_goal' => 'sometimes|integer|min:1',
                 'reward_text' => 'sometimes|string',

@@ -48,6 +48,8 @@ export interface Tenant {
   plan: PlanType;
   plan_id?: string;
   custom_contact_limit?: number;
+  total_contact_limit?: number;
+  extra_contacts_quota?: number;
   plan_expires_at?: string;
   customers_count?: number;
   status: 'active' | 'warning' | 'expired' | 'blocked';

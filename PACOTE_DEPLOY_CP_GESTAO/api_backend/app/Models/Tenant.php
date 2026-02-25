@@ -12,10 +12,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Tenant extends Model
 {
     use HasUuids, HasFactory;
+
+    protected $appends = ['total_contact_limit'];
     
     public const PLAN_LIMITS = [
-        'Pro' => 8000,
-        'Elite' => 999999,
+        'Classic' => 2000,
+        'Pro' => 4000,
+        'Elite' => 6000,
     ];
 
     protected $fillable = [
@@ -37,12 +40,14 @@ class Tenant extends Model
         'cover_url',
         'rules_text',
         'description',
+        'extra_contacts_quota',
     ];
 
     protected $casts = [
         'plan_expires_at' => 'date',
         'loyalty_active' => 'boolean',
         'custom_contact_limit' => 'integer',
+        'extra_contacts_quota' => 'integer',
     ];
 
     public function planRelationship(): \Illuminate\Database\Eloquent\Relations\BelongsTo
@@ -85,5 +90,45 @@ class Tenant extends Model
     public function customers(): HasMany
     {
         return $this->hasMany(Customer::class);
+    }
+
+    public function getTotalContactLimitAttribute(): int
+    {
+        // Special case for Infinity
+        if ($this->extra_contacts_quota === -1) {
+            return 999999;
+        }
+
+        $baseLimit = $this->custom_contact_limit ?? self::PLAN_LIMITS[$this->plan] ?? 2000;
+        return $baseLimit + $this->extra_contacts_quota;
+    }
+
+    public function isLimitReached(): bool
+    {
+        return $this->customers()->count() >= $this->total_contact_limit;
+    }
+
+    public function getUsagePercentage(): float
+    {
+        $limit = $this->total_contact_limit;
+        if ($limit <= 0) return 0;
+        return ($this->customers()->count() / $limit) * 100;
+    }
+
+    public function verifyAndNotifyLimit(): void
+    {
+        $percentage = $this->getUsagePercentage();
+        $telegram = app(\App\Services\TelegramService::class);
+
+        if ($percentage >= 100) {
+            $telegram->sendMessage($this->id, "🚫 *Limite Atingido\!* O cadastro de novos clientes foi pausado\.");
+        } elseif ($percentage >= 80) {
+            // Use cache to avoid spamming 80% alerts
+            $cacheKey = "tenant_{$this->id}_80_alert_sent";
+            if (!cache()->has($cacheKey)) {
+                $telegram->sendMessage($this->id, "⚠️ *Atenção\!* Sua base de clientes atingiu 80% da capacidade\. Faça um upgrade agora\!");
+                cache()->put($cacheKey, true, now()->addDays(7));
+            }
+        }
     }
 }

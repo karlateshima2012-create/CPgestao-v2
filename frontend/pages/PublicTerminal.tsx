@@ -619,128 +619,144 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         {
           mode === 'REGISTER' && (
             <div className="bg-white dark:bg-slate-900 rounded-xl p-8 shadow-xl border border-slate-100 dark:border-slate-800 relative overflow-hidden animate-fade-in space-y-6">
-              <form onSubmit={handleRegister} className="space-y-6">
-                <div className="flex items-center justify-start">
-                  <button type="button" onClick={() => setMode('START')} className="p-2.5 bg-slate-50 dark:bg-slate-800 rounded-full text-slate-500 hover:bg-slate-100 transition-colors"><ChevronLeft className="w-5 h-5" /></button>
-                </div>
-                <div className="space-y-1 text-center">
-                  <h2 className="text-xl font-bold text-slate-800 dark:text-white tracking-tight">Criar Cadastro</h2>
-                  <p className="text-sm text-slate-500 font-medium">Preencha seus dados para ganhar seu primeiro ponto!</p>
-                </div>
-                <div className="space-y-4">
-                  <Input
-                    label="Nome Completo *"
-                    placeholder="Ex: João Silva"
-                    value={customerData.name}
-                    onChange={e => setCustomerData({ ...customerData, name: normalizeText(e.target.value) })}
-                    className="h-12 rounded-[15px] focus:ring-slate-300"
-                  />
-                  <div className="grid grid-cols-2 gap-3">
-                    <Input
-                      label="Seu Telefone *"
-                      placeholder="090-0000-0000"
-                      value={phone}
-                      onChange={e => setPhone(formatJapanesePhone(e.target.value))}
-                      className="h-11 rounded-[15px] bg-slate-100 border-transparent font-black focus:ring-slate-300"
-                    />
-                    <Input
-                      label="E-mail"
-                      type="email"
-                      placeholder="seu@email.com"
-                      value={customerData.email}
-                      onChange={e => setCustomerData({ ...customerData, email: e.target.value })}
-                      className="h-11 rounded-[15px] focus:ring-slate-300"
-                    />
+              {storeInfo?.is_limit_reached ? (
+                <div className="py-12 flex flex-col items-center text-center space-y-6">
+                  <div className="w-20 h-20 bg-amber-50 dark:bg-amber-900/20 rounded-full flex items-center justify-center border-4 border-amber-100 dark:border-amber-900/10">
+                    <AlertCircle className="w-10 h-10 text-amber-500" />
                   </div>
+                  <div className="space-y-2">
+                    <h2 className="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tighter">Limite Atingido</h2>
+                    <p className="text-sm text-slate-500 font-medium max-w-[280px] mx-auto leading-relaxed italic">
+                      Esta loja atingiu o limite máximo de clientes cadastrados para o plano atual.
+                    </p>
+                    <p className="text-xs text-amber-600 font-bold uppercase tracking-widest mt-4">Por favor, informe ao proprietário.</p>
+                  </div>
+                  <Button onClick={() => setMode('START')} variant="secondary" className="px-8 bg-slate-100 font-bold">Voltar</Button>
+                </div>
+              ) : (
+                <form onSubmit={handleRegister} className="space-y-6">
+                  <div className="flex items-center justify-start">
+                    <button type="button" onClick={() => setMode('START')} className="p-2.5 bg-slate-50 dark:bg-slate-800 rounded-full text-slate-500 hover:bg-slate-100 transition-colors"><ChevronLeft className="w-5 h-5" /></button>
+                  </div>
+                  <div className="space-y-1 text-center">
+                    <h2 className="text-xl font-bold text-slate-800 dark:text-white tracking-tight">Criar Cadastro</h2>
+                    <p className="text-sm text-slate-500 font-medium">Preencha seus dados para ganhar seu primeiro ponto!</p>
+                  </div>
+                  <div className="space-y-4">
+                    <Input
+                      label="Nome Completo *"
+                      placeholder="Ex: João Silva"
+                      value={customerData.name}
+                      onChange={e => setCustomerData({ ...customerData, name: normalizeText(e.target.value) })}
+                      className="h-12 rounded-[15px] focus:ring-slate-300"
+                    />
+                    <div className="grid grid-cols-2 gap-3">
+                      <Input
+                        label="Seu Telefone *"
+                        placeholder="090-0000-0000"
+                        value={phone}
+                        onChange={e => setPhone(formatJapanesePhone(e.target.value))}
+                        className="h-11 rounded-[15px] bg-slate-100 border-transparent font-black focus:ring-slate-300"
+                      />
+                      <Input
+                        label="E-mail"
+                        type="email"
+                        placeholder="seu@email.com"
+                        value={customerData.email}
+                        onChange={e => setCustomerData({ ...customerData, email: e.target.value })}
+                        className="h-11 rounded-[15px] focus:ring-slate-300"
+                      />
+                    </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 text-slate-400">ANIVERSÁRIO (OPCIONAL)</label>
-                      <div className="flex gap-2">
-                        <div className="flex-1 relative">
-                          <input
-                            list="days"
-                            placeholder="Dia"
-                            className="w-full h-11 px-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[15px] text-sm font-bold outline-none text-slate-600 focus:ring-2 focus:ring-slate-300 transition-all"
-                            value={bDay}
-                            onChange={e => {
-                              const v = e.target.value.replace(/\D/g, '').slice(0, 2);
-                              if (parseInt(v) > 31) return;
-                              setBDay(v);
-                            }}
-                          />
-                          <datalist id="days">
-                            {Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2, '0')).map(d => <option key={d} value={d} />)}
-                          </datalist>
-                        </div>
-                        <div className="flex-1 relative">
-                          <input
-                            list="months"
-                            placeholder="Mês"
-                            className="w-full h-11 px-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[15px] text-sm font-bold outline-none text-slate-600 focus:ring-2 focus:ring-slate-300 transition-all"
-                            value={bMonth}
-                            onChange={e => setBMonth(e.target.value)}
-                          />
-                          <datalist id="months">
-                            {['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'].map(m => <option key={m} value={m} />)}
-                          </datalist>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 text-slate-400">ANIVERSÁRIO (OPCIONAL)</label>
+                        <div className="flex gap-2">
+                          <div className="flex-1 relative">
+                            <input
+                              list="days"
+                              placeholder="Dia"
+                              className="w-full h-11 px-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[15px] text-sm font-bold outline-none text-slate-600 focus:ring-2 focus:ring-slate-300 transition-all"
+                              value={bDay}
+                              onChange={e => {
+                                const v = e.target.value.replace(/\D/g, '').slice(0, 2);
+                                if (parseInt(v) > 31) return;
+                                setBDay(v);
+                              }}
+                            />
+                            <datalist id="days">
+                              {Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2, '0')).map(d => <option key={d} value={d} />)}
+                            </datalist>
+                          </div>
+                          <div className="flex-1 relative">
+                            <input
+                              list="months"
+                              placeholder="Mês"
+                              className="w-full h-11 px-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[15px] text-sm font-bold outline-none text-slate-600 focus:ring-2 focus:ring-slate-300 transition-all"
+                              value={bMonth}
+                              onChange={e => setBMonth(e.target.value)}
+                            />
+                            <datalist id="months">
+                              {['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'].map(m => <option key={m} value={m} />)}
+                            </datalist>
+                          </div>
                         </div>
                       </div>
+                      <Input
+                        label="Código Postal"
+                        placeholder="000-0000"
+                        value={customerData.postalCode}
+                        onChange={e => setCustomerData({ ...customerData, postalCode: e.target.value })}
+                        className="h-11 rounded-[15px] focus:ring-slate-300"
+                      />
                     </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <Input
+                        label="Província"
+                        placeholder="Ex: Aichi"
+                        value={customerData.province}
+                        onChange={e => setCustomerData({ ...customerData, province: normalizeText(e.target.value) })}
+                        className="h-11 rounded-[15px] focus:ring-slate-300"
+                      />
+                      <Input
+                        label="Cidade"
+                        placeholder="Sua Cidade"
+                        value={customerData.city}
+                        onChange={e => setCustomerData({ ...customerData, city: normalizeText(e.target.value) })}
+                        className="h-11 rounded-[15px] focus:ring-slate-300"
+                      />
+                    </div>
+
                     <Input
-                      label="Código Postal"
-                      placeholder="000-0000"
-                      value={customerData.postalCode}
-                      onChange={e => setCustomerData({ ...customerData, postalCode: e.target.value })}
+                      label="Endereço"
+                      placeholder="Nome da rua, número, apto..."
+                      value={customerData.address}
+                      onChange={e => setCustomerData({ ...customerData, address: normalizeText(e.target.value) })}
                       className="h-11 rounded-[15px] focus:ring-slate-300"
                     />
                   </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <Input
-                      label="Província"
-                      placeholder="Ex: Aichi"
-                      value={customerData.province}
-                      onChange={e => setCustomerData({ ...customerData, province: normalizeText(e.target.value) })}
-                      className="h-11 rounded-[15px] focus:ring-slate-300"
-                    />
-                    <Input
-                      label="Cidade"
-                      placeholder="Sua Cidade"
-                      value={customerData.city}
-                      onChange={e => setCustomerData({ ...customerData, city: normalizeText(e.target.value) })}
-                      className="h-11 rounded-[15px] focus:ring-slate-300"
-                    />
-                  </div>
-
-                  <Input
-                    label="Endereço"
-                    placeholder="Nome da rua, número, apto..."
-                    value={customerData.address}
-                    onChange={e => setCustomerData({ ...customerData, address: normalizeText(e.target.value) })}
-                    className="h-11 rounded-[15px] focus:ring-slate-300"
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  isLoading={loading}
-                  variant="secondary"
-                  className="w-full h-14 bg-slate-500 hover:bg-slate-600 text-white rounded-[20px] font-black uppercase tracking-widest shadow-lg shadow-slate-500/10 transition-all transform active:scale-[0.98]"
-                  onClick={(e) => {
-                    if (!customerData.name) {
-                      e.preventDefault();
-                      setModal({
-                        isOpen: true,
-                        title: 'Campos Obrigatórios',
-                        message: 'Por favor, preencha o seu nome.',
-                        type: 'info'
-                      });
-                    }
-                  }}
-                >
-                  CADASTRAR
-                </Button>
-              </form>
+                  <Button
+                    type="submit"
+                    isLoading={loading}
+                    variant="secondary"
+                    className="w-full h-14 bg-slate-500 hover:bg-slate-600 text-white rounded-[20px] font-black uppercase tracking-widest shadow-lg shadow-slate-500/10 transition-all transform active:scale-[0.98]"
+                    onClick={(e) => {
+                      if (!customerData.name) {
+                        e.preventDefault();
+                        setModal({
+                          isOpen: true,
+                          title: 'Campos Obrigatórios',
+                          message: 'Por favor, preencha o seu nome.',
+                          type: 'info'
+                        });
+                      }
+                    }}
+                  >
+                    CADASTRAR
+                  </Button>
+                </form>
+              )}
             </div>
           )
         }

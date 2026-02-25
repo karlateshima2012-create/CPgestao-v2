@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Card, Button, Input, Badge, StatusModal } from '../../components/ui';
-import { Calendar, ShieldCheck, Upload, X, Image as ImageIcon, Lock, Send, ExternalLink, Eye, EyeOff, Copy, Settings } from 'lucide-react';
+import { Calendar, ShieldCheck, Upload, X, Image as ImageIcon, Lock, Send, ExternalLink, Eye, EyeOff, Copy, Settings, Rocket, ArrowUpCircle, Check } from 'lucide-react';
 import api from '../../services/api';
 import { copyToClipboard } from '../../utils/clipboard';
 
@@ -14,8 +14,10 @@ export const AccountTab: React.FC = () => {
     slug: '',
     customers_count: 0,
     plan_limit: 0,
+    extra_contacts_quota: 0,
     reward_text: ''
   });
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [telegramSettings, setTelegramSettings] = useState({
     bot_token: '',
     chat_id: '',
@@ -449,11 +451,35 @@ export const AccountTab: React.FC = () => {
                   <div>
                     <p className="text-[10px] text-purple-500 uppercase font-black tracking-widest leading-none mb-1">Limite de Contatos</p>
                     <p className="text-lg font-black text-purple-900 dark:text-purple-50">
-                      {tenantInfo.customers_count} / {tenantInfo.plan_limit >= 999999 ? 'Ilimitado' : tenantInfo.plan_limit}
+                      {tenantInfo.customers_count.toLocaleString()} / {tenantInfo.plan_limit >= 999999 ? 'Ilimitado' : tenantInfo.plan_limit.toLocaleString()}
                     </p>
                   </div>
                 </div>
+                {tenantInfo.plan_limit < 999999 && (
+                  <Button
+                    onClick={() => setShowUpgradeModal(true)}
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-purple-500/20 flex items-center gap-2"
+                  >
+                    <Rocket className="w-3.5 h-3.5" /> Fazer Upgrade
+                  </Button>
+                )}
               </div>
+              {tenantInfo.plan_limit < 999999 && (
+                <div className="mt-4 space-y-2">
+                  <div className="w-full bg-purple-100 dark:bg-purple-900/30 h-2.5 rounded-full overflow-hidden border border-purple-200/50">
+                    <div
+                      className={`h-full transition-all duration-1000 ${(tenantInfo.customers_count / tenantInfo.plan_limit) >= 0.9 ? 'bg-red-500' :
+                        (tenantInfo.customers_count / tenantInfo.plan_limit) >= 0.8 ? 'bg-orange-500' : 'bg-purple-500'
+                        }`}
+                      style={{ width: `${Math.min(100, (tenantInfo.customers_count / tenantInfo.plan_limit) * 100)}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[9px] font-bold text-purple-400 uppercase tracking-widest px-1">
+                    <span>Uso da Capacidade</span>
+                    <span>{Math.round((tenantInfo.customers_count / tenantInfo.plan_limit) * 100)}%</span>
+                  </div>
+                </div>
+              )}
             </Card>
           </div>
 
@@ -487,6 +513,83 @@ export const AccountTab: React.FC = () => {
           theme="accent"
           onClose={() => setModal(prev => ({ ...prev, isOpen: false }))}
         />
+      )}
+
+      {/* MODAL DE UPGRADE */}
+      {showUpgradeModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
+          <Card className="w-full max-w-2xl p-0 shadow-2xl overflow-hidden animate-scale-up">
+            <div className="p-8 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-gray-900/50">
+              <div>
+                <h3 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3">
+                  <Rocket className="w-6 h-6 text-purple-600" /> Upgrade de Base
+                </h3>
+                <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">Expanda seu limite de contatos instantaneamente</p>
+              </div>
+              <button
+                onClick={() => setShowUpgradeModal(false)}
+                className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-full transition-colors"
+              >
+                <X className="w-6 h-6 text-gray-400" />
+              </button>
+            </div>
+
+            <div className="p-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  { name: 'Pack Bronze', extra: '+1.000', price: '¥ 2.500', color: 'orange' },
+                  { name: 'Pack Prata', extra: '+2.000', price: '¥ 4.500', color: 'blue' },
+                  { name: 'Pack Ouro', extra: '+4.000', price: '¥ 8.000', color: 'yellow' },
+                  { name: 'Pack Infinity', extra: 'Ilimitado', price: 'Consultar', color: 'purple' },
+                ].map((pack) => {
+                  const colorClasses: Record<string, string> = {
+                    orange: 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400',
+                    blue: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',
+                    yellow: 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400',
+                    purple: 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
+                  };
+                  return (
+                    <div key={pack.name} className="relative group">
+                      <div className={`h-full border-2 border-gray-100 dark:border-gray-800 rounded-3xl p-6 transition-all hover:border-purple-500 hover:shadow-xl hover:shadow-purple-500/10 bg-white dark:bg-gray-900`}>
+                        <div className="flex justify-between items-start mb-4">
+                          <div className={`p-3 rounded-2xl ${colorClasses[pack.color] || 'bg-gray-50 text-gray-600'}`}>
+                            <ArrowUpCircle className="w-6 h-6" />
+                          </div>
+                          <Badge color={pack.color as any}>{pack.price}</Badge>
+                        </div>
+                        <h4 className="text-xl font-black text-gray-900 dark:text-white mb-1">{pack.name}</h4>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">{pack.extra} contatos</p>
+
+                        <Button
+                          onClick={() => {
+                            const message = `Olá Karla! Gostaria de solicitar o upgrade do meu CPgestao-v2.
+Loja: ${tenantInfo.name}
+Plano Atual: ${tenantInfo.plan}
+Pacote Escolhido: ${pack.name} (Valor: ${pack.price})`;
+                            window.open(`https://wa.me/819011886491?text=${encodeURIComponent(message)}`, '_blank');
+                          }}
+                          className="w-full bg-gray-900 dark:bg-white dark:text-gray-900 text-white font-black uppercase text-[10px] tracking-widest py-3 rounded-xl hover:bg-purple-600 dark:hover:bg-purple-500 transition-all border-none"
+                        >
+                          Solicitar Upgrade
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="mt-8 p-6 bg-purple-50 dark:bg-purple-900/20 rounded-3xl border border-purple-100 dark:border-purple-900/30 flex items-center gap-4">
+                <div className="p-3 bg-white dark:bg-gray-900 rounded-full text-purple-600 shadow-sm">
+                  <Settings className="w-5 h-5 animate-spin-slow" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs font-black text-purple-900 dark:text-purple-100 uppercase tracking-widest leading-tight">Pagamento Único e Vitalício</p>
+                  <p className="text-[10px] text-purple-600 dark:text-purple-400 font-bold mt-0.5">Adquira agora e mantenha seu limite extra para sempre, mesmo se trocar de plano.</p>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </div>
       )}
     </div>
   );
