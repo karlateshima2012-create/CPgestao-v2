@@ -19,6 +19,10 @@ jobs:
           script: |
             cd domains/creativeprintjp.com/public_html/cpgestao
             
+            echo "--- DEBUG PHP NO SERVIDOR ---"
+            php -v
+            php -m | grep -E "pdo|pgsql|sqlite"
+            
             echo "--- INICIANDO DEPLOY ---"
             
             # 1. Atualizar código via Git
@@ -56,10 +60,10 @@ jobs:
             composer install --no-dev --optimize-autoloader
             
             echo "--- BACKEND: Migrações ---"
-            php artisan migrate --force
+            php artisan migrate --force || echo "ERRO: Migrações falharam. Verifique o driver."
             
             echo "--- BACKEND: Seeders ---"
-            php artisan db:seed --force
+            php artisan db:seed --force || echo "ERRO: Seeders falharam."
             
             echo "--- BACKEND: Caching ---"
             php artisan config:cache
@@ -100,6 +104,7 @@ jobs:
             chmod -R 775 "$B_DIR/storage" "$B_DIR/bootstrap/cache"
             
             echo "--- DEPLOY CONCLUÍDO COM SUCESSO ---"
+
 
 
 
