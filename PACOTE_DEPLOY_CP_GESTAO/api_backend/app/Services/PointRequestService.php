@@ -1,0 +1,92 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\PointRequest;
+use App\Models\PointMovement;
+use App\Models\Customer;
+use Illuminate\Support\Facades\DB;
+
+class PointRequestService
+{
+    /**
+     * Apply points/redemption from a PointRequest to a Customer.
+     */
+    public function applyPoints(PointRequest $request)
+    {
+        return DB::transaction(function () use ($request) {
+            $customer = Customer::findOrFail($request->customer_id);
+            $meta = $request->meta ?? [];
+            $isRedemption = $meta['is_redemption'] ?? false;
+            
+            if ($isRedemption) {
+                $goal = $meta['goal'] ?? 0;
+                $bonus = $meta['bonus'] ?? 0;
+                $pointsToAdd = $request->requested_points - $bonus;
+                $vipInitial = $meta['vip_initial'] ?? 0;
+                $wasPremium = $customer->is_premium;
+
+                // Update customer state
+                if (!$wasPremium) {
+                    $customer->is_premium = true;
+                }
+                
+                $appliedVipInitial = (!$wasPremium) ? $vipInitial : 0;
+                $customer->points_balance = ($customer->points_balance - $goal) + $request->requested_points + $appliedVipInitial;
+                $customer->loyalty_level += 1;
+                $customer->last_activity_at = now();
+                $customer->save();
+
+                // Log Redemption Movement
+                PointMovement::create([
+                    'tenant_id' => $request->tenant_id,
+                    'customer_id' => $customer->id,
+                    'type' => 'redeem',
+                    'points' => -$goal,
+                    'origin' => $request->source,
+                    'device_id' => $request->device_id,
+                    'description' => 'Resgate de prêmio via solicitação: ' . $request->id,
+                    'meta' => json_encode([
+                        'point_request_id' => $request->id,
+                        'goal' => $goal,
+                        'new_level' => $customer->loyalty_level,
+                    ])
+                ]);
+
+                // Log Earn Movement
+                PointMovement::create([
+                    'tenant_id' => $request->tenant_id,
+                    'customer_id' => $customer->id,
+                    'type' => 'earn',
+                    'points' => $request->requested_points,
+                    'origin' => $request->source,
+                    'device_id' => $request->device_id,
+                    'description' => 'Pontos da visita (Resgate) via solicitação: ' . $request->id,
+                    'meta' => json_encode([
+                        'point_request_id' => $request->id,
+                        'bonus_applied' => $bonus,
+                    ])
+                ]);
+            } else {
+                // Simple Credit
+                $customer->increment('points_balance', $request->requested_points);
+                $customer->update(['last_activity_at' => now()]);
+
+                PointMovement::create([
+                    'tenant_id' => $request->tenant_id,
+                    'customer_id' => $customer->id,
+                    'type' => 'earn',
+                    'points' => $request->requested_points,
+                    'origin' => $request->source,
+                    'device_id' => $request->device_id,
+                    'description' => 'Pontos creditados via solicitação: ' . $request->id,
+                    'meta' => json_encode([
+                        'point_request_id' => $request->id,
+                    ])
+                ]);
+            }
+
+            return true;
+        });
+    }
+}

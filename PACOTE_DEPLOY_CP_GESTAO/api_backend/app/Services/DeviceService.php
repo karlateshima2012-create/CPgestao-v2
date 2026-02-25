@@ -2,8 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\Device;
+use App\Models\LoyaltyCard;
 use App\Models\DeviceBatch;
+use App\Models\Device;
 use App\Utils\Luhn;
 use Illuminate\Support\Facades\DB;
 use Exception;
@@ -22,7 +23,7 @@ class DeviceService
             $nextBatchNumber = $lastBatch ? $lastBatch->batch_number + 1 : 1;
 
             $batch = DeviceBatch::create([
-                'tenant_id' => $tenantId, // Explicitly pass for generation if check() is false
+                'tenant_id' => $tenantId,
                 'quantity' => $quantity,
                 'label' => $label,
                 'type' => 'premium',
@@ -38,9 +39,9 @@ class DeviceService
     }
 
     /**
-     * Generate a single device for a batch, handling collisions.
+     * Generate a single device (LoyaltyCard) for a batch, handling collisions.
      */
-    private function generateDevice(DeviceBatch $batch): Device
+    private function generateDevice(DeviceBatch $batch): LoyaltyCard
     {
         $maxRetries = 10;
         $retries = 0;
@@ -49,7 +50,8 @@ class DeviceService
             try {
                 $uid = Luhn::generate(12);
                 
-                return Device::create([
+                return LoyaltyCard::create([
+                    'tenant_id' => $batch->tenant_id,
                     'batch_id' => $batch->id,
                     'type' => 'premium',
                     'uid' => $uid,
@@ -57,7 +59,6 @@ class DeviceService
                     'active' => true,
                 ]);
             } catch (Exception $e) {
-                // Likely a unique constraint violation on UID
                 $retries++;
                 if ($retries === $maxRetries) {
                     throw new Exception("Failed to generate a unique UID after {$maxRetries} attempts.");
@@ -65,27 +66,44 @@ class DeviceService
             }
         }
 
-        throw new Exception("Unexpected error in device generation.");
+        throw new Exception("Unexpected error in loyalty card generation.");
     }
 
     /**
-     * Link a premium device to a customer.
+     * Link a loyalty card to a customer.
      */
-    public function linkDeviceToCustomer(string $uid, string $customerId, string $tenantId): Device
+    public function linkDeviceToCustomer(string $uid, string $customerId, string $tenantId): LoyaltyCard
     {
-        $device = Device::where('uid', $uid)
+        $card = LoyaltyCard::where('uid', $uid)
+            ->where('tenant_id', $tenantId)
             ->where('type', 'premium')
             ->firstOrFail();
 
-        if (!$device->active || $device->status === 'disabled') {
-            throw new Exception("This device is not active.");
+        if (!$card->active || $card->status === 'disabled') {
+            throw new Exception("This card is not active.");
         }
 
-        $device->update([
+        $card->update([
             'linked_customer_id' => $customerId,
             'status' => 'linked',
         ]);
 
-        return $device;
+        return $card;
+    }
+
+    /**
+     * Create/Retrieve a virtual online QR device for a tenant.
+     */
+    public function getOrCreateOnlineQrDevice(string $tenantId): Device
+    {
+        return Device::firstOrCreate([
+            'tenant_id' => $tenantId,
+            'mode' => 'online_qr',
+        ], [
+            'name' => 'Online Store (QR)',
+            'nfc_uid' => 'online_' . substr($tenantId, 0, 8),
+            'auto_approve' => true, // Online sales are usually auto-approved
+            'active' => true,
+        ]);
     }
 }

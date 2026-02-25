@@ -24,6 +24,6 @@ class DeviceBatch extends Model
 
     public function devices(): HasMany
     {
-        return $this->hasMany(Device::class, 'batch_id');
+        return $this->hasMany(LoyaltyCard::class, 'batch_id');
     }
 }

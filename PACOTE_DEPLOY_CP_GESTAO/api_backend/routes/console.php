@@ -7,4 +7,5 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-\Illuminate\Support\Facades\Schedule::command('app:process-reminders')->dailyAt('09:00');
+\Illuminate\Support\Facades\Schedule::command('app:process-reminders')->everyMinute();
+\Illuminate\Support\Facades\Schedule::command('app:check-loyalty-downgrades')->daily();

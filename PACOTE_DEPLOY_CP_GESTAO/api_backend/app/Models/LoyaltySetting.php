@@ -23,5 +23,10 @@ class LoyaltySetting extends Model
         'regular_points_per_scan',
         'signup_bonus_points',
         'cooldown_seconds',
+        'levels_config',
+    ];
+
+    protected $casts = [
+        'levels_config' => 'array',
     ];
 }

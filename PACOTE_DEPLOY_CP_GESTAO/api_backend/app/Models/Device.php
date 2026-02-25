@@ -5,44 +5,35 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-
 use App\Traits\BelongsToTenant;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Device extends Model
 {
-    use HasUuids, BelongsToTenant;
+    use HasUuids, BelongsToTenant, HasFactory;
 
     protected $fillable = [
         'tenant_id',
-        'batch_id',
-        'type',
-        'uid',
+        'name',
+        'nfc_uid',
+        'mode',
+        'auto_approve',
         'active',
-        'status',
-        'linked_customer_id',
+        'telegram_chat_id',
+        'responsible_name',
     ];
 
-    protected $appends = ['uid_formatted'];
+    protected $casts = [
+        'auto_approve' => 'boolean',
+        'active' => 'boolean',
+    ];
 
-    public function getUidFormattedAttribute(): string
+    /**
+     * Relationship to the Tenant.
+     */
+    public function tenant(): BelongsTo
     {
-        if (mb_strlen($this->uid) === 16) {
-            return preg_replace('/(\d{4})(\d{4})(\d{4})(\d{4})/', '$1 $2 $3 $4', $this->uid);
-        }
-        if (mb_strlen($this->uid) === 12) {
-            return preg_replace('/(\d{4})(\d{4})(\d{4})/', '$1 $2 $3', $this->uid);
-        }
-        return $this->uid;
-    }
-
-
-    public function batch(): BelongsTo
-    {
-        return $this->belongsTo(DeviceBatch::class, 'batch_id');
-    }
-
-    public function customer(): BelongsTo
-    {
-        return $this->belongsTo(Customer::class, 'linked_customer_id');
+        return $this->belongsTo(Tenant::class);
     }
 }

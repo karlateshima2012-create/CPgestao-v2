@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Tenant;
 use App\Models\TenantSetting;
 use App\Services\DeviceService;
+use App\Services\PlanService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -15,10 +16,12 @@ use App\Http\Responses\ApiResponse;
 class TenantController extends Controller
 {
     protected $deviceService;
+    protected $planService;
 
-    public function __construct(DeviceService $deviceService)
+    public function __construct(DeviceService $deviceService, PlanService $planService)
     {
         $this->deviceService = $deviceService;
+        $this->planService = $planService;
     }
 
     public function index()
@@ -65,6 +68,8 @@ class TenantController extends Controller
             'email' => 'required|email',
             'plan' => 'required|string',
             'plan_expires_at' => 'nullable|date',
+            'custom_contact_limit' => 'nullable|integer',
+            'totems_count' => 'nullable|integer|min:0|max:10',
         ]);
 
         $tenant = Tenant::create([
@@ -74,8 +79,25 @@ class TenantController extends Controller
             'email' => $request->email,
             'plan' => $request->plan,
             'plan_expires_at' => $request->plan_expires_at ?: now()->addDays(30),
+            'custom_contact_limit' => $request->custom_contact_limit,
             'slug' => Str::slug($request->name),
         ]);
+
+        // Provision Totems (Devices) if requested
+        $totemsCount = (int) $request->input('totems_count', 0);
+        if ($totemsCount > 0) {
+            $mode = $tenant->plan === 'elite' ? 'auto_checkin' : 'approval';
+            for ($i = 1; $i <= $totemsCount; $i++) {
+                \App\Models\Device::create([
+                    'tenant_id' => $tenant->id,
+                    'name' => "Totem {$i}",
+                    'nfc_uid' => Str::random(12),
+                    'mode' => $mode,
+                    'auto_approve' => $tenant->plan === 'elite',
+                    'active' => true,
+                ]);
+            }
+        }
 
         // Initial PIN: Random 4 digits
         $pin = str_pad(mt_rand(0, 9999), 4, '0', STR_PAD_LEFT);
@@ -84,6 +106,9 @@ class TenantController extends Controller
         $settings->pin = $pin;
         $settings->pin_hash = Hash::make($pin);
         $settings->save();
+
+        // Populate default tags for the new tenant
+        \App\Jobs\PopulateDefaultTagsJob::dispatch($tenant->id);
 
         // Create initial User (Admin for this tenant)
         $password = Str::random(8);
@@ -119,6 +144,7 @@ class TenantController extends Controller
                 'status' => 'sometimes|string|in:active,warning,expired,blocked',
                 'plan' => 'sometimes|string',
                 'plan_expires_at' => 'sometimes|date|nullable',
+                'custom_contact_limit' => 'sometimes|integer|nullable',
                 'loyalty_active' => 'sometimes|boolean',
                 'points_goal' => 'sometimes|integer|min:1',
                 'reward_text' => 'sometimes|string',
@@ -159,11 +185,25 @@ class TenantController extends Controller
     public function getBatch($id, $batchId)
     {
         $batch = \App\Models\DeviceBatch::where('tenant_id', $id)->findOrFail($batchId);
-        $devices = \App\Models\Device::where('batch_id', $batchId)->get();
+        $devices = \App\Models\LoyaltyCard::where('batch_id', $batchId)->get();
+
+        // Check for duplicates across the entire tenant
+        $duplicates = [];
+        if ($devices->isNotEmpty()) {
+            $uids = $devices->pluck('uid')->toArray();
+            $duplicateUids = \App\Models\LoyaltyCard::where('tenant_id', $id)
+                ->whereIn('uid', $uids)
+                ->groupBy('uid')
+                ->havingRaw('COUNT(uid) > 1')
+                ->pluck('uid')
+                ->toArray();
+            $duplicates = $duplicateUids;
+        }
 
         return ApiResponse::ok([
             'batch' => $batch,
-            'devices' => $devices
+            'devices' => $devices,
+            'duplicates' => $duplicates
         ]);
     }
 
@@ -171,7 +211,7 @@ class TenantController extends Controller
     {
         $tenant = Tenant::findOrFail($id);
         $batch = \App\Models\DeviceBatch::where('tenant_id', $id)->findOrFail($batchId);
-        $devices = \App\Models\Device::where('batch_id', $batchId)->get();
+        $devices = \App\Models\LoyaltyCard::where('batch_id', $batchId)->get();
 
         $filename = "batch_{$batchId}_" . now()->format('Y-m-d') . ".csv";
         $headers = [
@@ -186,12 +226,12 @@ class TenantController extends Controller
             fputcsv($file, ['UID', 'Status', 'URL', 'Created At']);
 
             foreach ($devices as $device) {
-                $publicUrl = "{$frontendUrl}/terminal/{$tenant->slug}/{$device->uid}";
+                $publicUrl = "{$frontendUrl}/vip/{$device->uid}";
                 fputcsv($file, [
                     $device->uid,
                     $device->status,
                     $publicUrl,
-                    $device->created_at->toDateTimeString(),
+                    (string) $device->created_at,
                 ]);
             }
             fclose($file);
@@ -240,5 +280,66 @@ class TenantController extends Controller
         });
 
         return ApiResponse::ok(null, 'Loja e todos os dados associados foram excluídos com sucesso');
+    }
+
+    public function listDevices($id)
+    {
+        $devices = \App\Models\Device::where('tenant_id', $id)->get();
+        return ApiResponse::ok($devices);
+    }
+
+    public function storeDevice(Request $request, $id)
+    {
+        $tenant = Tenant::findOrFail($id);
+        
+        $this->planService->validateDeviceLimit($tenant);
+
+        $request->validate([
+            'name' => 'required|string',
+            'mode' => 'required|string|in:approval,auto_checkin',
+            'telegram_chat_id' => 'nullable|string',
+            'responsible_name' => 'nullable|string',
+        ]);
+
+        $device = \App\Models\Device::create([
+            'tenant_id' => $tenant->id,
+            'name' => $request->name,
+            'nfc_uid' => Str::random(12),
+            'mode' => $request->mode,
+            'telegram_chat_id' => $request->telegram_chat_id,
+            'responsible_name' => $request->responsible_name ?: $request->name,
+            'auto_approve' => $request->mode === 'auto_checkin',
+            'active' => true,
+        ]);
+
+        return ApiResponse::ok($device, 'Terminal registrado com sucesso');
+    }
+
+    public function updateDevice(Request $request, $id, $deviceId)
+    {
+        $device = \App\Models\Device::where('tenant_id', $id)->findOrFail($deviceId);
+
+        $request->validate([
+            'name' => 'sometimes|string',
+            'mode' => 'sometimes|string|in:approval,auto_checkin',
+            'telegram_chat_id' => 'nullable|string',
+            'responsible_name' => 'nullable|string',
+        ]);
+
+        $data = $request->only(['name', 'mode', 'telegram_chat_id', 'responsible_name']);
+        if (isset($data['mode'])) {
+            $data['auto_approve'] = $data['mode'] === 'auto_checkin';
+        }
+
+        $device->update($data);
+
+        return ApiResponse::ok($device, 'Terminal atualizado com sucesso');
+    }
+
+    public function deleteDevice($id, $deviceId)
+    {
+        $device = \App\Models\Device::where('tenant_id', $id)->findOrFail($deviceId);
+        $device->delete();
+        return ApiResponse::ok(null, 'Terminal excluído com sucesso');
     }
 }

@@ -37,12 +37,24 @@ class ClientController extends Controller
         return ApiResponse::ok($contacts);
     }
 
+    public function getContact(Request $request, $id)
+    {
+        $customer = Customer::with(['devices' => function($q) {
+                $q->where('status', 'linked')->where('type', 'premium');
+            }])->findOrFail($id);
+            
+        return ApiResponse::ok($customer);
+    }
+
     public function storeContact(Request $request)
     {
         $request->validate([
             'name' => 'required|string',
             'phone' => 'required|string',
-            'city' => 'required|string',
+            'city' => 'sometimes|string|nullable',
+            'province' => 'sometimes|string|nullable',
+            'postal_code' => 'sometimes|string|nullable',
+            'address' => 'sometimes|string|nullable',
             'points_balance' => 'sometimes|integer',
             'is_premium' => 'sometimes|boolean',
         ]);
@@ -52,39 +64,78 @@ class ClientController extends Controller
             return ApiResponse::error('Este número de telefone já está cadastrado nesta loja.', 'DUPLICATE_PHONE', 409);
         }
 
+        $loyalty = \App\Models\LoyaltySetting::where('tenant_id', auth()->user()->tenant_id)->first();
+        
+        $signupBonus = 0;
+        if ($loyalty) {
+            $levels = $loyalty->levels_config;
+            if ($levels && count($levels) > 0 && isset($levels[0]['points_per_signup'])) {
+                $signupBonus = (int)$levels[0]['points_per_signup'];
+            } else {
+                $signupBonus = (int)$loyalty->signup_bonus_points;
+            }
+        }
+        $initialPoints = (int)($request->points_balance ?? 0);
+
         $customer = Customer::create([
             'name' => $request->name,
             'phone' => $phone,
             'email' => $request->email,
             'city' => $request->city,
             'province' => $request->province,
+            'postal_code' => $request->postal_code,
+            'address' => $request->address,
             'is_premium' => $request->is_premium ?? false,
-            'points_balance' => $request->points_balance ?? 0,
-            'source' => 'crm',
+            'points_balance' => $initialPoints + $signupBonus,
+            'source' => $request->source ?? 'crm',
             'last_activity_at' => now(),
             'notes' => $request->notes,
             'last_contacted' => $request->last_contacted,
             'reminder_date' => $request->reminder_date,
             'reminder_text' => $request->reminder_text,
+            'birthday' => $request->birthday,
+            'tags' => $request->tags ?? [],
+            'preferences' => $request->preferences ?? [],
         ]);
 
-        if ($customer->points_balance > 0) {
+        if ($initialPoints > 0) {
             \App\Models\PointMovement::create([
+                'tenant_id' => $customer->tenant_id,
                 'customer_id' => $customer->id,
                 'type' => 'earn',
-                'points' => $customer->points_balance,
+                'points' => $initialPoints,
                 'origin' => 'crm_manual',
                 'description' => 'Saldo inicial via CRM'
             ]);
         }
 
-        $this->telegramService->sendMessage($customer->tenant_id, "👤 <b>Novo Cliente Cadastrado (CRM)</b>\n\n<b>Nome:</b> {$customer->name}\n<b>Telefone:</b> {$customer->phone}");
+        if ($signupBonus > 0) {
+            \App\Models\PointMovement::create([
+                'tenant_id' => $customer->tenant_id,
+                'customer_id' => $customer->id,
+                'type' => 'earn',
+                'points' => $signupBonus,
+                'origin' => 'crm_bonus',
+                'description' => 'Bônus de Cadastro'
+            ]);
+        }
+
+        $bonusMsg = "";
+        if ($signupBonus > 0) {
+            $bonusMsg = " (Bônus de Cadastro de {$signupBonus} pontos aplicado!)";
+            $escName = TelegramService::escapeMarkdownV2($customer->name);
+            $this->telegramService->sendMessage($customer->tenant_id, "🎁 *Bônus de Cadastro Aplicado \(CRM\)*\n*Cliente:* {$escName}\n*Pontos:* {$signupBonus}");
+        }
+
+        $escName = TelegramService::escapeMarkdownV2($customer->name);
+        $escPhone = TelegramService::escapeMarkdownV2($customer->phone);
+        $this->telegramService->sendMessage($customer->tenant_id, "👤 *Novo Cliente Cadastrado \(CRM\)*\n\n*Nome:* {$escName}\n*Telefone:* {$escPhone}");
 
         $customer->load(['devices' => function($q) {
             $q->where('status', 'linked')->where('type', 'premium');
         }]);
 
-        return ApiResponse::ok($customer, 'Contato criado com sucesso');
+        return ApiResponse::ok($customer, "Contato criado com sucesso{$bonusMsg}");
     }
 
     public function updateContact(Request $request, $id)
@@ -94,9 +145,17 @@ class ClientController extends Controller
         $request->validate([
             'name' => 'sometimes|string',
             'phone' => 'sometimes|string',
+            'city' => 'sometimes|string|nullable',
+            'province' => 'sometimes|string|nullable',
+            'postal_code' => 'sometimes|string|nullable',
+            'address' => 'sometimes|string|nullable',
             'email' => 'sometimes|email|nullable',
             'is_premium' => 'sometimes|boolean',
             'points_balance' => 'sometimes|integer',
+            'source' => 'sometimes|string',
+            'birthday' => 'sometimes|date|nullable',
+            'tags' => 'sometimes|array|nullable',
+            'preferences' => 'sometimes|array|nullable',
         ]);
 
         if ($request->has('phone')) {
@@ -153,11 +212,14 @@ class ClientController extends Controller
             'loyalty_active' => $tenant->loyalty_active,
             'points_goal' => $tenant->points_goal,
             'reward_text' => $tenant->reward_text,
+            'description' => $tenant->description,
+            'rules_text' => $tenant->rules_text,
             'vip_points_per_scan' => $loyalty->vip_points_per_scan,
             'regular_points_per_scan' => $loyalty->regular_points_per_scan,
             'signup_bonus_points' => $loyalty->signup_bonus_points,
             'vip_initial_points' => $loyalty->vip_initial_points,
             'cooldown_seconds' => $loyalty->cooldown_seconds,
+            'levels_config' => $loyalty->levels_config,
         ]);
     }
 
@@ -169,14 +231,17 @@ class ClientController extends Controller
             'loyalty_active' => 'sometimes|boolean',
             'points_goal' => 'sometimes|integer|min:1',
             'reward_text' => 'sometimes|nullable|string',
+            'description' => 'sometimes|nullable|string',
+            'rules_text' => 'sometimes|nullable|string',
             'vip_points_per_scan' => 'sometimes|integer|min:1|max:20',
             'regular_points_per_scan' => 'sometimes|integer|min:1|max:20',
             'signup_bonus_points' => 'sometimes|integer|min:0|max:10',
             'vip_initial_points' => 'sometimes|integer|min:0|max:10',
             'cooldown_seconds' => 'sometimes|integer|min:0|max:3600',
+            'levels_config' => 'sometimes|nullable|array',
         ]);
 
-        $tenant->update($request->only(['loyalty_active', 'points_goal', 'reward_text']));
+        $tenant->update($request->only(['loyalty_active', 'points_goal', 'reward_text', 'description', 'rules_text']));
 
         $loyalty = \App\Models\LoyaltySetting::firstOrNew([]);
         $loyalty->fill($request->only([
@@ -184,9 +249,12 @@ class ClientController extends Controller
             'regular_points_per_scan',
             'signup_bonus_points',
             'vip_initial_points',
-            'cooldown_seconds'
+            'cooldown_seconds',
+            'levels_config'
         ]));
         $loyalty->save();
+
+        cache()->forget("tenant_{$tenant->id}_loyalty_levels");
 
         return ApiResponse::ok([
             'tenant' => $tenant,
@@ -206,6 +274,9 @@ class ClientController extends Controller
             'tenant' => [
                 'name' => $tenant->name,
                 'logo_url' => $tenant->logo_url,
+                'cover_url' => $tenant->cover_url,
+                'rules_text' => $tenant->rules_text,
+                'reward_text' => $tenant->reward_text,
                 'description' => $tenant->description,
                 'plan_expires_at' => $tenant->plan_expires_at ? $tenant->plan_expires_at->format('d/m/Y') : null,
                 'plan' => $tenant->plan,
@@ -216,6 +287,8 @@ class ClientController extends Controller
             'settings' => [
                 'telegram_bot_token' => $settings && $settings->telegram_bot_token ? '********' : null,
                 'telegram_chat_id' => $settings ? $settings->telegram_chat_id : null,
+                'telegram_sound_registration' => $settings ? (bool)$settings->telegram_sound_registration : true,
+                'telegram_sound_points' => $settings ? (bool)$settings->telegram_sound_points : true,
                 'pin' => $settings ? $settings->pin : null,
             ]
         ]);
@@ -229,8 +302,13 @@ class ClientController extends Controller
             'pin' => 'sometimes|nullable|string|size:4',
             'telegram_bot_token' => 'sometimes|nullable|string',
             'telegram_chat_id' => 'sometimes|nullable|string',
+            'telegram_sound_registration' => 'sometimes|boolean',
+            'telegram_sound_points' => 'sometimes|boolean',
             'description' => 'sometimes|nullable|string|max:500',
             'logo_url' => 'sometimes|nullable|string',
+            'cover_url' => 'sometimes|nullable|string',
+            'rules_text' => 'sometimes|nullable|string',
+            'reward_text' => 'sometimes|nullable|string',
         ]);
 
         try {
@@ -240,6 +318,15 @@ class ClientController extends Controller
             }
             if ($request->has('logo_url')) {
                 $tenantUpdate['logo_url'] = $request->logo_url;
+            }
+            if ($request->has('cover_url')) {
+                $tenantUpdate['cover_url'] = $request->cover_url;
+            }
+            if ($request->has('rules_text')) {
+                $tenantUpdate['rules_text'] = $request->rules_text;
+            }
+            if ($request->has('reward_text')) {
+                $tenantUpdate['reward_text'] = $request->reward_text;
             }
             
             if (!empty($tenantUpdate)) {
@@ -269,6 +356,14 @@ class ClientController extends Controller
 
             if ($request->has('telegram_chat_id')) {
                 $settings->telegram_chat_id = $request->telegram_chat_id;
+            }
+
+            if ($request->has('telegram_sound_registration')) {
+                $settings->telegram_sound_registration = $request->telegram_sound_registration;
+            }
+
+            if ($request->has('telegram_sound_points')) {
+                $settings->telegram_sound_points = $request->telegram_sound_points;
             }
 
             $settings->save();
@@ -309,12 +404,72 @@ class ClientController extends Controller
 
         $query = Device::where('type', $type);
 
+        if ($type !== 'premium') {
+            $query->orWhereNull('type');
+        }
+
         if ($status) {
             $query->where('status', $status);
         }
 
         $devices = $query->with('customer')->get();
         return ApiResponse::ok($devices);
+    }
+
+    public function storeDevice(Request $request)
+    {
+        $tenant = $request->user()->tenant;
+        
+        $planService = app(\App\Services\PlanService::class);
+        $planService->validateDeviceLimit($tenant);
+
+        $request->validate([
+            'name' => 'required|string',
+            'mode' => 'required|string|in:manual,approval,auto_checkin',
+            'telegram_chat_id' => 'nullable|string',
+            'responsible_name' => 'nullable|string',
+        ]);
+
+        $device = \App\Models\Device::create([
+            'tenant_id' => $tenant->id,
+            'name' => $request->name,
+            'nfc_uid' => \Illuminate\Support\Str::random(12),
+            'mode' => $request->mode,
+            'telegram_chat_id' => $request->telegram_chat_id,
+            'responsible_name' => $request->responsible_name ?: $request->name,
+            'auto_approve' => $request->mode === 'auto_checkin',
+            'active' => true,
+        ]);
+
+        return ApiResponse::ok($device, 'Terminal registrado com sucesso');
+    }
+
+    public function updateDevice(Request $request, $deviceId)
+    {
+        $device = \App\Models\Device::where('tenant_id', $request->user()->tenant_id)->findOrFail($deviceId);
+
+        $request->validate([
+            'name' => 'sometimes|string',
+            'mode' => 'sometimes|string|in:manual,approval,auto_checkin',
+            'telegram_chat_id' => 'nullable|string',
+            'responsible_name' => 'nullable|string',
+        ]);
+
+        $data = $request->only(['name', 'mode', 'telegram_chat_id', 'responsible_name']);
+        if (isset($data['mode'])) {
+            $data['auto_approve'] = $data['mode'] === 'auto_checkin';
+        }
+
+        $device->update($data);
+
+        return ApiResponse::ok($device, 'Terminal atualizado com sucesso');
+    }
+
+    public function deleteDevice(Request $request, $deviceId)
+    {
+        $device = \App\Models\Device::where('tenant_id', $request->user()->tenant_id)->findOrFail($deviceId);
+        $device->delete();
+        return ApiResponse::ok(null, 'Terminal excluído com sucesso');
     }
 
     public function linkDevice(Request $request)
@@ -514,36 +669,94 @@ class ClientController extends Controller
         }
 
         $history = $query->orderBy('created_at', 'desc')->paginate(20);
-
         return ApiResponse::ok($history);
     }
 
     public function getDashboardMetrics(Request $request)
-{
+    {
+        $tenantId = $request->user()->tenant_id;
+        $tenant = $request->user()->tenant;
+        
+        // Básicos
+        $totalCustomers = Customer::count();
+        $activeCustomers30d = Customer::where('last_activity_at', '>=', now()->subDays(30))->count();
+        $newCustomers30d = Customer::where('created_at', '>=', now()->subDays(30))->count();
+        $prevNewCustomers30d = Customer::where('created_at', '>=', now()->subDays(60))
+                                       ->where('created_at', '<', now()->subDays(30))
+                                       ->count();
+        
+        $customerGrowth = 0;
+        if ($prevNewCustomers30d > 0) {
+            $customerGrowth = (($newCustomers30d - $prevNewCustomers30d) / $prevNewCustomers30d) * 100;
+        } elseif ($newCustomers30d > 0) {
+            $customerGrowth = 100;
+        }
 
-    $totalCustomers = Customer::count();
-    
-    $totalPointsGenerated = \App\Models\PointMovement::where('type', 'earn')
-        ->sum('points');
+        $pointsInCirculation = (int)Customer::sum('points_balance');
+        $totalRevenue = (float)Customer::sum('total_spent');
+        
+        $totalPointsEarned = (int)\App\Models\PointMovement::where('type', 'earn')->sum('points');
+        $totalRedemptions = \App\Models\PointMovement::where('type', 'redeem')->count();
+        
+        // Taxa de Resgate
+        $redemptionRate = 0;
+        if ($totalPointsEarned > 0) {
+            $pointsRedeemed = (int)\App\Models\PointMovement::where('type', 'redeem')->sum('points');
+            $pointsRedeemedAbs = abs($pointsRedeemed);
+            $redemptionRate = ($pointsRedeemedAbs / $totalPointsEarned) * 100;
+        }
 
-    $totalRedemptions = \App\Models\PointMovement::where('type', 'redeem')
-        ->count();
+        // Sugestões
+        $loyalty = \App\Models\LoyaltySetting::where('tenant_id', $tenantId)->first();
+        $pointsGoal = $loyalty ? $loyalty->points_goal : 10;
+        
+        $nearRewardCount = Customer::where('points_balance', '>=', $pointsGoal * 0.8)
+                                   ->where('points_balance', '<', $pointsGoal)
+                                   ->count();
+                                   
+        $inactive30d = Customer::where('last_activity_at', '<=', now()->subDays(30))
+                               ->count();
 
-    $totalPremiumCustomers = Customer::where('is_premium', true)
-        ->count();
+        $suggestions = [];
+        if ($nearRewardCount > 0) {
+            $suggestions[] = [
+                'type' => 'opportunity',
+                'title' => 'Oportunidade de Resgate',
+                'text' => "{$nearRewardCount} clientes estão perto de resgatar prêmio",
+                'color' => 'orange'
+            ];
+        }
+        if ($inactive30d > 0) {
+            $suggestions[] = [
+                'type' => 'warning',
+                'title' => 'Risco de Churn',
+                'text' => "{$inactive30d} clientes estão inativos há mais de 30 dias",
+                'color' => 'red'
+            ];
+        }
+        if ($redemptionRate < 15 && $totalPointsEarned > 100) {
+            $suggestions[] = [
+                'type' => 'info',
+                'title' => 'Otimização de Fidelidade',
+                'text' => "Sua taxa de resgate está baixa (" . round($redemptionRate, 1) . "%)",
+                'color' => 'blue'
+            ];
+        }
 
-    $totalLinkedCards = \App\Models\Device::where('status', 'linked')
-        ->count();
-
-    $tenant = $request->user()->tenant;
-
-    return ApiResponse::ok([
-        'total_customers' => $totalCustomers,
-        'total_points_generated' => (int)$totalPointsGenerated,
-        'total_redemptions' => $totalRedemptions,
-        'total_premium_customers' => $totalPremiumCustomers,
-        'total_linked_cards' => $totalLinkedCards,
-        'public_page_visits' => $tenant->public_page_visits ?? 0,
-    ]);
-}
+        return ApiResponse::ok([
+            'total_customers' => $totalCustomers,
+            'active_customers' => $activeCustomers30d,
+            'new_customers_30d' => $newCustomers30d,
+            'customer_growth_30d' => round($customerGrowth, 1),
+            'points_in_circulation' => $pointsInCirculation,
+            'total_redemptions' => $totalRedemptions,
+            'total_revenue' => $totalRevenue,
+            'public_page_visits' => $tenant->public_page_visits ?? 0,
+            'redemption_rate' => round($redemptionRate, 1),
+            'suggestions' => $suggestions,
+            'total_points_generated' => $totalPointsEarned, 
+            'total_premium_customers' => Customer::where('is_premium', true)->count(),
+            'total_linked_cards' => \App\Models\Device::where('status', 'linked')->count(),
+        ]);
+    }
 }

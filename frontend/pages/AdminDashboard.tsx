@@ -7,9 +7,9 @@ import { copyToClipboard } from '../utils/clipboard';
 
 const LIMIT_UNLIMITED = 999999;
 const PLAN_LIMITS: Record<PlanType, number> = {
-  [PlanType.CLASSIC]: 8000,
-  [PlanType.PRO]: 8000,
-  [PlanType.UNLIMITED]: LIMIT_UNLIMITED,
+  [PlanType.CLASSIC]: 2000,
+  [PlanType.PRO]: 4000,
+  [PlanType.UNLIMITED]: 6000,
 };
 
 export const AdminDashboard: React.FC = () => {
@@ -21,8 +21,8 @@ export const AdminDashboard: React.FC = () => {
     email: '',
     owner_name: '',
     phone: '',
-    plan: PlanType.PRO,
-    custom_contact_limit: 8000,
+    plan: PlanType.CLASSIC,
+    custom_contact_limit: 2000,
     totems_count: 2,
     plan_expires_at: ''
   });
@@ -186,8 +186,8 @@ export const AdminDashboard: React.FC = () => {
         email: '',
         owner_name: '',
         phone: '',
-        plan: PlanType.PRO,
-        custom_contact_limit: 8000,
+        plan: PlanType.CLASSIC,
+        custom_contact_limit: 2000,
         totems_count: 2,
         plan_expires_at: ''
       });
@@ -692,11 +692,18 @@ export const AdminDashboard: React.FC = () => {
                           <select
                             className="w-full bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl px-5 py-3.5 text-sm font-bold text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-primary-500 transition-all outline-none shadow-sm"
                             value={editingTenant.plan}
-                            onChange={(e) => setEditingTenant({ ...editingTenant, plan: e.target.value as PlanType })}
+                            onChange={(e) => {
+                              const newPlan = e.target.value as PlanType;
+                              setEditingTenant({
+                                ...editingTenant,
+                                plan: newPlan,
+                                custom_contact_limit: PLAN_LIMITS[newPlan]
+                              });
+                            }}
                           >
-                            <option value={PlanType.CLASSIC}>⚪ Plano CLASSIC</option>
-                            <option value={PlanType.PRO}>🔵 Plano PRO</option>
-                            <option value={PlanType.UNLIMITED}>🟣 Plano ELITE</option>
+                            <option value={PlanType.CLASSIC}>⚪ Classic: Limite de 2.000 contatos.</option>
+                            <option value={PlanType.PRO}>🔵 Pro: Limite de 4.000 contatos.</option>
+                            <option value={PlanType.UNLIMITED}>🟣 Elite: Limite de 6.000 contatos.</option>
                           </select>
                         </div>
                         <Input
@@ -1002,11 +1009,14 @@ export const AdminDashboard: React.FC = () => {
                         <select
                           className="w-full bg-gray-50 border border-gray-200 rounded-[15px] px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 transition-all outline-none"
                           value={newTenantData.plan}
-                          onChange={(e) => setNewTenantData({ ...newTenantData, plan: e.target.value as PlanType })}
+                          onChange={(e) => {
+                            const p = e.target.value as PlanType;
+                            setNewTenantData({ ...newTenantData, plan: p, custom_contact_limit: PLAN_LIMITS[p] });
+                          }}
                         >
-                          <option value={PlanType.CLASSIC}>⚪ Plano CLASSIC</option>
-                          <option value={PlanType.PRO}>🔵 Plano PRO</option>
-                          <option value={PlanType.UNLIMITED}>🟣 Plano ELITE</option>
+                          <option value={PlanType.CLASSIC}>⚪ Classic: Limite de 2.000 contatos.</option>
+                          <option value={PlanType.PRO}>🔵 Pro: Limite de 4.000 contatos.</option>
+                          <option value={PlanType.UNLIMITED}>🟣 Elite: Limite de 6.000 contatos.</option>
                         </select>
                       </div>
                       <div className="space-y-2">

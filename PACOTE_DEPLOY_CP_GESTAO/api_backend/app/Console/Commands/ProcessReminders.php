@@ -26,30 +26,42 @@ class ProcessReminders extends Command
     public function handle(\App\Services\TelegramService $telegramService)
     {
         $today = now()->format('d/m/Y');
+        $nowTime = now()->format('H:i');
         
+        // Busca clientes com lembrete para hoje
+        // Se reminder_time estiver definido, deve bater com o horário atual (H:i)
+        // Se reminder_time estiver vazio, envia no processamento matinal (a critério do Schedule)
         $customers = \App\Models\Customer::where('reminder_date', $today)
             ->whereNotNull('reminder_text')
             ->get();
 
         if ($customers->isEmpty()) {
-            $this->info("Nenhum lembrete para hoje ({$today}).");
             return;
         }
 
         foreach ($customers as $customer) {
-            $message = "🔔 <b>Lembrete de Agendamento</b>\n\n";
+            $targetTime = !empty($customer->reminder_time) ? $customer->reminder_time : '09:00';
+
+            if ($targetTime !== $nowTime) {
+                continue;
+            }
+
+            $message = "🔔 <b>Lembrete Estratégico</b>\n\n";
             $message .= "<b>Cliente:</b> {$customer->name}\n";
             $message .= "<b>Telefone:</b> {$customer->phone}\n";
-            $message .= "<b>Anotação:</b> {$customer->reminder_text}";
+            $message .= "<b>Ação:</b> {$customer->reminder_text}";
 
-            $telegramService->sendMessage($customer->tenant_id, $message);
+            $telegramService->sendMessage($customer->tenant_id, $message, 'reminder');
             
-            // Opcional: Limpar o lembrete após enviar? 
-            // O usuário disse: "se for marcado dia 22 deve ser notificado dia 22"
-            // Vou apenas logar o sucesso.
-            $this->info("Lembrete enviado para cliente {$customer->id} do tenant {$customer->tenant_id}");
-        }
+            // Limpa o lembrete para não enviar novamente
+            $customer->update([
+                'reminder_date' => null,
+                'reminder_time' => null,
+                'reminder_text' => null,
+            ]);
 
+            $this->info("Lembrete enviado e limpo para cliente {$customer->id}");
+        }
         $this->info($customers->count() . " lembrete(s) processado(s).");
     }
 }

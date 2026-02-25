@@ -14,8 +14,9 @@ class Tenant extends Model
     use HasUuids, HasFactory;
     
     public const PLAN_LIMITS = [
-        'Pro' => 8000,
-        'Elite' => 999999,
+        'Classic' => 2000,
+        'Pro' => 4000,
+        'Elite' => 6000,
     ];
 
     protected $fillable = [
