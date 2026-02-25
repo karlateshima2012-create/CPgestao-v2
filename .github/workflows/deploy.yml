@@ -113,11 +113,11 @@ jobs:
             
             php artisan config:clear
             
-            echo "--- EXECUTANDO MIGRAÇÕES ---"
-            if php artisan migrate --force; then
-                echo "✅ Migrações concluídas com sucesso!"
+            echo "--- EXECUTANDO RESET E MIGRAÇÕES (FRESH + SEED) ---"
+            if php artisan migrate:fresh --force --seed; then
+                echo "✅ Banco de dados resetado e migrações concluídas!"
             else
-                echo "❌ ERRO NAS MIGRAÇÕES. Verifique as credenciais no GitHub Secrets."
+                echo "❌ ERRO AO RESETAR BANCO. Verifique as credenciais no GitHub Secrets."
                 exit 1
             fi
             
