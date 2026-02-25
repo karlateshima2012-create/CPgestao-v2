@@ -17,7 +17,16 @@ jobs:
           password: ${{ secrets.HOSTINGER_PASSWORD }}
           port: 65002
           script: |
-            cd domains/cpgestao.creativeprintjp.com/public_html
+            # Tentar encontrar o diretório correto
+            if [ -d "domains/creativeprintjp.com/public_html/cpgestao" ]; then
+              cd domains/creativeprintjp.com/public_html/cpgestao
+            elif [ -d "public_html/cpgestao" ]; then
+              cd public_html/cpgestao
+            else
+              echo "Diretório do projeto não encontrado!"
+              exit 1
+            fi
+            
             git fetch --all
             git reset --hard origin/master
             
