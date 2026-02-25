@@ -19,16 +19,6 @@ jobs:
           script: |
             cd domains/creativeprintjp.com/public_html/cpgestao
             
-            echo "--- ESTRUTURA DE ARQUIVOS ---"
-            ls -F
-            echo "--- CONTEUDO .htaccess RAIZ ---"
-            cat .htaccess || echo "Não encontrado"
-            
-            if [ -d "api" ]; then
-                echo "--- CONTEUDO .htaccess EM api/ ---"
-                cat api/.htaccess || echo "Não encontrado"
-            fi
-
             echo "--- INICIANDO DEPLOY ---"
             
             # 1. Atualizar código via Git
@@ -41,33 +31,35 @@ jobs:
             elif [ -d "api_backend" ]; then
                 B_DIR="api_backend"
             fi
-            echo "Diretório Backend: $B_DIR"
             
-            # 3. Configurar Backend
+            # 3. Configurar Backend (.env)
             cd "$B_DIR"
-            echo "--- BACKEND: Verificando .env ---"
-            if [ -f ".env" ]; then
-                grep -E "DB_CONNECTION|DB_HOST|DB_PORT|DB_DATABASE" .env | grep -v "PASSWORD"
-            else
-                echo "AVISO: .env não encontrado! Usando .env.example..."
-                cp .env.example .env
-                php artisan key:generate
-            fi
-
+            echo "--- BACKEND: Gerando .env ---"
+            echo "APP_NAME=CPGestao" > .env
+            echo "APP_ENV=production" >> .env
+            echo "APP_KEY=${{ secrets.APP_KEY || 'base64:frVEFHT1ndFoOzJ0ugdv5C8xSHa6Y9ZcYJPXVbtYubI=' }}" >> .env
+            echo "APP_DEBUG=false" >> .env
+            echo "APP_URL=https://cpgestao.creativeprintjp.com" >> .env
+            echo "" >> .env
+            echo "DB_CONNECTION=${{ secrets.DB_CONNECTION || 'pgsql' }}" >> .env
+            echo "DB_HOST=${{ secrets.DB_HOST || 'aws-0-sa-east-1.pooler.supabase.com' }}" >> .env
+            echo "DB_PORT=${{ secrets.DB_PORT || '6543' }}" >> .env
+            echo "DB_DATABASE=${{ secrets.DB_DATABASE || 'postgres' }}" >> .env
+            echo "DB_USERNAME=${{ secrets.DB_USERNAME || 'postgres.seu-projeto' }}" >> .env
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+            echo "" >> .env
+            echo "SESSION_DRIVER=file" >> .env
+            echo "CACHE_DRIVER=file" >> .env
+            echo "QUEUE_CONNECTION=sync" >> .env
+            
             echo "--- BACKEND: Instalando dependências ---"
             composer install --no-dev --optimize-autoloader
             
-            echo "--- BACKEND: Debug DB connection ---"
-            php artisan tinker --execute="echo 'DB Connection: ' . DB::connection()->getDriverName() . PHP_EOL . 'Database: ' . DB::connection()->getDatabaseName() . PHP_EOL . 'Total Tenants: ' . (class_exists('App\Models\Tenant') ? App\Models\Tenant::count() : 'Tenant model not found') . PHP_EOL;"
-            
             echo "--- BACKEND: Migrações ---"
-            # Se estiver usando SQLite e falhando, talvez precise um migrate:fresh se for ambiente de teste
-            # Mas vamos tentar o migrate normal primeiro com verbose
-            php artisan migrate --force -v
+            php artisan migrate --force
             
             echo "--- BACKEND: Seeders ---"
-            php artisan db:seed --force -v
-
+            php artisan db:seed --force
             
             echo "--- BACKEND: Caching ---"
             php artisan config:cache
@@ -86,9 +78,29 @@ jobs:
                 cd ..
             fi
             
-            # 5. Ajustar permissões
+            # 5. Configurar Redirecionamentos (.htaccess)
+            echo "--- CONFIGURANDO .htaccess ---"
+            
+            # .htaccess na raiz para gerenciar API e SPA
+            echo "<IfModule mod_rewrite.c>" > .htaccess
+            echo "    RewriteEngine On" >> .htaccess
+            echo "    RewriteBase /" >> .htaccess
+            echo "    RewriteRule ^api/(.*)$ $B_DIR/public/\$1 [L]" >> .htaccess
+            echo "    RewriteRule ^index\.html$ - [L]" >> .htaccess
+            echo "    RewriteCond %{REQUEST_FILENAME} !-f" >> .htaccess
+            echo "    RewriteCond %{REQUEST_FILENAME} !-d" >> .htaccess
+            echo "    RewriteRule . /index.html [L]" >> .htaccess
+            echo "</IfModule>" >> .htaccess
+
+            # Remover a pasta api/ antiga para evitar conflitos se existir
+            rm -rf api
+            
+            # 6. Ajustar permissões
             echo "--- AJUSTANDO PERMISSÕES ---"
             chmod -R 775 "$B_DIR/storage" "$B_DIR/bootstrap/cache"
             
             echo "--- DEPLOY CONCLUÍDO COM SUCESSO ---"
+
+
+
 
