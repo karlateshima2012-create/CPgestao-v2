@@ -96,9 +96,9 @@ jobs:
             echo "APP_DEBUG=false" >> .env
             echo "APP_URL=https://cpgestao.creativeprintjp.com" >> .env
             
-            # CONFIGURAÇÃO MARIADB (MySQL)
+            # CONFIGURAÇÃO MARIADB (Hostinger)
             echo "DB_CONNECTION=mysql" >> .env
-            echo "DB_HOST=${{ secrets.DB_HOST || '127.0.0.1' }}" >> .env
+            echo "DB_HOST=${{ secrets.DB_HOST || 'localhost' }}" >> .env
             echo "DB_PORT=${{ secrets.DB_PORT || '3306' }}" >> .env
             echo "DB_DATABASE=${{ secrets.DB_DATABASE }}" >> .env
             echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
@@ -108,12 +108,24 @@ jobs:
             echo "CACHE_DRIVER=file" >> .env
             echo "QUEUE_CONNECTION=sync" >> .env
             
+            echo "--- VERIFICANDO INJEÇÃO DE AMBIENTE (SENSÍVEL OCULTO) ---"
+            grep "DB_" .env | grep -v "PASSWORD"
+            
             php artisan config:clear
-            php artisan migrate --force || echo "ERRO: Migrações falharam. Verifique as credenciais do MariaDB."
+            
+            echo "--- EXECUTANDO MIGRAÇÕES ---"
+            if php artisan migrate --force; then
+                echo "✅ Migrações concluídas com sucesso!"
+            else
+                echo "❌ ERRO NAS MIGRAÇÕES. Verifique as credenciais no GitHub Secrets."
+                exit 1
+            fi
+            
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
             chmod -R 775 storage bootstrap/cache
-            echo "--- DEPLOY FINALIZADO (MARIADB) ---"
+            echo "--- DEPLOY FINALIZADO ---"
+
 
 
