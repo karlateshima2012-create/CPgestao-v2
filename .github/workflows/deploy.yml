@@ -17,14 +17,16 @@ jobs:
           password: ${{ secrets.HOSTINGER_PASSWORD }}
           port: 65002
           script: |
-            # Tentar encontrar o diretório correto
-            if [ -d "domains/creativeprintjp.com/public_html/cpgestao" ]; then
-              cd domains/creativeprintjp.com/public_html/cpgestao
-            elif [ -d "public_html/cpgestao" ]; then
-              cd public_html/cpgestao
+            # Tentar encontrar a pasta raiz do projeto (onde está o 'backend' e 'frontend')
+            SEARCH_PATH=$(find . -name "backend" -type d -not -path "*/.*" | head -n 1)
+            
+            if [ -n "$SEARCH_PATH" ]; then
+                ROOT_DIR=$(dirname "$SEARCH_PATH")
+                echo "Projeto encontrado em: $ROOT_DIR"
+                cd "$ROOT_DIR"
             else
-              echo "Diretório do projeto não encontrado!"
-              exit 1
+                echo "ERRO: Pasta 'backend' não encontrada no servidor!"
+                exit 1
             fi
             
             git fetch --all
@@ -44,7 +46,7 @@ jobs:
             npm install
             npm run build
             
-            # Deploy Frontend to Root
+            # Deploy Frontend to Root (um nível acima de frontend/)
             cp -r dist/* ../
             
             # Fix Permissions
