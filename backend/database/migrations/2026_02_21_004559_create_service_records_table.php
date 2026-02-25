@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('service_records', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
+                        $table->foreignUuid('tenant_id')->constrained('tenants')->onDelete('cascade');
             $table->foreignUuid('customer_id')->constrained('customers')->onDelete('cascade');
             $table->string('service_name');
             $table->decimal('amount', 10, 2);
