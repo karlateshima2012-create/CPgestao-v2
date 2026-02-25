@@ -1,4 +1,4 @@
-name: Find Docroot
+name: Comprehensive Deploy CPgestao
 
 on:
   push:
@@ -6,10 +6,10 @@ on:
       - master
 
 jobs:
-  find_it:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Create Markers
+      - name: Execute Deploy via SSH
         uses: appleboy/ssh-action@master
         with:
           host: 46.202.186.144
@@ -17,9 +17,56 @@ jobs:
           password: ${{ secrets.HOSTINGER_PASSWORD }}
           port: 65002
           script: |
-            echo "1" > domains/creativeprintjp.com/public_html/cpgestao/WHERE_AM_I_1.txt
-            echo "2" > public_html/WHERE_AM_I_2.txt
-            echo "3" > api_backend/public/WHERE_AM_I_3.txt
-            echo "4" > domains/creativeprintjp.com/api_backend/public/WHERE_AM_I_4.txt
-            echo "5" > domains/creativeprintjp.com/public_html/WHERE_AM_I_5.txt
-            echo "6" > domains/cpgestao.creativeprintjp.com/public_html/WHERE_AM_I_6.txt || echo "fail 6"
+            cd domains/creativeprintjp.com/public_html/cpgestao
+            
+            echo "--- INICIANDO DEPLOY ---"
+            
+            # 1. Atualizar código via Git
+            git fetch --all
+            git reset --hard origin/master
+            
+            # 2. Identificar diretório do Backend
+            if [ -d "backend" ]; then
+                B_DIR="backend"
+            elif [ -d "api_backend" ]; then
+                B_DIR="api_backend"
+            fi
+            echo "Diretório Backend: $B_DIR"
+            
+            # 3. Configurar Backend
+            cd "$B_DIR"
+            echo "--- BACKEND: Instalando dependências ---"
+            composer install --no-dev --optimize-autoloader
+            
+            echo "--- BACKEND: Debug DB connection ---"
+            php artisan tinker --execute="echo 'DB Connection: ' . DB::connection()->getDriverName() . PHP_EOL . 'Total Tenants: ' . (class_exists('App\Models\Tenant') ? App\Models\Tenant::count() : 'Tenant model not found') . PHP_EOL;"
+            
+            echo "--- BACKEND: Migrações ---"
+            php artisan migrate --force
+            
+            echo "--- BACKEND: Seeders ---"
+            php artisan db:seed --force
+            
+            echo "--- BACKEND: Caching ---"
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            cd ..
+            
+            # 4. Configurar Frontend
+            if [ -d "frontend" ]; then
+                echo "--- FRONTEND: Build ---"
+                cd frontend
+                npm install
+                npm run build
+                echo "--- FRONTEND: Movendo arquivos do build para a raiz ---"
+                cp -r dist/* ../
+                cd ..
+            fi
+            
+            # 5. Ajustar permissões
+            echo "--- AJUSTANDO PERMISSÕES ---"
+            chmod -R 775 "$B_DIR/storage" "$B_DIR/bootstrap/cache"
+            
+            echo "--- DEPLOY CONCLUÍDO COM SUCESSO ---"
+
