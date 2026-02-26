@@ -32,7 +32,7 @@ class VipCardController extends Controller
         }
 
         $tenant = $card->tenant;
-        if (!$tenant || !$tenant->active) {
+        if (!$tenant || $tenant->status !== "active") {
             return ApiResponse::error('Loja indisponível.', 'TENANT_INACTIVE', 403);
         }
 
