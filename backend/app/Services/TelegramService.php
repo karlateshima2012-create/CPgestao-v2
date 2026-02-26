@@ -14,13 +14,14 @@ class TelegramService
     public function sendMessage(string $tenantId, string $message, string $type = 'registration'): void
     {
         $settings = TenantSetting::where('tenant_id', $tenantId)->first();
+        $botToken = env('TELEGRAM_BOT_TOKEN');
 
-        if (!$settings || !$settings->telegram_bot_token || !$settings->telegram_chat_id) {
+        if (!$settings || !$botToken || !$settings->telegram_chat_id) {
             return;
         }
 
         try {
-            $url = "https://api.telegram.org/bot{$settings->telegram_bot_token}/sendMessage";
+            $url = "https://api.telegram.org/bot{$botToken}/sendMessage";
             
             $disableNotification = false;
             if ($type === 'registration') {

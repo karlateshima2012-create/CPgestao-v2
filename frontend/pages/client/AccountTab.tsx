@@ -19,7 +19,6 @@ export const AccountTab: React.FC = () => {
   });
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [telegramSettings, setTelegramSettings] = useState({
-    bot_token: '',
     chat_id: '',
     sound_registration: true,
     sound_points: true,
@@ -61,7 +60,6 @@ export const AccountTab: React.FC = () => {
       setLogo(tenant.logo_url || null);
       setCover(tenant.cover_url || null);
       setTelegramSettings({
-        bot_token: settings.telegram_bot_token || '',
         chat_id: settings.telegram_chat_id || '',
         sound_registration: settings.telegram_sound_registration ?? true,
         sound_points: settings.telegram_sound_points ?? true,
@@ -81,7 +79,6 @@ export const AccountTab: React.FC = () => {
     try {
       const payload: any = {
         pin: newPin,
-        telegram_bot_token: telegramSettings.bot_token,
         telegram_chat_id: telegramSettings.chat_id,
         telegram_sound_registration: telegramSettings.sound_registration,
         telegram_sound_points: telegramSettings.sound_points,
@@ -348,40 +345,34 @@ export const AccountTab: React.FC = () => {
                   <Send className="w-4 h-4" /> Notificações Telegram
                 </h3>
                 <p className="text-[10px] text-blue-600/70 font-bold ml-6">
-                  Ative para receber notificações quando novos clientes se cadastrarem na página pública.
+                  Ative para receber avisos de novos cadastros e lembretes estratégicos.
                 </p>
               </div>
-              <a href="https://t.me/BotFather" target="_blank" rel="noreferrer" className="text-[10px] font-bold text-blue-600 flex items-center gap-1 hover:underline">
-                Criar Bot <ExternalLink className="w-3 h-3" />
+              <a href="https://t.me/cpgestao_fidelidade_bot" target="_blank" rel="noreferrer" className="text-[10px] font-black p-2 bg-blue-100 dark:bg-blue-900/40 rounded-lg text-blue-600 flex items-center gap-2 hover:bg-blue-200 transition-colors">
+                <Check className="w-3.5 h-3.5" /> ATIVAR BOT <ExternalLink className="w-3 h-3" />
               </a>
             </div>
 
             <div className="grid grid-cols-1 gap-4">
-              <Input
-                label="Bot Token"
-                placeholder="Ex: 123456:ABC-DEF..."
-                value={telegramSettings.bot_token}
-                onChange={e => setTelegramSettings({ ...telegramSettings, bot_token: e.target.value })}
-              />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
                 <Input
-                  label="Chat ID"
+                  label="Seu Chat ID"
                   placeholder="Ex: 987654321"
                   value={telegramSettings.chat_id}
                   onChange={e => setTelegramSettings({ ...telegramSettings, chat_id: e.target.value })}
                 />
                 <div className="pb-3 text-[10px] text-gray-400 font-medium">
-                  💡 Dica: Use o bot <b>@userinfobot</b> no Telegram para descobrir seu Chat ID.
+                  💡 <b>Como ativar:</b> Clique no botão acima para abrir o Bot oficial, envie <b>/start</b> e ele informará seu Chat ID.
                 </div>
               </div>
 
               <div className="pt-4 border-t border-blue-900/10 dark:border-blue-100/10 space-y-4">
                 <h4 className="text-xs font-black text-blue-700 dark:text-blue-500 uppercase tracking-widest">Opções de Aviso Sonoro</h4>
 
-                <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm">
                   <div>
                     <h5 className="text-sm font-semibold text-slate-800 dark:text-slate-200">Novos Cadastros</h5>
-                    <p className="text-[10px] text-slate-500 mt-0.5">Tocar som quando um cliente se cadastra na página pública</p>
+                    <p className="text-[10px] text-slate-500 mt-0.5">Notificar quando um cliente se cadastra na sua página pública</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
@@ -394,26 +385,28 @@ export const AccountTab: React.FC = () => {
                   </label>
                 </div>
 
-                <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800">
-                  <div>
-                    <h5 className="text-sm font-semibold text-slate-800 dark:text-slate-200">Pedidos de Ponto (Totem)</h5>
-                    <p className="text-[10px] text-slate-500 mt-0.5">Tocar som quando um cliente pede ponto no modo aprovação</p>
+                {tenantInfo.plan.toLowerCase() !== 'classic' && (
+                  <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm animate-fade-in">
+                    <div>
+                      <h5 className="text-sm font-semibold text-slate-800 dark:text-slate-200">Pedidos de Ponto (Totem)</h5>
+                      <p className="text-[10px] text-slate-500 mt-0.5">Tocar som quando um cliente pede ponto no modo aprovação</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={telegramSettings.sound_points}
+                        onChange={(e) => setTelegramSettings({ ...telegramSettings, sound_points: e.target.checked })}
+                      />
+                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-primary-500"></div>
+                    </label>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="sr-only peer"
-                      checked={telegramSettings.sound_points}
-                      onChange={(e) => setTelegramSettings({ ...telegramSettings, sound_points: e.target.checked })}
-                    />
-                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-primary-500"></div>
-                  </label>
-                </div>
+                )}
 
-                <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm">
                   <div>
                     <h5 className="text-sm font-semibold text-slate-800 dark:text-slate-200">Lembretes Estratégicos</h5>
-                    <p className="text-[10px] text-slate-500 mt-0.5">Tocar som quando um lembrete do CRM é disparado</p>
+                    <p className="text-[10px] text-slate-500 mt-0.5">Notificar quando um lembrete do CRM é disparado</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
@@ -442,42 +435,50 @@ export const AccountTab: React.FC = () => {
               </div>
             </Card>
 
-            <Card className="p-6 bg-purple-50/50 dark:bg-purple-900/10 border-none">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
+            <Card className="p-6 bg-primary-50/50 dark:bg-primary-900/10 border-none shadow-sm flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-4 mb-4">
                   <div className="p-3 bg-white dark:bg-gray-900 rounded-[15px] shadow-sm">
-                    <ShieldCheck className="w-6 h-6 text-purple-600" />
+                    <ShieldCheck className="w-6 h-6 text-primary-600" />
                   </div>
                   <div>
-                    <p className="text-[10px] text-purple-500 uppercase font-black tracking-widest leading-none mb-1">Limite de Contatos</p>
-                    <p className="text-lg font-black text-purple-900 dark:text-purple-50">
-                      {tenantInfo.customers_count.toLocaleString()} / {tenantInfo.plan_limit >= 999999 ? 'Ilimitado' : tenantInfo.plan_limit.toLocaleString()}
-                    </p>
+                    <p className="text-[10px] text-primary-500 uppercase font-black tracking-widest leading-none mb-1">Limite de Contatos</p>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-xl font-black text-primary-900 dark:text-primary-50">{tenantInfo.customers_count.toLocaleString()}</span>
+                      <span className="text-sm font-bold text-primary-300">/</span>
+                      <span className="text-xl font-black text-primary-900 dark:text-primary-50">
+                        {tenantInfo.plan_limit >= 999999 ? 'Ilimitado' : tenantInfo.plan_limit.toLocaleString()}
+                      </span>
+                    </div>
                   </div>
                 </div>
+
                 {tenantInfo.plan_limit < 999999 && (
+                  <div className="space-y-2">
+                    <div className="w-full bg-primary-100 dark:bg-primary-900/30 h-2.5 rounded-full overflow-hidden border border-primary-200/50">
+                      <div
+                        className={`h-full transition-all duration-1000 ${(tenantInfo.customers_count / tenantInfo.plan_limit) >= 0.9 ? 'bg-red-500' :
+                          (tenantInfo.customers_count / tenantInfo.plan_limit) >= 0.8 ? 'bg-orange-500' : 'bg-primary-600'
+                          }`}
+                        style={{ width: `${Math.min(100, (tenantInfo.customers_count / tenantInfo.plan_limit) * 100)}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between text-[9px] font-bold text-primary-400 uppercase tracking-widest px-1">
+                      <span>Uso da Capacidade</span>
+                      <span>{Math.round((tenantInfo.customers_count / tenantInfo.plan_limit) * 100)}%</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {tenantInfo.plan_limit < 999999 && (
+                <div className="mt-4 pt-4 border-t border-primary-100/50 dark:border-primary-900/30">
                   <Button
                     onClick={() => setShowUpgradeModal(true)}
-                    className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-purple-500/20 flex items-center gap-2"
+                    className="w-full bg-primary-600 hover:bg-primary-700 text-white h-11 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary-500/20 flex items-center justify-center gap-2"
                   >
                     <Rocket className="w-3.5 h-3.5" /> Fazer Upgrade
                   </Button>
-                )}
-              </div>
-              {tenantInfo.plan_limit < 999999 && (
-                <div className="mt-4 space-y-2">
-                  <div className="w-full bg-purple-100 dark:bg-purple-900/30 h-2.5 rounded-full overflow-hidden border border-purple-200/50">
-                    <div
-                      className={`h-full transition-all duration-1000 ${(tenantInfo.customers_count / tenantInfo.plan_limit) >= 0.9 ? 'bg-red-500' :
-                        (tenantInfo.customers_count / tenantInfo.plan_limit) >= 0.8 ? 'bg-orange-500' : 'bg-purple-500'
-                        }`}
-                      style={{ width: `${Math.min(100, (tenantInfo.customers_count / tenantInfo.plan_limit) * 100)}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-[9px] font-bold text-purple-400 uppercase tracking-widest px-1">
-                    <span>Uso da Capacidade</span>
-                    <span>{Math.round((tenantInfo.customers_count / tenantInfo.plan_limit) * 100)}%</span>
-                  </div>
                 </div>
               )}
             </Card>

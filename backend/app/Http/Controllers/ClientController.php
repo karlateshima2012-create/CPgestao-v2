@@ -292,7 +292,6 @@ class ClientController extends Controller
                 'extra_contacts_quota' => $tenant->extra_contacts_quota,
             ],
             'settings' => [
-                'telegram_bot_token' => $settings && $settings->telegram_bot_token ? '********' : null,
                 'telegram_chat_id' => $settings ? $settings->telegram_chat_id : null,
                 'telegram_sound_registration' => $settings ? (bool)$settings->telegram_sound_registration : true,
                 'telegram_sound_points' => $settings ? (bool)$settings->telegram_sound_points : true,
@@ -307,7 +306,6 @@ class ClientController extends Controller
         
         $request->validate([
             'pin' => 'sometimes|nullable|string|size:4',
-            'telegram_bot_token' => 'sometimes|nullable|string',
             'telegram_chat_id' => 'sometimes|nullable|string',
             'telegram_sound_registration' => 'sometimes|boolean',
             'telegram_sound_points' => 'sometimes|boolean',
@@ -354,12 +352,6 @@ class ClientController extends Controller
                 $settings->pin_updated_at = now();
             }
 
-            if ($request->has('telegram_bot_token')) {
-                // Only update if it's NOT the masked value
-                if ($request->telegram_bot_token !== '********') {
-                    $settings->telegram_bot_token = $request->telegram_bot_token;
-                }
-            }
 
             if ($request->has('telegram_chat_id')) {
                 $settings->telegram_chat_id = $request->telegram_chat_id;

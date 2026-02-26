@@ -383,7 +383,7 @@ class PublicTerminalController extends Controller
                 $requestRecord->update(['status' => 'auto_approved', 'approved_at' => now()]);
                 
                 event(new \App\Events\PointRequestStatusUpdated($requestRecord));
-            } elseif ($requestRecord->status === 'pending') {
+            } elseif ($requestRecord->status === 'pending' && ($tenant->plan === 'Pro' || $tenant->plan === 'pro')) {
                 $settings = \App\Models\TenantSetting::where('tenant_id', $tenant->id)->first();
                 $targetChatId = ($device && $device->telegram_chat_id) ? $device->telegram_chat_id : ($settings ? $settings->telegram_chat_id : null);
 
@@ -505,7 +505,7 @@ class PublicTerminalController extends Controller
             if ($canAutoApprove) {
                 $this->pointRequestService->applyPoints($requestRecord);
                 $requestRecord->update(['status' => 'auto_approved', 'approved_at' => now()]);
-            } elseif ($device && $device->telegram_chat_id && $requestRecord->status === 'pending') {
+            } elseif ($device && $device->telegram_chat_id && $requestRecord->status === 'pending' && ($tenant->plan === 'Pro' || $tenant->plan === 'pro')) {
                 $levelName = $customer->loyalty_level_name;
                 $locationName = $device->responsible_name ?: $device->name;
                 $message = "👑 <b>Pedido de Resgate VIP - {$tenant->name}</b>\n"

@@ -224,61 +224,63 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug, 
     return (
         <div className="space-y-6 animate-fade-in pb-12 w-full max-w-5xl mx-auto pt-6">
             {/* SESSSÃO: CONFIGURAÇÃO DE NOTIFICAÇÃO CENTRAL */}
-            <div className="bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 p-6 rounded-[15px] space-y-4">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h3 className="text-sm font-black text-blue-700 dark:text-blue-500 uppercase tracking-widest flex items-center gap-2">
-                            <MessageCircle className="w-5 h-5" /> ID para Aprovação de Pontos (Telegram)
-                        </h3>
-                        <p className="text-[10px] text-blue-600/70 font-bold mt-1">
-                            Este ID receberá os pedidos de aprovação dos Totens e Cartões NFC.
-                        </p>
+            {tenantPlan === PlanType.PRO && (
+                <div className="bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 p-6 rounded-[15px] space-y-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h3 className="text-sm font-black text-blue-700 dark:text-blue-500 uppercase tracking-widest flex items-center gap-2">
+                                <MessageCircle className="w-5 h-5" /> ID para Aprovação de Pontos (Telegram)
+                            </h3>
+                            <p className="text-[10px] text-blue-600/70 font-bold mt-1">
+                                Este ID receberá os pedidos de aprovação dos Totens e Cartões NFC.
+                            </p>
+                        </div>
+                        {!isEditingGeneral && (
+                            <Button
+                                size="sm"
+                                variant="secondary"
+                                className="bg-white dark:bg-blue-900/40 text-blue-600 border-blue-200"
+                                onClick={() => setIsEditingGeneral(true)}
+                            >
+                                {generalTelegramId ? 'Alterar ID' : 'Configurar'}
+                            </Button>
+                        )}
                     </div>
-                    {!isEditingGeneral && (
-                        <Button
-                            size="sm"
-                            variant="secondary"
-                            className="bg-white dark:bg-blue-900/40 text-blue-600 border-blue-200"
-                            onClick={() => setIsEditingGeneral(true)}
-                        >
-                            {generalTelegramId ? 'Alterar ID' : 'Configurar'}
-                        </Button>
+
+                    {isEditingGeneral ? (
+                        <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30 space-y-3 animate-fade-in shadow-sm">
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Seu Chat ID do Telegram</label>
+                                    <a
+                                        href="https://t.me/cpgestao_fidelidade_bot"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-[9px] font-bold text-blue-500 hover:underline flex items-center gap-1 uppercase"
+                                    >
+                                        <HelpCircle className="w-3 h-3" /> Abrir Bot e pegar ID
+                                    </a>
+                                </div>
+                                <Input
+                                    placeholder="Ex: 123456789"
+                                    value={generalTelegramId}
+                                    onChange={e => setGeneralTelegramId(e.target.value)}
+                                />
+                            </div>
+                            <div className="flex gap-2 justify-end">
+                                <Button size="sm" variant="secondary" onClick={() => { setIsEditingGeneral(false); fetchGeneralSettings(); }}>Cancelar</Button>
+                                <Button size="sm" onClick={handleUpdateGeneralTelegram} disabled={isLoading} className="bg-blue-600 text-white hover:bg-blue-700">Salvar ID</Button>
+                            </div>
+                        </div>
+                    ) : generalTelegramId && (
+                        <div className="flex items-center gap-2 text-[11px] font-black">
+                            <span className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 px-3 py-1.5 rounded-lg border border-blue-200 dark:border-blue-800">
+                                ATIVO: {generalTelegramId}
+                            </span>
+                        </div>
                     )}
                 </div>
-
-                {isEditingGeneral ? (
-                    <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30 space-y-3 animate-fade-in shadow-sm">
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Seu Chat ID do Telegram</label>
-                                <a
-                                    href="https://t.me/cpgestao_fidelidade_bot"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-[9px] font-bold text-blue-500 hover:underline flex items-center gap-1 uppercase"
-                                >
-                                    <HelpCircle className="w-3 h-3" /> Abrir Bot e pegar ID
-                                </a>
-                            </div>
-                            <Input
-                                placeholder="Ex: 123456789"
-                                value={generalTelegramId}
-                                onChange={e => setGeneralTelegramId(e.target.value)}
-                            />
-                        </div>
-                        <div className="flex gap-2 justify-end">
-                            <Button size="sm" variant="secondary" onClick={() => { setIsEditingGeneral(false); fetchGeneralSettings(); }}>Cancelar</Button>
-                            <Button size="sm" onClick={handleUpdateGeneralTelegram} disabled={isLoading} className="bg-blue-600 text-white hover:bg-blue-700">Salvar ID</Button>
-                        </div>
-                    </div>
-                ) : generalTelegramId && (
-                    <div className="flex items-center gap-2 text-[11px] font-black">
-                        <span className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 px-3 py-1.5 rounded-lg border border-blue-200 dark:border-blue-800">
-                            ATIVO: {generalTelegramId}
-                        </span>
-                    </div>
-                )}
-            </div>
+            )}
 
             {/* SESSÃO: GERENCIAR TOTENS */}
             {!selectedBatch && (
@@ -324,63 +326,65 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug, 
                                         </div>
 
                                         {/* Telegram Notification Management */}
-                                        <div className="w-full mt-2 pt-4 border-t border-gray-100 dark:border-gray-800">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <p className="text-xs font-bold text-gray-500 flex items-center gap-1">
-                                                    <MessageCircle className="w-3.5 h-3.5 text-blue-500" /> Notificação Telegram
-                                                </p>
-                                                {editingTelegram !== device.id && (
-                                                    <button
-                                                        onClick={() => {
-                                                            setEditingTelegram(device.id);
-                                                            setTelegramData({ chat_id: device.telegram_chat_id || '' });
-                                                        }}
-                                                        className="text-[10px] text-blue-500 hover:underline font-bold uppercase tracking-widest disabled:opacity-50"
-                                                    >
-                                                        {device.telegram_chat_id ? 'Alterar Chat ID' : 'Configurar Telegram'}
-                                                    </button>
-                                                )}
-                                            </div>
-
-                                            {editingTelegram === device.id ? (
-                                                <div className="bg-white dark:bg-gray-800 p-3 rounded-xl border border-blue-100 dark:border-blue-900/30 space-y-3 mt-2 animate-fade-in">
-                                                    <div className="space-y-2">
-                                                        <div className="flex items-center justify-between">
-                                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">ID de Notificação (Telegram)</label>
-                                                            <a
-                                                                href="https://t.me/cpgestao_fidelidade_bot"
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="text-[9px] font-bold text-blue-500 hover:underline flex items-center gap-1 uppercase"
-                                                            >
-                                                                <HelpCircle className="w-3 h-3" /> Como pegar meu ID?
-                                                            </a>
-                                                        </div>
-                                                        <Input
-                                                            placeholder="Ex: 123456789"
-                                                            value={telegramData.chat_id}
-                                                            onChange={e => setTelegramData({ chat_id: e.target.value })}
-                                                        />
-                                                    </div>
-                                                    <div className="flex gap-2 justify-end">
-                                                        <Button size="sm" variant="secondary" onClick={() => setEditingTelegram(null)}>Cancelar</Button>
-                                                        <Button size="sm" onClick={() => handleUpdateTelegram(device.id)} disabled={isLoading}>Salvar</Button>
-                                                    </div>
+                                        {tenantPlan === PlanType.PRO && (
+                                            <div className="w-full mt-2 pt-4 border-t border-gray-100 dark:border-gray-800">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <p className="text-xs font-bold text-gray-500 flex items-center gap-1">
+                                                        <MessageCircle className="w-3.5 h-3.5 text-blue-500" /> Notificação Telegram
+                                                    </p>
+                                                    {editingTelegram !== device.id && (
+                                                        <button
+                                                            onClick={() => {
+                                                                setEditingTelegram(device.id);
+                                                                setTelegramData({ chat_id: device.telegram_chat_id || '' });
+                                                            }}
+                                                            className="text-[10px] text-blue-500 hover:underline font-bold uppercase tracking-widest disabled:opacity-50"
+                                                        >
+                                                            {device.telegram_chat_id ? 'Alterar Chat ID' : 'Configurar Telegram'}
+                                                        </button>
+                                                    )}
                                                 </div>
-                                            ) : (
-                                                (device.telegram_chat_id && tenantPlan !== PlanType.CLASSIC) ? (
-                                                    <div className="flex items-center gap-4 text-[10px] font-medium text-gray-600 dark:text-gray-400">
-                                                        <span className="bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-md border border-blue-100 dark:border-blue-900/30">
-                                                            <b className="text-blue-500">CANAL ATIVO (CHAT ID):</b> {device.telegram_chat_id}
-                                                        </span>
+
+                                                {editingTelegram === device.id ? (
+                                                    <div className="bg-white dark:bg-gray-800 p-3 rounded-xl border border-blue-100 dark:border-blue-900/30 space-y-3 mt-2 animate-fade-in">
+                                                        <div className="space-y-2">
+                                                            <div className="flex items-center justify-between">
+                                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">ID de Notificação (Telegram)</label>
+                                                                <a
+                                                                    href="https://t.me/cpgestao_fidelidade_bot"
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="text-[9px] font-bold text-blue-500 hover:underline flex items-center gap-1 uppercase"
+                                                                >
+                                                                    <HelpCircle className="w-3 h-3" /> Como pegar meu ID?
+                                                                </a>
+                                                            </div>
+                                                            <Input
+                                                                placeholder="Ex: 123456789"
+                                                                value={telegramData.chat_id}
+                                                                onChange={e => setTelegramData({ chat_id: e.target.value })}
+                                                            />
+                                                        </div>
+                                                        <div className="flex gap-2 justify-end">
+                                                            <Button size="sm" variant="secondary" onClick={() => setEditingTelegram(null)}>Cancelar</Button>
+                                                            <Button size="sm" onClick={() => handleUpdateTelegram(device.id)} disabled={isLoading}>Salvar</Button>
+                                                        </div>
                                                     </div>
                                                 ) : (
-                                                    <p className="text-[10px] text-gray-400 italic">
-                                                        Notificações desativadas para este totem.
-                                                    </p>
-                                                )
-                                            )}
-                                        </div>
+                                                    device.telegram_chat_id ? (
+                                                        <div className="flex items-center gap-4 text-[10px] font-medium text-gray-600 dark:text-gray-400">
+                                                            <span className="bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-md border border-blue-100 dark:border-blue-900/30">
+                                                                <b className="text-blue-500">CANAL ATIVO (CHAT ID):</b> {device.telegram_chat_id}
+                                                            </span>
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-[10px] text-gray-400 italic">
+                                                            Notificações desativadas para este totem.
+                                                        </p>
+                                                    )
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>
