@@ -78,9 +78,7 @@ class PublicTerminalController extends Controller
             return [$tenant, null];
         }
 
-        if (!\App\Utils\Luhn::validate($uid)) {
-            abort(400, 'Identificador de dispositivo inválido');
-        }
+        // Luhn validation removed as UIDs can be alphanumeric for totems/devices
 
         // New Device structure: uid is now nfc_uid
         $device = Device::where('nfc_uid', $uid)

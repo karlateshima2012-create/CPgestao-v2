@@ -32,7 +32,7 @@ export const VipPointHandler: React.FC = () => {
                 }
             })
             .catch(err => {
-                setErrorMsg(err.response?.data?.error || 'Erro ao ler o cartão VIP.');
+                setErrorMsg(err.response?.data?.message || 'Erro ao ler o cartão VIP.');
                 setMode('error');
             });
     }, [uid]);
@@ -54,7 +54,7 @@ export const VipPointHandler: React.FC = () => {
                 setMode('success');
             }
         } catch (err: any) {
-            setErrorMsg(err.response?.data?.error || 'Erro ao adicionar ponto.');
+            setErrorMsg(err.response?.data?.message || 'Erro ao adicionar ponto.');
             setMode('error');
         } finally {
             setLoadingPoint(false);
