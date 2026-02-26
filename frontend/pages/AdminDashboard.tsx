@@ -143,10 +143,11 @@ export const AdminDashboard: React.FC = () => {
 
   const getWhatsAppLink = (phone: string) => {
     const digits = phone.replace(/\D/g, '');
+    let formatted = digits;
     if (digits.startsWith('0')) {
-      return `https://wa.me/81${digits.substring(1)}`;
+      formatted = `81${digits.substring(1)}`;
     }
-    return `https://wa.me/${digits}`;
+    return `https://api.whatsapp.com/send?phone=${formatted}`;
   };
 
   const addMonths = (dateStr: string, months: number) => {
