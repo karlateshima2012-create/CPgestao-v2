@@ -29,7 +29,7 @@ export const AdminDashboard: React.FC = () => {
   });
   const [tenantForDevices, setTenantForDevices] = useState<Tenant | null>(null);
   const [storeDevices, setStoreDevices] = useState<any[]>([]);
-  const [newDeviceData, setNewDeviceData] = useState({ name: '', mode: 'approval', telegram_chat_id: '' });
+  const [newDeviceData, setNewDeviceData] = useState({ name: '', mode: 'approval' });
   const [createdCredentials, setCreatedCredentials] = useState<{ email: string; password: string; name: string; url: string } | null>(null);
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
   const [statusModal, setStatusModal] = useState<{
@@ -869,40 +869,17 @@ export const AdminDashboard: React.FC = () => {
                         </h4>
                       </div>
                       <div className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4">
                           <Input
-                            label="Nome do Local (Ex: Balcão, Entrada)"
-                            placeholder="Ex: Totem Principal"
+                            label="Nome do Totem (Controle Interno/Lojista)"
+                            placeholder="Ex: Totem Principal - Entrada"
                             value={newDeviceData.name}
                             onChange={(e) => setNewDeviceData({ ...newDeviceData, name: e.target.value })}
                           />
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-                                ID de Notificação (Telegram)
-                                {editingTenant.plan === PlanType.CLASSIC && <span className="text-amber-500 ml-1">(Apenas Pro/Elite)</span>}
-                              </label>
-                              <a
-                                href="https://t.me/cpgestao_fidelidade_bot"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-[9px] font-bold text-blue-500 hover:underline flex items-center gap-1 uppercase"
-                              >
-                                <HelpCircle className="w-3 h-3" /> Como pegar meu ID?
-                              </a>
-                            </div>
-                            <Input
-                              placeholder={editingTenant.plan === PlanType.CLASSIC ? "Funcionalidade VIP" : "Ex: 123456789"}
-                              value={newDeviceData.telegram_chat_id || ''}
-                              onChange={(e) => setNewDeviceData({ ...newDeviceData, telegram_chat_id: e.target.value })}
-                              disabled={editingTenant.plan === PlanType.CLASSIC}
-                            />
-                          </div>
                         </div>
                         <Button
                           className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3.5 font-black uppercase tracking-widest shadow-lg shadow-primary-500/20"
                           onClick={() => {
-                            // Inject mode into the request before calling the service
                             const data = { ...newDeviceData, mode: 'approval' };
                             tenantsService.createDevice(tenantForDevices!.id, { ...data, responsible_name: data.name })
                               .then(() => {
@@ -920,7 +897,7 @@ export const AdminDashboard: React.FC = () => {
                           }}
                           disabled={isLoading || !newDeviceData.name}
                         >
-                          {isLoading ? 'Registrando...' : '[+ Dispositivo]'}
+                          {isLoading ? 'Registrando...' : '[+ REGISTRAR NOVO TOTEM]'}
                         </Button>
                       </div>
                     </div>
@@ -935,36 +912,46 @@ export const AdminDashboard: React.FC = () => {
                         </div>
                       ) : (
                         <div className="grid grid-cols-1 gap-3">
-                          {storeDevices.map((device) => (
-                            <div key={device.id} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between group">
-                              <div className="flex items-center gap-3">
-                                <div className="p-2 rounded-xl bg-blue-100 text-blue-600">
-                                  <Monitor className="w-5 h-5" />
-                                </div>
-                                <div>
-                                  <p className="font-bold text-gray-700">{device.name}</p>
-                                  <p className="text-[10px] text-gray-400 font-mono select-all uppercase">UID: {device.nfc_uid}</p>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-4">
-                                <div className="text-right">
-                                  <p className="text-[10px] font-black uppercase text-gray-400">Página do Totem</p>
+                          {storeDevices.map((device) => {
+                            const publicUrl = `${window.location.origin}/terminal/${editingTenant.slug}/${device.nfc_uid}`;
+                            return (
+                              <div key={device.id} className="bg-white dark:bg-gray-900/40 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col gap-4 group">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                    <div className="p-2 rounded-xl bg-primary-100 dark:bg-primary-900/30 text-primary-600">
+                                      <Monitor className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                      <p className="font-black text-gray-900 dark:text-white uppercase tracking-tight">{device.name}</p>
+                                      <p className="text-[10px] text-gray-400 font-mono uppercase">Lote/UID: {device.nfc_uid}</p>
+                                    </div>
+                                  </div>
                                   <button
-                                    onClick={() => copyToClipboard(`${window.location.origin}/terminal/${editingTenant.slug}/${device.nfc_uid}`)}
-                                    className="text-xs text-blue-500 hover:underline flex items-center gap-1"
+                                    onClick={() => handleDeleteDevice(device.id)}
+                                    className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                    title="Remover Totem"
                                   >
-                                    <Copy className="w-3 h-3" /> Copiar Link
+                                    <Trash2 className="w-4 h-4" />
                                   </button>
                                 </div>
-                                <button
-                                  onClick={() => handleDeleteDevice(device.id)}
-                                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
+
+                                <div className="space-y-2">
+                                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Link Público (Gravar NFC)</label>
+                                  <div className="flex gap-2">
+                                    <div className="flex-1 bg-gray-50 dark:bg-gray-800 px-4 py-2.5 rounded-xl border border-gray-100 dark:border-gray-700 text-[11px] font-mono text-gray-500 truncate select-all">
+                                      {publicUrl}
+                                    </div>
+                                    <button
+                                      onClick={() => copyToClipboard(publicUrl)}
+                                      className="px-4 py-2 bg-primary-50 hover:bg-primary-100 text-primary-600 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-primary-200/50 flex items-center gap-2"
+                                    >
+                                      <Copy className="w-3.5 h-3.5" /> Copiar Link
+                                    </button>
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       )}
                     </div>
