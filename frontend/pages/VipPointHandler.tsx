@@ -5,10 +5,10 @@ import api from '../services/api';
 
 export const VipPointHandler: React.FC = () => {
     // Extract uid from path: /vip/xxx
-    const uid = window.location.pathname.split('/').pop() || '';
+    const uid = window.location.pathname.split('/').filter(p => p).pop() || '';
 
-    // modes: loading, owner_prompt, success, error, public_view, pending
-    const [mode, setMode] = useState<'loading' | 'owner_prompt' | 'success' | 'error' | 'public_view' | 'pending'>('loading');
+    // modes: loading, owner_prompt, success, error, public_view, pending, guest_unlinked
+    const [mode, setMode] = useState<'loading' | 'owner_prompt' | 'success' | 'error' | 'public_view' | 'pending' | 'guest_unlinked'>('loading');
     const [data, setData] = useState<any>(null);
     const [errorMsg, setErrorMsg] = useState('');
     const [loadingPoint, setLoadingPoint] = useState(false);
@@ -24,7 +24,13 @@ export const VipPointHandler: React.FC = () => {
             .then(res => {
                 const info = res.data;
                 setData(info);
-                if (info.is_owner) {
+                if (info.is_unlinked) {
+                    if (info.is_owner) {
+                        setMode('owner_prompt');
+                    } else {
+                        setMode('guest_unlinked');
+                    }
+                } else if (info.is_owner) {
                     setMode('owner_prompt');
                 } else {
                     // Redirect to the public terminal to view balance
@@ -133,6 +139,36 @@ export const VipPointHandler: React.FC = () => {
                             Cancelar
                         </button>
                     </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (mode === 'guest_unlinked' && data) {
+        return (
+            <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4 font-sans text-white">
+                <div className="bg-slate-800 rounded-3xl p-8 max-w-sm w-full shadow-2xl space-y-6 animate-fade-in text-center border border-slate-700">
+                    <div className="w-20 h-20 bg-slate-700/50 rounded-full flex items-center justify-center mx-auto shadow-inner">
+                        <Smartphone className="w-10 h-10 text-emerald-400" />
+                    </div>
+                    <div className="space-y-2">
+                        <h2 className="text-2xl font-bold tracking-tight">Cartão Novo!</h2>
+                        <p className="text-slate-400 text-sm">Este Cartão VIP ainda não foi vinculado a um cliente.</p>
+                        <p className="text-emerald-400 font-mono text-xs mt-2 select-all">ID: {data.card_uid}</p>
+                    </div>
+
+                    <div className="bg-emerald-500/10 p-4 rounded-xl border border-emerald-500/20">
+                        <p className="text-xs text-emerald-400 font-bold leading-tight uppercase tracking-tight">
+                            Lojista: Entre na sua conta para vincular este cartão ao CRM.
+                        </p>
+                    </div>
+
+                    <Button
+                        onClick={() => window.location.href = `/client?tab=devices&link_uid=${data.card_uid}`}
+                        className="w-full h-14 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-2xl shadow-lg shadow-emerald-500/20"
+                    >
+                        Entrar e Vincular
+                    </Button>
                 </div>
             </div>
         );

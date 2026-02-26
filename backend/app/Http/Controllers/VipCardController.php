@@ -45,18 +45,14 @@ class VipCardController extends Controller
         }
 
         if (!$card->linked_customer_id) {
-            if ($isOwner) {
-                return ApiResponse::ok([
-                    'is_owner' => true,
-                    'is_unlinked' => true,
-                    'card_uid' => $card->uid,
-                    'tenant' => [
-                        'name' => $tenant->name
-                    ]
-                ]);
-            } else {
-                return ApiResponse::error('Este cartão não está vinculado a um cliente.', 'NOT_LINKED', 400);
-            }
+            return ApiResponse::ok([
+                'is_owner' => $isOwner,
+                'is_unlinked' => true,
+                'card_uid' => $card->uid,
+                'tenant' => [
+                    'name' => $tenant->name
+                ]
+            ]);
         }
 
         $card->load('customer', 'tenant');
