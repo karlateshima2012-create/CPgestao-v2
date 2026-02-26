@@ -23,10 +23,7 @@ class VipCardController extends Controller
 
     public function resolve(Request $request, $uid)
     {
-        if (!\App\Utils\Luhn::validate($uid)) {
-            return ApiResponse::error('Cartão inválido.', 'INVALID_CARD', 400);
-        }
-
+        $uid = trim($uid);
         // Ignorar escopo global pois usuários públicos/deslogados podem acessar
         $card = LoyaltyCard::withoutGlobalScopes()->where('uid', $uid)->where('type', 'premium')->first();
 
@@ -97,10 +94,7 @@ class VipCardController extends Controller
 
     public function addPoint(Request $request, $uid)
     {
-        if (!\App\Utils\Luhn::validate($uid)) {
-            return ApiResponse::error('Cartão inválido.', 'INVALID_CARD', 400);
-        }
-
+        $uid = trim($uid);
         // Rota protegida auth:sanctum & role:client. BelongsToTenant ativo automaticamente.
         $card = LoyaltyCard::where('uid', $uid)->where('type', 'premium')->first();
 

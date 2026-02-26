@@ -103,6 +103,10 @@ const App: React.FC = () => {
           setTenantSlug(res.data.tenant.slug);
         }
         if (res.data.role === 'client') {
+          const params = new URLSearchParams(window.location.search);
+          const urlTab = params.get('tab') as ClientTab;
+          if (urlTab) setClientTab(urlTab);
+
           fetchContacts();
           fetchDashboardMetrics();
           if (!res.data.onboarding_completed) {
@@ -226,7 +230,14 @@ const App: React.FC = () => {
         setTenantSlug(user.tenant.slug);
       }
       if (user.role === 'client') {
-        setClientTab('dashboard');
+        const params = new URLSearchParams(window.location.search);
+        const urlTab = params.get('tab') as ClientTab;
+        if (urlTab) {
+          setClientTab(urlTab);
+        } else {
+          setClientTab('dashboard');
+        }
+
         fetchContacts();
         fetchDashboardMetrics();
         if (!user.onboarding_completed) {
