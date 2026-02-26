@@ -23,7 +23,6 @@ export const AdminDashboard: React.FC = () => {
     owner_name: '',
     phone: '',
     plan: PlanType.CLASSIC,
-    custom_contact_limit: 2000,
     extra_contacts_quota: 0,
     totems_count: 2,
     plan_expires_at: ''
@@ -200,7 +199,6 @@ export const AdminDashboard: React.FC = () => {
         owner_name: '',
         phone: '',
         plan: PlanType.CLASSIC,
-        custom_contact_limit: 2000,
         extra_contacts_quota: 0,
         totems_count: 2,
         plan_expires_at: ''
@@ -639,7 +637,7 @@ export const AdminDashboard: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                 {filteredTenants.map((tenant) => {
-                  const limit = tenant.custom_contact_limit || PLAN_LIMITS[tenant.plan] || 8000;
+                  const limit = tenant.total_contact_limit || PLAN_LIMITS[tenant.plan] || 2000;
                   const usage = (tenant.customers_count || 0) / limit;
                   const isExpired = tenant.plan_expires_at && new Date(tenant.plan_expires_at) < new Date();
 
@@ -769,8 +767,7 @@ export const AdminDashboard: React.FC = () => {
                               const newPlan = e.target.value as PlanType;
                               setEditingTenant({
                                 ...editingTenant,
-                                plan: newPlan,
-                                custom_contact_limit: PLAN_LIMITS[newPlan]
+                                plan: newPlan
                               });
                             }}
                           >
@@ -780,10 +777,11 @@ export const AdminDashboard: React.FC = () => {
                           </select>
                         </div>
                         <Input
-                          label="Limite de Contatos (Customizado)"
-                          type="number"
-                          value={editingTenant.custom_contact_limit || PLAN_LIMITS[editingTenant.plan]}
-                          onChange={(e) => setEditingTenant({ ...editingTenant, custom_contact_limit: parseInt(e.target.value) })}
+                          label="Limite de Contatos"
+                          type="text"
+                          value={editingTenant.extra_contacts_quota === -1 ? 'ILIMITADO' : (PLAN_LIMITS[editingTenant.plan] + (editingTenant.extra_contacts_quota || 0)).toLocaleString()}
+                          readOnly
+                          className="bg-gray-100 font-black text-gray-700"
                         />
                       </div>
                       <div className="space-y-4">
@@ -1105,7 +1103,13 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <Input label="E-mail Administrativo" placeholder="dono@loja.com" value={newTenantData.email} onChange={(e) => setNewTenantData({ ...newTenantData, email: e.target.value })} />
-                      <Input label="Limite de Contatos" type="number" value={newTenantData.custom_contact_limit} onChange={(e) => setNewTenantData({ ...newTenantData, custom_contact_limit: parseInt(e.target.value) })} />
+                      <Input
+                        label="Limite de Contatos"
+                        type="text"
+                        value={newTenantData.extra_contacts_quota === -1 ? 'ILIMITADO' : (PLAN_LIMITS[newTenantData.plan] + (newTenantData.extra_contacts_quota || 0)).toLocaleString()}
+                        readOnly
+                        className="bg-gray-100 font-bold"
+                      />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -1115,7 +1119,7 @@ export const AdminDashboard: React.FC = () => {
                           value={newTenantData.plan}
                           onChange={(e) => {
                             const p = e.target.value as PlanType;
-                            setNewTenantData({ ...newTenantData, plan: p, custom_contact_limit: PLAN_LIMITS[p] });
+                            setNewTenantData({ ...newTenantData, plan: p });
                           }}
                         >
                           <option value={PlanType.CLASSIC}>⚪ Classic: Limite de 2.000 contatos.</option>
