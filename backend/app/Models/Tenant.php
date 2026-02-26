@@ -69,6 +69,36 @@ class Tenant extends Model
         if ($this->planRelationship) {
             return $this->planRelationship->getFeatureValue($slug, $default);
         }
+
+        // Hardcoded fallbacks based on plan name string (Classic/Pro/Elite)
+        // This handles cases where plans were not seeded or linked yet
+        $planType = strtolower($this->plan ?? '');
+        $defaults = [
+            'classic' => [
+                'contact_limit' => 2000,
+                'device_limit' => 10,
+                'allow_auto_approve' => 1,
+                'nfc_cards_enabled' => 1,
+            ],
+            'pro' => [
+                'contact_limit' => 4000,
+                'device_limit' => 3,
+                'allow_auto_approve' => 0,
+                'allow_online_qr' => 1,
+            ],
+            'elite' => [
+                'contact_limit' => 6000,
+                'device_limit' => 99,
+                'allow_auto_approve' => 1,
+                'allow_online_qr' => 1,
+                'auto_checkin_full' => 1,
+            ]
+        ];
+
+        if (isset($defaults[$planType][$slug])) {
+            return $defaults[$planType][$slug];
+        }
+
         return $default;
     }
 

@@ -293,50 +293,58 @@ class TenantController extends Controller
 
     public function storeDevice(Request $request, $id)
     {
-        $tenant = Tenant::findOrFail($id);
-        
-        $this->planService->validateDeviceLimit($tenant);
+        try {
+            $tenant = Tenant::findOrFail($id);
+            
+            $this->planService->validateDeviceLimit($tenant);
 
-        $request->validate([
-            'name' => 'required|string',
-            'mode' => 'required|string|in:approval,auto_checkin',
-            'telegram_chat_id' => 'nullable|string',
-            'responsible_name' => 'nullable|string',
-        ]);
+            $request->validate([
+                'name' => 'required|string',
+                'mode' => 'required|string|in:approval,auto_checkin',
+                'telegram_chat_id' => 'nullable|string',
+                'responsible_name' => 'nullable|string',
+            ]);
 
-        $device = \App\Models\Device::create([
-            'tenant_id' => $tenant->id,
-            'name' => $request->name,
-            'nfc_uid' => Str::random(12),
-            'mode' => $request->mode,
-            'telegram_chat_id' => $request->telegram_chat_id,
-            'responsible_name' => $request->responsible_name ?: $request->name,
-            'auto_approve' => $request->mode === 'auto_checkin',
-            'active' => true,
-        ]);
+            $device = \App\Models\Device::create([
+                'tenant_id' => $tenant->id,
+                'name' => $request->name,
+                'nfc_uid' => Str::random(12),
+                'mode' => $request->mode,
+                'telegram_chat_id' => $request->telegram_chat_id,
+                'responsible_name' => $request->responsible_name ?: $request->name,
+                'auto_approve' => $request->mode === 'auto_checkin',
+                'active' => true,
+            ]);
 
-        return ApiResponse::ok($device, 'Terminal registrado com sucesso');
+            return ApiResponse::ok($device, 'Terminal registrado com sucesso');
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 422);
+        }
     }
 
     public function updateDevice(Request $request, $id, $deviceId)
     {
-        $device = \App\Models\Device::where('tenant_id', $id)->findOrFail($deviceId);
+        try {
+            $device = \App\Models\Device::where('tenant_id', $id)->findOrFail($deviceId);
 
-        $request->validate([
-            'name' => 'sometimes|string',
-            'mode' => 'sometimes|string|in:approval,auto_checkin',
-            'telegram_chat_id' => 'nullable|string',
-            'responsible_name' => 'nullable|string',
-        ]);
+            $request->validate([
+                'name' => 'sometimes|string',
+                'mode' => 'sometimes|string|in:approval,auto_checkin',
+                'telegram_chat_id' => 'nullable|string',
+                'responsible_name' => 'nullable|string',
+            ]);
 
-        $data = $request->only(['name', 'mode', 'telegram_chat_id', 'responsible_name']);
-        if (isset($data['mode'])) {
-            $data['auto_approve'] = $data['mode'] === 'auto_checkin';
+            $data = $request->only(['name', 'mode', 'telegram_chat_id', 'responsible_name']);
+            if (isset($data['mode'])) {
+                $data['auto_approve'] = $data['mode'] === 'auto_checkin';
+            }
+
+            $device->update($data);
+
+            return ApiResponse::ok($device, 'Terminal atualizado com sucesso');
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 422);
         }
-
-        $device->update($data);
-
-        return ApiResponse::ok($device, 'Terminal atualizado com sucesso');
     }
 
     public function deleteDevice($id, $deviceId)

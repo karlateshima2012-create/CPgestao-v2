@@ -20,6 +20,9 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->command->info('🚀 Preparando ambiente de testes CPgestão-v2...');
+        
+        // Seed Plans first
+        $this->call(PlanSeeder::class);
 
         // 0. RESET DATABASE (Opcional, mas recomendado para testes limpos)
         // DB::statement('SET FOREIGN_KEY_CHECKS=0;');
@@ -42,6 +45,7 @@ class DatabaseSeeder extends Seeder
         );
 
         // --- 1. CENÁRIO LOJA CLASSIC (TESTE DE LIMITE E CARTÃO) ---
+        $classicPlan = \App\Models\Plan::where('slug', 'classic')->first();
         $classicTenant = Tenant::updateOrCreate(
             ['slug' => 'pizzaria-classic'],
             [
@@ -50,6 +54,7 @@ class DatabaseSeeder extends Seeder
                 'phone' => '09012345678',
                 'email' => 'classic@loja.com',
                 'plan' => 'Classic',
+                'plan_id' => $classicPlan?->id,
                 'status' => 'active',
                 'loyalty_active' => true,
                 'points_goal' => 10,
@@ -80,6 +85,7 @@ class DatabaseSeeder extends Seeder
         $this->generateCustomers($classicTenant->id, 1997); // 1999 - 2 já criados
 
         // --- 2. CENÁRIO LOJA PRO (TESTE DE TELEGRAM E EXPANSÃO) ---
+        $proPlan = \App\Models\Plan::where('slug', 'pro')->first();
         $proTenant = Tenant::updateOrCreate(
             ['slug' => 'burger-pro'],
             [
@@ -88,6 +94,7 @@ class DatabaseSeeder extends Seeder
                 'phone' => '08099998888',
                 'email' => 'pro@loja.com',
                 'plan' => 'Pro',
+                'plan_id' => $proPlan?->id,
                 'extra_contacts_quota' => 1000, // Pack Bronze (+1000)
                 'status' => 'active',
                 'loyalty_active' => true,
@@ -107,6 +114,7 @@ class DatabaseSeeder extends Seeder
         $this->generateCustomers($proTenant->id, 3500);
 
         // --- 3. CENÁRIO LOJA ELITE (TESTE DE AUTOMAÇÃO E ILIMITADO) ---
+        $elitePlan = \App\Models\Plan::where('slug', 'elite')->first();
         $eliteTenant = Tenant::updateOrCreate(
             ['slug' => 'sushi-elite'],
             [
@@ -115,6 +123,7 @@ class DatabaseSeeder extends Seeder
                 'phone' => '07033332222',
                 'email' => 'elite@loja.com',
                 'plan' => 'Elite',
+                'plan_id' => $elitePlan?->id,
                 'extra_contacts_quota' => -1, // Infinity
                 'status' => 'active',
                 'loyalty_active' => true,

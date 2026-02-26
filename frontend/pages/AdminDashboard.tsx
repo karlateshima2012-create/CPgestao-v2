@@ -886,11 +886,11 @@ export const AdminDashboard: React.FC = () => {
                                 fetchStoreDevices(tenantForDevices!.id);
                                 setNewDeviceData({ name: '', mode: 'approval' });
                               })
-                              .catch(() => {
+                              .catch((err) => {
                                 setStatusModal({
                                   isOpen: true,
                                   title: 'Erro',
-                                  message: 'Não foi possível registrar o terminal.',
+                                  message: err.response?.data?.message || 'Não foi possível registrar o terminal.',
                                   type: 'error'
                                 });
                               });
