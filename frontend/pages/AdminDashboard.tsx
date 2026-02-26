@@ -141,6 +141,14 @@ export const AdminDashboard: React.FC = () => {
     return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
   };
 
+  const getWhatsAppLink = (phone: string) => {
+    const digits = phone.replace(/\D/g, '');
+    if (digits.startsWith('0')) {
+      return `https://wa.me/81${digits.substring(1)}`;
+    }
+    return `https://wa.me/${digits}`;
+  };
+
   const addMonths = (dateStr: string, months: number) => {
     let date: Date;
     if (dateStr) {
@@ -655,7 +663,7 @@ export const AdminDashboard: React.FC = () => {
                           <span className="text-gray-900 font-medium text-xs">{tenant.email}</span>
                           {tenant.phone && (
                             <a
-                              href={`https://wa.me/${tenant.phone.replace(/\D/g, '')}`}
+                              href={getWhatsAppLink(tenant.phone)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-green-600 hover:text-green-700 text-[10px] font-black uppercase tracking-tight flex items-center gap-1 mt-1"
