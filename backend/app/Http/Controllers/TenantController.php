@@ -35,8 +35,11 @@ class TenantController extends Controller
     public function getGlobalMetrics()
     {
         $totalTenants = Tenant::count();
-        $totalCards = \App\Models\Device::count();
-        $linkedCards = \App\Models\Device::whereNotNull('linked_customer_id')->count();
+        // Devices table is now for Totems
+        $totalTotems = \App\Models\Device::count();
+        // LoyaltyCard is for physical cards
+        $totalCards = \App\Models\LoyaltyCard::count();
+        $linkedCards = \App\Models\LoyaltyCard::whereNotNull('linked_customer_id')->count();
         
         $expiringSoon = Tenant::whereNotNull('plan_expires_at')
             ->where('plan_expires_at', '>', now())
@@ -45,6 +48,7 @@ class TenantController extends Controller
 
         return ApiResponse::ok([
             'total_tenants' => $totalTenants,
+            'total_totems' => $totalTotems,
             'total_cards' => $totalCards,
             'linked_cards' => $linkedCards,
             'expiring_soon' => $expiringSoon,

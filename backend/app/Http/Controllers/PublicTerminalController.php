@@ -81,12 +81,29 @@ class PublicTerminalController extends Controller
         // Luhn validation removed as UIDs can be alphanumeric for totems/devices
 
         // New Device structure: uid is now nfc_uid
-        $device = Device::where('nfc_uid', $uid)
+        $device = Device::withoutGlobalScopes()->where('nfc_uid', $uid)
             ->where('tenant_id', $tenant->id)
             ->first();
 
         if (!$device) {
-            abort(404);
+            // Check if it's a Loyalty Card (NFC Card) being scanned as a terminal
+            $card = \App\Models\LoyaltyCard::withoutGlobalScopes()
+                ->where('uid', $uid)
+                ->where('tenant_id', $tenant->id)
+                ->first();
+
+            if ($card) {
+                // Create a virtual device object to satisfy the response
+                $device = new Device([
+                    'tenant_id' => $tenant->id,
+                    'name' => 'Cartão VIP (Leitura Direta)',
+                    'mode' => 'standard',
+                    'active' => true,
+                    'nfc_uid' => $uid
+                ]);
+            } else {
+                abort(404, 'Dispositivo ou Cartão não reconhecido.');
+            }
         }
 
         if (!$device->active) {

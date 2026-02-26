@@ -71,24 +71,8 @@ const steps = [
 
 export const OnboardingModal: React.FC<OnboardingModalProps> = ({ onComplete, onChangeTab }) => {
     const [currentStep, setCurrentStep] = useState(0);
-    const [arrowPos, setArrowPos] = useState({ top: 0, opacity: 0 });
     const step = steps[currentStep];
 
-    useEffect(() => {
-        // Find the sidebar tab element
-        const tabId = `side-tab-${step.tab}`;
-        const element = document.getElementById(tabId);
-
-        if (element) {
-            const rect = element.getBoundingClientRect();
-            setArrowPos({
-                top: rect.top + (rect.height / 2),
-                opacity: 1
-            });
-        } else {
-            setArrowPos(prev => ({ ...prev, opacity: 0 }));
-        }
-    }, [currentStep, step.tab]);
 
     const handleNext = () => {
         if (currentStep < steps.length - 1) {
@@ -161,18 +145,6 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ onComplete, on
                     )}
                 </div>
             </div>
-            {/* Animated Pointing Arrow */}
-            {arrowPos.opacity > 0 && currentStep > 0 && (
-                <div
-                    className="fixed left-[280px] z-[110] transition-all duration-500 ease-in-out pointer-events-none hidden md:flex items-center gap-3"
-                    style={{ top: arrowPos.top, transform: 'translateY(-50%)' }}
-                >
-                    <div className="w-16 h-[2px] bg-primary-500 shadow-lg shadow-primary-500/50 animate-line"></div>
-                    <div className="animate-float-arrow">
-                        <ArrowRight className="w-8 h-8 text-primary-500 drop-shadow-lg" />
-                    </div>
-                </div>
-            )}
         </div>
     );
 };
