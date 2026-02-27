@@ -542,14 +542,14 @@ export const AccountTab: React.FC = () => {
 
       {/* MODAL DE UPGRADE */}
       {showUpgradeModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
-          <Card className="w-full max-w-2xl p-0 shadow-2xl overflow-hidden animate-scale-up">
-            <div className="p-8 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-gray-900/50">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-md animate-fade-in overflow-y-auto">
+          <Card className="w-full max-w-2xl p-0 shadow-2xl overflow-hidden animate-scale-up my-auto max-h-[95vh] flex flex-col">
+            <div className="p-4 sm:p-8 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-gray-900/50 shrink-0">
               <div>
-                <h3 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3">
-                  <Rocket className="w-6 h-6 text-purple-600" /> Upgrade de Base
+                <h3 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3">
+                  <Rocket className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" /> Upgrade de Base
                 </h3>
-                <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">Expanda seu limite de contatos instantaneamente</p>
+                <p className="text-[10px] sm:text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">Expanda seu limite de contatos instantaneamente</p>
               </div>
               <button
                 onClick={() => setShowUpgradeModal(false)}
@@ -559,8 +559,8 @@ export const AccountTab: React.FC = () => {
               </button>
             </div>
 
-            <div className="p-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 sm:p-8 overflow-y-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[
                   { name: 'Pack Bronze', extra: '+1.000', price: '¥ 2.500', color: 'orange' },
                   { name: 'Pack Prata', extra: '+2.000', price: '¥ 4.500', color: 'blue' },
