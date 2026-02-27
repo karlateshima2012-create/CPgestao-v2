@@ -541,19 +541,16 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             <div className="text-center space-y-3 pt-4">
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Área do Cliente</h3>
               <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{foundCustomer.name || 'Cliente'}</p>
-              <div className={`inline-flex items-center gap-2 px-5 py-2 rounded-xl border-2 ${(foundCustomer.loyalty_level || 0) === 0 ? 'bg-orange-50 border-orange-100 text-orange-700' :
-                  (foundCustomer.loyalty_level || 0) === 1 ? 'bg-slate-50 border-slate-100 text-slate-700' :
-                    (foundCustomer.loyalty_level || 0) === 2 ? 'bg-yellow-50 border-yellow-100 text-yellow-700' :
+              <div className={`inline-flex items-center gap-2 px-5 py-2 rounded-xl border-2 ${(foundCustomer.loyalty_level || 1) <= 1 ? 'bg-orange-50 border-orange-100 text-orange-700' :
+                  (foundCustomer.loyalty_level || 1) === 2 ? 'bg-slate-50 border-slate-100 text-slate-700' :
+                    (foundCustomer.loyalty_level || 1) === 3 ? 'bg-yellow-50 border-yellow-100 text-yellow-700' :
                       'bg-cyan-50 border-cyan-100 text-cyan-700'
                 }`}>
-                <span className="text-[13px] font-black uppercase tracking-widest text-center flex items-center gap-2">
-                  {(foundCustomer.loyalty_level || 0) === 0 ? '🥉' :
-                    (foundCustomer.loyalty_level || 0) === 1 ? '🥈' :
-                      (foundCustomer.loyalty_level || 0) === 2 ? '🥇' : '💎'}
+                <span className="text-[13px] font-black uppercase tracking-widest text-center">
                   {foundCustomer.loyalty_level_name || (
-                    (foundCustomer.loyalty_level || 0) === 0 ? 'Bronze' :
-                      (foundCustomer.loyalty_level || 0) === 1 ? 'Prata' :
-                        (foundCustomer.loyalty_level || 0) === 2 ? 'Ouro' : 'Diamante'
+                    (foundCustomer.loyalty_level || 1) <= 1 ? '🥉 Bronze' :
+                      (foundCustomer.loyalty_level || 1) === 2 ? '🥈 Prata' :
+                        (foundCustomer.loyalty_level || 1) === 3 ? '🥇 Ouro' : '💎 Diamante'
                   )}
                 </span>
               </div>
