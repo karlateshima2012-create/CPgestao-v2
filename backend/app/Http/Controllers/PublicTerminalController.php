@@ -553,103 +553,124 @@ class PublicTerminalController extends Controller
             'birthday' => 'nullable|date',
         ]);
 
-        return DB::transaction(function () use ($request, $slug, $uid) {
-            [$tenant, $device] = $this->validateDevice($slug, $uid);
+        try {
+            return DB::transaction(function () use ($request, $slug, $uid) {
+                [$tenant, $device] = $this->validateDevice($slug, $uid);
 
-            $phone = PhoneHelper::normalize($request->phone);
+                $phone = PhoneHelper::normalize($request->phone);
 
-            // Check for existing
-            if (Customer::where('tenant_id', $tenant->id)->where('phone', $phone)->exists()) {
-                return ApiResponse::error('Este número de telefone já está cadastrado nesta loja. Para visualizar os pontos, utilize a opção Consultar saldo.', 'DUPLICATE_PHONE', 409);
-            }
+                // Check for existing
+                if (Customer::where('tenant_id', $tenant->id)->where('phone', $phone)->exists()) {
+                    return ApiResponse::error('Este número de telefone já está cadastrado nesta loja. Para visualizar os pontos, utilize a opção Consultar saldo.', 'DUPLICATE_PHONE', 409);
+                }
 
-            // Limit Check
-            if ($tenant->isLimitReached()) {
-                $this->telegramService->sendMessage($tenant->id, "🚫 *Limite Atingido\!* O cadastro de novos clientes foi pausado\.");
-                return ApiResponse::error('Limite de clientes atingido para esta loja.', 'PLAN_LIMIT_REACHED', 403);
-            }
+                // Limit Check
+                if ($tenant->isLimitReached()) {
+                    $this->telegramService->sendMessage($tenant->id, "🚫 *Limite Atingido\!* O cadastro de novos clientes foi pausado\.");
+                    return ApiResponse::error('Limite de clientes atingido para esta loja.', 'PLAN_LIMIT_REACHED', 403);
+                }
 
-            $customer = Customer::create([
-                'tenant_id' => $tenant->id,
-                'name' => $request->name,
-                'phone' => $phone,
-                'email' => $request->email,
-                'city' => $request->city,
-                'province' => $request->province,
-                'postal_code' => $request->postal_code,
-                'address' => $request->address,
-                'birthday' => $request->birthday,
-                'source' => 'terminal',
-                'last_activity_at' => now()
-            ]);
+                $birthday = $request->birthday ?: null;
+                if ($birthday === '') $birthday = null;
 
-            $tenant->verifyAndNotifyLimit();
-
-            $escName = TelegramService::escapeMarkdownV2($customer->name);
-            $escPhone = TelegramService::escapeMarkdownV2($customer->phone);
-            $regMessage = "✨ *Novo Cliente Cadastrado \(Totem\)*\n\n"
-                        . "👤 *Nome:* {$escName}\n"
-                        . "📞 *Telefone:* {$escPhone}";
-
-            if ($device && $device->telegram_chat_id) {
-                $this->telegramService->sendDirectMessage($device->telegram_chat_id, $regMessage);
-            } else {
-                $this->telegramService->sendMessage($tenant->id, $regMessage);
-            }
-
-            $loyalty = $tenant->loyaltySettings ?: \App\Models\LoyaltySetting::create(['tenant_id' => $tenant->id]);
-            
-            $bonus = 0;
-            $levels = $loyalty->levels_config;
-            if ($levels && count($levels) > 0 && isset($levels[0]['points_per_signup'])) {
-                $bonus = (int)$levels[0]['points_per_signup'];
-            } else {
-                $bonus = (int)$loyalty->signup_bonus_points;
-            }
-
-            $bonusMessage = "";
-            if ($bonus > 0) {
-
-                // Create Point Request (New Layer)
-                $requestRecord = $this->createPointRequest([
+                $customer = Customer::create([
                     'tenant_id' => $tenant->id,
-                    'customer_id' => $customer->id,
-                    'phone' => $customer->phone,
-                    'device_id' => $device ? $device->id : null,
-                    'source' => 'online_qr',
-                    'status' => 'pending',
-                    'requested_points' => $bonus,
-                    'meta' => ['is_signup_bonus' => true]
+                    'name' => $request->name,
+                    'phone' => $phone,
+                    'email' => $request->email ?: null,
+                    'city' => $request->city ?: null,
+                    'province' => $request->province ?: null,
+                    'postal_code' => $request->postal_code ?: null,
+                    'address' => $request->address ?: null,
+                    'birthday' => $birthday,
+                    'source' => 'terminal',
+                    'last_activity_at' => now()
                 ]);
 
-                // Bonus is usually auto-approved
-                $this->pointRequestService->applyPoints($requestRecord);
-                $requestRecord->update(['status' => 'auto_approved', 'approved_at' => now()]);
+                $tenant->verifyAndNotifyLimit();
 
-                $bonusMessage = " (Bônus de boas-vindas aplicado!)";
-            }
+                $escName = TelegramService::escapeMarkdownV2($customer->name);
+                $escPhone = TelegramService::escapeMarkdownV2($customer->phone);
+                $regMessage = "✨ *Novo Cliente Cadastrado \(Totem\)*\n\n"
+                            . "👤 *Nome:* {$escName}\n"
+                            . "📞 *Telefone:* {$escPhone}";
 
-            $successMsg = "✅ Cadastro realizado com sucesso!{$bonusMessage}";
-            
-            if ($bonus > 0) {
-                $bonusMsg = "🎁 <b>Bônus de Cadastro Aplicado</b>\n"
-                          . "👤 <b>Cliente:</b> {$customer->name}\n"
-                          . "💰 <b>Pontos:</b> {$bonus}";
-                
-                if ($device && $device->telegram_chat_id) {
-                    $this->telegramService->sendDirectMessage($device->telegram_chat_id, $bonusMsg);
-                } else {
-                    $this->telegramService->sendMessage($tenant->id, $bonusMsg);
+                try {
+                    if ($device && $device->telegram_chat_id) {
+                        $this->telegramService->sendDirectMessage($device->telegram_chat_id, $regMessage);
+                    } else {
+                        $this->telegramService->sendMessage($tenant->id, $regMessage);
+                    }
+                } catch (\Exception $te) {
+                    \Illuminate\Support\Facades\Log::warning("Registration Telegram alert failed: " . $te->getMessage());
                 }
-            }
 
-            return ApiResponse::ok([
-                'customer_exists' => true,
-                'points_balance' => $customer->fresh()->points_balance,
-                'is_premium' => false,
-                'message' => $successMsg
-            ], $successMsg);
-        });
+                $loyalty = $tenant->loyaltySettings ?: \App\Models\LoyaltySetting::create(['tenant_id' => $tenant->id]);
+                
+                $bonus = 0;
+                $levels = $loyalty->levels_config;
+                if (is_array($levels) && count($levels) > 0 && isset($levels[0]['points_per_signup'])) {
+                    $bonus = (int)$levels[0]['points_per_signup'];
+                } else {
+                    $bonus = (int)($loyalty->signup_bonus_points ?? 0);
+                }
+
+                $bonusMessage = "";
+                if ($bonus > 0) {
+                    // Create Point Request (New Layer)
+                    $requestRecord = $this->createPointRequest([
+                        'tenant_id' => $tenant->id,
+                        'customer_id' => $customer->id,
+                        'phone' => $customer->phone,
+                        'device_id' => $device ? $device->id : null,
+                        'source' => 'online_qr',
+                        'status' => 'pending',
+                        'requested_points' => $bonus,
+                        'meta' => ['is_signup_bonus' => true]
+                    ]);
+
+                    // Bonus is usually auto-approved
+                    $this->pointRequestService->applyPoints($requestRecord);
+                    $requestRecord->update(['status' => 'auto_approved', 'approved_at' => now()]);
+
+                    $bonusMessage = " (Bônus de boas-vindas aplicado!)";
+                }
+
+                $successMsg = "✅ Cadastro realizado com sucesso!{$bonusMessage}";
+                
+                if ($bonus > 0) {
+                    $bonusMsg = "🎁 <b>Bônus de Cadastro Aplicado</b>\n"
+                              . "👤 <b>Cliente:</b> {$customer->name}\n"
+                              . "💰 <b>Pontos:</b> {$bonus}";
+                    
+                    try {
+                        if ($device && $device->telegram_chat_id) {
+                            $this->telegramService->sendDirectMessage($device->telegram_chat_id, $bonusMsg);
+                        } else {
+                            $this->telegramService->sendMessage($tenant->id, $bonusMsg);
+                        }
+                    } catch (\Exception $te2) {
+                         \Illuminate\Support\Facades\Log::warning("Bonus Telegram alert failed: " . $te2->getMessage());
+                    }
+                }
+
+                return ApiResponse::ok([
+                    'customer_exists' => true,
+                    'points_balance' => $customer->fresh()->points_balance,
+                    'id' => $customer->id,
+                    'name' => $customer->name,
+                    'is_premium' => false,
+                    'message' => $successMsg
+                ], $successMsg);
+            });
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Registration error in PublicTerminalController: " . $e->getMessage(), [
+                'exception' => $e,
+                'phone' => $request->phone,
+                'tenant_slug' => $slug
+            ]);
+            return ApiResponse::error('Não foi possível completar seu cadastro agora. Por favor, tente novamente.', 'REGISTRATION_ERROR', 500);
+        }
     }
 
     public function linkVip(Request $request, $slug, $uid)
