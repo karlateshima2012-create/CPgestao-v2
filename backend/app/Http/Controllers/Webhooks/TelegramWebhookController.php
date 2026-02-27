@@ -50,12 +50,12 @@ class TelegramWebhookController extends Controller
         if (strpos($text, '/start') === 0) {
             $escChatId = TelegramService::escapeMarkdownV2((string)$chatId);
             $response = "Olá\! Bem\-vindo ao assistente do *CPgestão Fidelidade* 🚀\.\n\n" .
-                        "🆔 Seu Chat ID: `{$escChatId}` \(Toque no número para copiar\)\n\n" .
+                        "🆔 Seu Chat ID: `{$escChatId}` \n\n" .
                         "📍 *O que fazer agora?*\n" .
                         "1️⃣ Copie o número acima\.\n" .
                         "2️⃣ Vá até o seu painel em *Gerenciar Dispositivos*\.\n" .
-                        "3️⃣ No Totem desejado, cole esse número no campo *ID para Aprovação de Pontos*\.\n\n" .
-                        "Pronto\! Agora você receberá os pedidos de pontos aqui\. ⚡";
+                        "3️⃣ No Totem desejado, cole esse número no campo *ID*\.\n\n" .
+                        "Pronto\! Agora você receberá as notificações por aqui\. ⚡";
 
             $this->telegramService->sendDirectMessage($chatId, $response);
             return response()->json(['status' => 'start_handled']);
