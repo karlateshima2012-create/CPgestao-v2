@@ -540,11 +540,18 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             {/* Header: Name and Level */}
             <div className="text-center space-y-3 pt-4">
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Área do Cliente</h3>
-              <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter italic">{foundCustomer.name || 'Cliente'}</p>
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-600/10 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 rounded-full">
-                <ShieldCheck className="w-4 h-4" />
-                <span className="text-xs font-black uppercase tracking-widest">
-                  {foundCustomer.loyalty_level_name || (foundCustomer.loyalty_level > 0 ? `Nível ${foundCustomer.loyalty_level}` : 'Bronze')}
+              <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{foundCustomer.name || 'Cliente'}</p>
+              <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full ${(foundCustomer.loyalty_level || 0) === 0 ? 'bg-orange-400/10 text-orange-600 dark:text-orange-400' :
+                  (foundCustomer.loyalty_level || 0) === 1 ? 'bg-slate-400/10 text-slate-600 dark:text-slate-400' :
+                    (foundCustomer.loyalty_level || 0) === 2 ? 'bg-yellow-400/10 text-yellow-600 dark:text-yellow-500' :
+                      'bg-cyan-400/10 text-cyan-600 dark:text-cyan-400'
+                }`}>
+                <span className="text-xs font-black uppercase tracking-widest text-center">
+                  {foundCustomer.loyalty_level_name || (
+                    (foundCustomer.loyalty_level || 0) === 0 ? '🥉 Bronze' :
+                      (foundCustomer.loyalty_level || 0) === 1 ? '🥈 Prata' :
+                        (foundCustomer.loyalty_level || 0) === 2 ? '🥇 Ouro' : '💎 Diamante'
+                  )}
                 </span>
               </div>
             </div>
@@ -566,22 +573,17 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 </div>
               </div>
 
-              {/* Reward Integration Inside Card */}
-              <div className="mt-8 pt-6 border-t border-white/10 text-center space-y-3">
-                <div className="inline-flex items-center gap-2 bg-white/10 px-4 py-2 rounded-2xl backdrop-blur-sm border border-white/5">
-                  <Gift className="w-4 h-4 text-blue-200" />
-                  <span className="text-xs font-black uppercase tracking-wider text-white">Próximo Prêmio</span>
-                </div>
-                <p className="text-lg font-bold text-blue-100 tracking-tight leading-tight">
-                  {storeInfo?.levels_config && storeInfo.levels_config[foundCustomer.loyalty_level || 0]?.reward
-                    ? storeInfo.levels_config[foundCustomer.loyalty_level || 0].reward
-                    : storeInfo.reward_text || 'Prêmio em definição'}
+              {/* Reward Meta Integration */}
+              <div className="mt-8 pt-6 border-t border-white/10 text-center">
+                <p className="text-sm font-bold text-blue-50 tracking-tight leading-snug">
+                  Meta <span className="text-blue-200">{storeInfo?.levels_config?.[foundCustomer.loyalty_level || 0]?.goal || storeInfo.points_goal}</span> para ganhar o prêmio: <span className="text-blue-200 font-black">
+                    {storeInfo?.levels_config && storeInfo.levels_config[foundCustomer.loyalty_level || 0]?.reward
+                      ? storeInfo.levels_config[foundCustomer.loyalty_level || 0].reward
+                      : storeInfo.reward_text || 'Prêmio em definição'}
+                  </span>
                 </p>
-                <div className="flex flex-col items-center gap-1 opacity-60">
-                  <p className="text-[10px] font-bold uppercase tracking-widest">
-                    Meta: {storeInfo?.levels_config?.[foundCustomer.loyalty_level || 0]?.goal || storeInfo.points_goal} pontos
-                  </p>
-                  <div className="w-32 h-1.5 bg-white/10 rounded-full overflow-hidden mt-1">
+                <div className="flex flex-col items-center gap-1 opacity-60 mt-4">
+                  <div className="w-32 h-1.5 bg-white/10 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-white transition-all duration-1000"
                       style={{ width: `${Math.min(100, (foundCustomer.points_balance / (storeInfo?.levels_config?.[foundCustomer.loyalty_level || 0]?.goal || storeInfo.points_goal)) * 100)}%` }}
@@ -594,21 +596,10 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             {/* Bottom Section: Plan Logic */}
             <div className="pt-2">
               {storeInfo.tenant_plan === PlanType.CLASSIC ? (
-                <div className="text-center p-6 bg-slate-50 dark:bg-slate-800/40 rounded-[25px] border border-slate-100 dark:border-slate-800 space-y-4 shadow-sm">
+                <div className="text-center p-6 bg-slate-50 dark:bg-slate-800/40 rounded-[25px] border border-slate-100 dark:border-slate-800 shadow-sm">
                   <p className="text-sm font-black text-slate-800 dark:text-slate-200 tracking-tight leading-relaxed">
                     Apresente o seu cartão para pontuar.
                   </p>
-                  <Button
-                    onClick={() => {
-                      const domain = window.location.host.includes('.cp-fidelidade.com')
-                        ? 'cp-fidelidade.com'
-                        : window.location.host.split('.').slice(-2).join('.');
-                      window.open(`https://${storeInfo.slug}.${domain}`, '_blank');
-                    }}
-                    className="w-full h-14 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 font-black uppercase tracking-widest rounded-2xl hover:bg-slate-200 transition-colors text-xs"
-                  >
-                    Ver Mais Detalhes
-                  </Button>
                 </div>
               ) : storeInfo.device_mode === 'manual' ? (
                 <div className="text-center p-6 bg-slate-50 dark:bg-slate-800/40 rounded-[25px] border border-slate-100 dark:border-slate-800">
