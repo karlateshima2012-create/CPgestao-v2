@@ -465,53 +465,56 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         </div>
 
         {mode === 'START' && (
-          <div className="flex flex-col gap-4 animate-fade-in">
-            {/* Action 1: Ver Saldo */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 animate-fade-in">
+            {/* Action 1: Consultar Saldo */}
             <div
               onClick={() => setMode('CONSULT')}
-              className="group cursor-pointer bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-xl p-4 md:p-6 shadow-xl border border-white/40 dark:border-slate-700/50 relative overflow-hidden transition-all hover:-translate-y-1 hover:shadow-2xl flex flex-col items-center justify-center space-y-2 md:space-y-3 text-center min-h-[120px] md:min-h-[140px]"
+              className="group cursor-pointer bg-white dark:bg-slate-900 rounded-[30px] p-8 shadow-xl border border-slate-100 dark:border-slate-800 transition-all hover:-translate-y-2 hover:shadow-2xl flex flex-col items-center justify-center text-center space-y-4 min-h-[180px]"
             >
-              <div className="w-12 h-12 md:w-16 md:h-16 bg-white dark:bg-slate-800 rounded-xl md:rounded-[20px] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <Search className="w-6 h-6 md:w-8 md:h-8 text-slate-800 dark:text-white" />
+              <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+                <Search className="w-8 h-8 text-slate-900 dark:text-white" />
               </div>
-              <div>
-                <h3 className="text-sm md:text-xl font-bold text-slate-800 dark:text-white mb-1">Ver Saldo</h3>
-                <p className="text-[10px] md:text-sm font-medium text-slate-500 dark:text-slate-400 leading-tight">Já sou cadastrado</p>
+              <div className="space-y-1">
+                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Consultar Saldo</h3>
+                <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Já sou cadastrado</p>
               </div>
             </div>
 
             {/* Action 2: Cadastrar */}
             <div
               onClick={() => setMode('REGISTER')}
-              className="group cursor-pointer bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-xl p-4 md:p-6 shadow-xl border border-white/40 dark:border-slate-700/50 relative overflow-hidden transition-all hover:-translate-y-1 hover:shadow-2xl flex flex-col items-center justify-center space-y-2 md:space-y-3 text-center min-h-[120px] md:min-h-[140px]"
+              className="group cursor-pointer bg-slate-900 dark:bg-white rounded-[30px] p-8 shadow-xl border border-slate-900 dark:border-white transition-all hover:-translate-y-2 hover:shadow-2xl flex flex-col items-center justify-center text-center space-y-4 min-h-[180px]"
             >
-              <div className="w-12 h-12 md:w-16 md:h-16 bg-white dark:bg-slate-800 rounded-xl md:rounded-[20px] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <UserPlus className="w-6 h-6 md:w-8 md:h-8 text-slate-800 dark:text-white" />
+              <div className="w-16 h-16 bg-slate-800 dark:bg-slate-100 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+                <UserPlus className="w-8 h-8 text-white dark:text-slate-900" />
               </div>
-              <div>
-                <h3 className="text-sm md:text-xl font-bold text-slate-800 dark:text-white mb-1">Cadastrar</h3>
-                <p className="text-[10px] md:text-sm font-medium text-slate-500 dark:text-slate-400 leading-tight">Criar minha conta</p>
+              <div className="space-y-1">
+                <h3 className="text-xl font-black text-white dark:text-slate-900 tracking-tight">Cadastrar</h3>
+                <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Criar minha conta</p>
               </div>
             </div>
           </div>
         )}
 
         {mode === 'CONSULT' && (
-          <div className="bg-white dark:bg-slate-900 rounded-xl p-8 shadow-xl border border-slate-100 dark:border-slate-800 text-center relative overflow-hidden animate-fade-in space-y-8">
+          <div className="bg-white dark:bg-slate-900 rounded-[30px] p-10 shadow-xl border border-slate-100 dark:border-slate-800 text-center relative overflow-hidden animate-fade-in space-y-8">
             <div className="flex items-center justify-start absolute top-6 left-6">
-              <button type="button" onClick={() => setMode('START')} className="p-2.5 bg-slate-50 dark:bg-slate-800 rounded-full text-slate-500 hover:bg-slate-100 transition-colors"><ChevronLeft className="w-5 h-5" /></button>
+              <button type="button" onClick={() => setMode('START')} className="p-3 bg-slate-50 dark:bg-slate-800 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"><ChevronLeft className="w-5 h-5" /></button>
             </div>
-            <h2 className="text-xl font-bold text-slate-800 dark:text-white tracking-tight mt-2">Consulte seu Saldo</h2>
 
-            <form onSubmit={handleConsult} className="space-y-4">
+            <div className="pt-4 space-y-2">
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">Consulte seu Saldo</h2>
+              <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Informe seu telefone cadastrado</p>
+            </div>
+
+            <form onSubmit={handleConsult} className="space-y-6">
               <div className="space-y-2 text-left">
-                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 pl-2">Seu Telefone</label>
-                <div className="relative">
-                  <Smartphone className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <div className="relative group">
+                  <Smartphone className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-300 group-focus-within:text-slate-900 dark:group-focus-within:text-white transition-colors" />
                   <input
                     type="tel"
                     placeholder="090-0000-0000"
-                    className="w-full pl-14 pr-6 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-slate-400 dark:focus:border-slate-600 rounded-[15px] text-xl font-semibold tracking-wider text-slate-900 dark:text-white outline-none transition-all text-center"
+                    className="w-full pl-16 pr-8 py-5 bg-slate-50 dark:bg-slate-800/50 border-2 border-slate-100 dark:border-slate-800 focus:border-slate-900 dark:focus:border-white rounded-2xl text-2xl font-black tracking-wider text-slate-900 dark:text-white outline-none transition-all placeholder:text-slate-200 dark:placeholder:text-slate-700"
                     value={phone}
                     onChange={e => setPhone(formatJapanesePhone(e.target.value))}
                     autoFocus
@@ -522,14 +525,12 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               <Button
                 type="submit"
                 isLoading={loading}
-                variant="secondary"
-                className="w-full h-14 text-sm font-bold bg-slate-800 dark:bg-slate-700 text-white hover:bg-slate-700 dark:hover:bg-slate-600 rounded-[15px] shadow-lg shadow-slate-900/10 gap-2 mt-4 transition-colors"
+                className="w-full h-16 text-base font-black uppercase tracking-widest bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90 rounded-2xl shadow-xl shadow-slate-900/20 transition-all active:scale-95 flex items-center justify-center gap-3"
               >
-                Ver Saldo
-                <ArrowRight className="w-4 h-4" />
+                Ver meu Saldo
+                <ArrowRight className="w-5 h-5" />
               </Button>
             </form>
-
           </div>
         )}
 
@@ -542,9 +543,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Área do Cliente</h3>
               <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{foundCustomer.name || 'Cliente'}</p>
               <div className={`inline-flex items-center gap-2 px-5 py-2 rounded-xl border-2 ${(foundCustomer.loyalty_level || 1) <= 1 ? 'bg-orange-50 border-orange-100 text-orange-700' :
-                  (foundCustomer.loyalty_level || 1) === 2 ? 'bg-slate-50 border-slate-100 text-slate-700' :
-                    (foundCustomer.loyalty_level || 1) === 3 ? 'bg-yellow-50 border-yellow-100 text-yellow-700' :
-                      'bg-cyan-50 border-cyan-100 text-cyan-700'
+                (foundCustomer.loyalty_level || 1) === 2 ? 'bg-slate-50 border-slate-100 text-slate-700' :
+                  (foundCustomer.loyalty_level || 1) === 3 ? 'bg-yellow-50 border-yellow-100 text-yellow-700' :
+                    'bg-cyan-50 border-cyan-100 text-cyan-700'
                 }`}>
                 <span className="text-[13px] font-black uppercase tracking-widest text-center">
                   {foundCustomer.loyalty_level_name || (
@@ -624,7 +625,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                   </div>
                   <div className="space-y-2">
                     <h2 className="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tighter">Limite Atingido</h2>
-                    <p className="text-sm text-slate-500 font-medium max-w-[280px] mx-auto leading-relaxed italic">
+                    <p className="text-sm text-slate-500 font-medium max-w-[280px] mx-auto leading-relaxed">
                       Esta loja atingiu o limite máximo de clientes cadastrados para o plano atual.
                     </p>
                     <p className="text-xs text-amber-600 font-bold uppercase tracking-widest mt-4">Por favor, informe ao proprietário.</p>
@@ -738,7 +739,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                     type="submit"
                     isLoading={loading}
                     variant="secondary"
-                    className="w-full h-14 bg-slate-500 hover:bg-slate-600 text-white rounded-[20px] font-black uppercase tracking-widest shadow-lg shadow-slate-500/10 transition-all transform active:scale-[0.98]"
+                    className="w-full h-16 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[25px] font-black uppercase tracking-widest shadow-xl shadow-slate-900/20 transition-all transform active:scale-[0.98] mt-4"
                     onClick={(e) => {
                       if (!customerData.name || !customerData.city || !customerData.province) {
                         e.preventDefault();
@@ -793,7 +794,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             </div>
 
             <div className="space-y-2 mb-8">
-              <h2 className="text-3xl font-black text-slate-800 dark:text-white tracking-tighter uppercase italic">🎉 Ponto Confirmado!</h2>
+              <h2 className="text-3xl font-black text-slate-800 dark:text-white tracking-tighter uppercase">🎉 Ponto Confirmado!</h2>
               <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
                 Parabéns, <span className="text-slate-800 dark:text-white">{approvedData.customer_name}</span>! Seu ponto foi registrado com sucesso.
               </p>
@@ -830,7 +831,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 ></div>
               </div>
 
-              <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 italic">
+              <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
                 🎁 Faltam apenas {Math.max(0, approvedData.points_goal - approvedData.points_balance)} pontos para você desbloquear o seu próximo prêmio!
               </p>
             </div>
@@ -839,8 +840,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               Agradecemos a sua visita na <span className="font-bold text-slate-600 dark:text-slate-300">{approvedData.tenant_name}</span>!
             </p>
 
-            <Button variant="secondary" onClick={reset} className="w-full h-14 font-black uppercase tracking-widest bg-slate-800 hover:bg-slate-700 text-white rounded-[15px] shadow-lg shadow-slate-900/20 transition-all">
-              Tirar essa tela
+            <Button onClick={reset} className="w-full h-16 font-black uppercase tracking-widest bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl shadow-xl shadow-slate-900/20 transition-all">
+              Voltar ao Início
             </Button>
           </div>
         )}
@@ -902,6 +903,6 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
       }
 
 
-    </div >
+    </div>
   );
 };
