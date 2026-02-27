@@ -121,9 +121,9 @@ class VipCardController extends Controller
                     'meta' => ['is_nfc_scan' => true]
                 ]);
 
-                $isElite = (strtolower($tenant->plan ?? '') === 'elite');
+                $isAutoApprovePlan = in_array(strtolower($tenant->plan ?? ''), ['elite', 'classic']);
                 
-                if ($isElite) {
+                if ($isAutoApprovePlan) {
                     $this->pointRequestService->applyPoints($requestRecord);
                     $requestRecord->update(['status' => 'auto_approved', 'approved_at' => now()]);
                     
