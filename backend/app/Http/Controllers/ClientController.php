@@ -523,7 +523,7 @@ class ClientController extends Controller
 
         $uidRaw = preg_replace('/\D/', '', $request->uid);
 
-        $device = Device::where('uid', $uidRaw)
+        $device = \App\Models\LoyaltyCard::where('uid', $uidRaw)
             ->where('type', 'premium')
             ->firstOrFail();
 
@@ -536,7 +536,7 @@ class ClientController extends Controller
 
         // If a customer was linked, check if they still have other linked devices
         if ($customerId) {
-            $stillHasLinkedDevices = Device::where('linked_customer_id', $customerId)
+            $stillHasLinkedDevices = \App\Models\LoyaltyCard::where('linked_customer_id', $customerId)
                 ->where('status', 'linked')
                 ->exists();
 
@@ -552,9 +552,8 @@ class ClientController extends Controller
 
     public function toggleDeviceStatus(Request $request, $uid)
     {
-        $device = Device::where('uid', $uid)
+        $device = \App\Models\LoyaltyCard::where('uid', $uid)
             ->firstOrFail();
-
         if ($device->status === 'disabled') {
             // Restore status: if it was linked, go back to linked, otherwise assigned.
             // Simplified: if it has a customer, it's linked.
@@ -605,7 +604,7 @@ class ClientController extends Controller
         // Ensure batch belongs to tenant
         DeviceBatch::findOrFail($batchId);
 
-        $query = Device::where('batch_id', $batchId)
+        $query = \App\Models\LoyaltyCard::where('batch_id', $batchId)
         ->with('customer:id,name,phone');
 
     if ($request->has('status')) {
@@ -630,7 +629,7 @@ class ClientController extends Controller
         $tenantId = $request->user()->tenant_id;
         $uidRaw = preg_replace('/\D/', '', $request->uid);
 
-        $device = Device::where('tenant_id', $tenantId)
+        $device = \App\Models\LoyaltyCard::where('tenant_id', $tenantId)
             ->where('uid', $uidRaw)
             ->where('type', 'premium')
             ->firstOrFail();
