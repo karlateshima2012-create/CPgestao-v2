@@ -398,14 +398,20 @@ class ClientController extends Controller
 
     public function getDevices(Request $request)
     {
-        $type = $request->query('type', 'premium');
+        $type = $request->query('type', 'default');
         $status = $request->query('status');
 
-        $query = Device::where('type', $type);
-
-        if ($type !== 'premium') {
-            $query->orWhereNull('type');
+        // Se o tipo for 'default' ou 'totem', estamos falando de Terminais (Totens)
+        if ($type === 'default' || $type === 'totem') {
+            $query = Device::query();
+            if ($status) {
+                $query->where('active', $status === 'active');
+            }
+            return ApiResponse::ok($query->get());
         }
+
+        // Para cartões premium, usamos o modelo LoyaltyCard
+        $query = \App\Models\LoyaltyCard::where('type', 'premium');
 
         if ($status) {
             $query->where('status', $status);
