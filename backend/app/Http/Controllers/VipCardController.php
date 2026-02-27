@@ -79,13 +79,13 @@ class VipCardController extends Controller
     protected function calculatePointsToAdd($customer, $tenant)
     {
         $loyalty = $tenant->loyaltySettings;
-        $currentLevel = $customer->loyalty_level ?? 0;
+        $levelIndex = max(0, ($customer->loyalty_level ?? 1) - 1);
         $levelsConfig = $loyalty ? $loyalty->levels_config : null;
 
-        if (is_array($levelsConfig) && isset($levelsConfig[$currentLevel]) && isset($levelsConfig[$currentLevel]['points_per_visit'])) {
-            return (int) $levelsConfig[$currentLevel]['points_per_visit'];
+        if (is_array($levelsConfig) && isset($levelsConfig[$levelIndex]) && isset($levelsConfig[$levelIndex]['points_per_visit'])) {
+            return (int) $levelsConfig[$levelIndex]['points_per_visit'];
         }
-        return $loyalty ? ($loyalty->vip_points_per_scan ?? 2) : 2;
+        return $loyalty ? ($loyalty->vip_points_per_scan ?? 1) : 1;
     }
 
     public function addPoint(Request $request, $uid)
@@ -109,14 +109,7 @@ class VipCardController extends Controller
             $loyalty = $tenant->loyaltySettings;
             $pointsToAdd = 1;
 
-            $currentLevel = $customer->loyalty_level ?? 0;
-            $levelsConfig = $loyalty ? $loyalty->levels_config : null;
-
-            if (is_array($levelsConfig) && isset($levelsConfig[$currentLevel]) && isset($levelsConfig[$currentLevel]['points_per_visit'])) {
-                $pointsToAdd = (int) $levelsConfig[$currentLevel]['points_per_visit'];
-            } else {
-                $pointsToAdd = $loyalty ? ($loyalty->vip_points_per_scan ?? 2) : 2;
-            }
+            $pointsToAdd = $this->calculatePointsToAdd($customer, $tenant);
 
             $requestRecord = $this->createPointRequest([
                 'tenant_id' => $tenant->id,
