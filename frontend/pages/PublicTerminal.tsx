@@ -357,11 +357,11 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customerData.name) {
+    if (!customerData.name || !customerData.city || !customerData.province) {
       setModal({
         isOpen: true,
-        title: 'Campo Obrigatório',
-        message: 'Por favor, digite seu nome completo.',
+        title: 'Campos Obrigatórios',
+        message: 'Por favor, preencha seu nome completo, cidade e província.',
         type: 'info'
       });
       return;
@@ -717,14 +717,14 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
                     <div className="grid grid-cols-2 gap-3">
                       <Input
-                        label="Província"
+                        label="Província *"
                         placeholder="Ex: Aichi"
                         value={customerData.province}
                         onChange={e => setCustomerData({ ...customerData, province: normalizeText(e.target.value) })}
                         className="h-11 rounded-[15px] focus:ring-slate-300"
                       />
                       <Input
-                        label="Cidade"
+                        label="Cidade *"
                         placeholder="Sua Cidade"
                         value={customerData.city}
                         onChange={e => setCustomerData({ ...customerData, city: normalizeText(e.target.value) })}
@@ -746,12 +746,12 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                     variant="secondary"
                     className="w-full h-14 bg-slate-500 hover:bg-slate-600 text-white rounded-[20px] font-black uppercase tracking-widest shadow-lg shadow-slate-500/10 transition-all transform active:scale-[0.98]"
                     onClick={(e) => {
-                      if (!customerData.name) {
+                      if (!customerData.name || !customerData.city || !customerData.province) {
                         e.preventDefault();
                         setModal({
                           isOpen: true,
                           title: 'Campos Obrigatórios',
-                          message: 'Por favor, preencha o seu nome.',
+                          message: 'Por favor, preencha os campos obrigatórios (Nome, Cidade e Província).',
                           type: 'info'
                         });
                       }
