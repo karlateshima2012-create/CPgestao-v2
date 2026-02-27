@@ -361,8 +361,8 @@ export const AccountTab: React.FC = () => {
                   value={telegramSettings.chat_id}
                   onChange={e => setTelegramSettings({ ...telegramSettings, chat_id: e.target.value })}
                 />
-                <div className="pb-3 text-[10px] text-gray-400 font-medium">
-                  💡 <b>Como ativar:</b> Clique no botão acima para abrir o Bot oficial, envie <b>/start</b> e ele informará seu Chat ID.
+                <div className="pb-3 text-[10px] text-blue-600 dark:text-blue-400 font-bold bg-blue-50/50 dark:bg-blue-900/20 p-4 rounded-[12px] border border-blue-100 dark:border-blue-800/50">
+                  💡 <b>INSTRUÇÃO:</b> No Telegram, clique em <b>INICIAR</b> (/start) e o bot responderá instantaneamente com o seu <b>Número ID</b>. Copie e cole no campo ao lado.
                 </div>
               </div>
 
@@ -422,87 +422,111 @@ export const AccountTab: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="p-6 bg-blue-50/50 dark:bg-blue-900/10 border-none">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-white dark:bg-gray-900 rounded-[15px] shadow-sm">
-                  <Calendar className="w-6 h-6 text-blue-600" />
+          {/* Plan Status & Limits Unified Card */}
+          <Card className="p-0 border-none shadow-xl overflow-hidden bg-white dark:bg-slate-900">
+            <div className="bg-gradient-to-r from-primary-600 to-primary-400 p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-white/20 backdrop-blur-md rounded-[12px]">
+                    <Rocket className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-white uppercase tracking-wider">Status do Plano</h3>
+                    <p className="text-[10px] text-white/70 font-bold uppercase tracking-widest">Resumo de utilização e validade</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[10px] text-blue-500 uppercase font-black tracking-widest leading-none mb-1">Validade do Plano</p>
-                  <p className="text-lg font-black text-blue-900 dark:text-blue-50">{tenantInfo.plan_expires_at || '--/--/--'}</p>
-                </div>
+                <Badge variant="secondary" className="bg-white/20 text-white border-none px-4 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase">
+                  Plano {tenantInfo.plan}
+                </Badge>
               </div>
-            </Card>
+            </div>
 
-            <Card className="p-6 bg-primary-50/50 dark:bg-primary-900/10 border-none shadow-sm flex flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="p-3 bg-white dark:bg-gray-900 rounded-[15px] shadow-sm">
+            <div className="p-8 space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Validity Metric */}
+                <div className="flex items-center gap-5">
+                  <div className="p-4 bg-primary-50 dark:bg-primary-900/20 rounded-2xl shadow-inner border border-primary-100/30">
+                    <Calendar className="w-6 h-6 text-primary-600" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-primary-500 uppercase font-black tracking-widest leading-none mb-1.5">Validade da Licença</p>
+                    <p className="text-xl font-black text-slate-800 dark:text-slate-100 tabular-nums">
+                      {tenantInfo.plan_expires_at || '--/--/--'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Contact Limit Metric */}
+                <div className="flex items-center gap-5">
+                  <div className="p-4 bg-primary-50 dark:bg-primary-900/20 rounded-2xl shadow-inner border border-primary-100/30">
                     <ShieldCheck className="w-6 h-6 text-primary-600" />
                   </div>
                   <div>
-                    <p className="text-[10px] text-primary-500 uppercase font-black tracking-widest leading-none mb-1">Limite de Contatos</p>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-xl font-black text-primary-900 dark:text-primary-50">{tenantInfo.customers_count.toLocaleString()}</span>
-                      <span className="text-sm font-bold text-primary-300">/</span>
-                      <span className="text-xl font-black text-primary-900 dark:text-primary-50">
-                        {tenantInfo.plan_limit >= 999999 ? 'Ilimitado' : tenantInfo.plan_limit.toLocaleString()}
+                    <p className="text-[10px] text-primary-500 uppercase font-black tracking-widest leading-none mb-1.5">Limite de Contatos</p>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-xl font-black text-slate-800 dark:text-slate-100 tabular-nums">
+                        {tenantInfo.customers_count.toLocaleString()}
+                      </span>
+                      <span className="text-sm font-bold text-slate-300">/</span>
+                      <span className="text-xl font-black text-slate-800 dark:text-slate-100 tabular-nums">
+                        {tenantInfo.plan_limit >= 999999 ? '∞' : tenantInfo.plan_limit.toLocaleString()}
                       </span>
                     </div>
                   </div>
                 </div>
-
-                {tenantInfo.plan_limit < 999999 && (
-                  <div className="space-y-2">
-                    <div className="w-full bg-primary-100 dark:bg-primary-900/30 h-2.5 rounded-full overflow-hidden border border-primary-200/50">
-                      <div
-                        className={`h-full transition-all duration-1000 ${(tenantInfo.customers_count / tenantInfo.plan_limit) >= 0.9 ? 'bg-red-500' :
-                          (tenantInfo.customers_count / tenantInfo.plan_limit) >= 0.8 ? 'bg-orange-500' : 'bg-primary-600'
-                          }`}
-                        style={{ width: `${Math.min(100, (tenantInfo.customers_count / tenantInfo.plan_limit) * 100)}%` }}
-                      />
-                    </div>
-                    <div className="flex justify-between text-[9px] font-bold text-primary-400 uppercase tracking-widest px-1">
-                      <span>Uso da Capacidade</span>
-                      <span>{Math.round((tenantInfo.customers_count / tenantInfo.plan_limit) * 100)}%</span>
-                    </div>
-                  </div>
-                )}
               </div>
 
+              {/* Progress Bar Section */}
               {tenantInfo.plan_limit < 999999 && (
-                <div className="mt-4 pt-4 border-t border-primary-100/50 dark:border-primary-900/30">
-                  <Button
-                    onClick={() => setShowUpgradeModal(true)}
-                    className="w-full bg-primary-600 hover:bg-primary-700 text-white h-11 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary-500/20 flex items-center justify-center gap-2"
-                  >
-                    <Rocket className="w-3.5 h-3.5" /> Fazer Upgrade
-                  </Button>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-end px-1">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Uso da Capacidade</span>
+                    <span className={`text-xs font-black ${(tenantInfo.customers_count / tenantInfo.plan_limit) >= 0.9 ? 'text-red-500' :
+                      (tenantInfo.customers_count / tenantInfo.plan_limit) >= 0.8 ? 'text-orange-500' : 'text-primary-600'
+                      }`}>
+                      {Math.round((tenantInfo.customers_count / tenantInfo.plan_limit) * 100)}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-slate-100 dark:bg-slate-800 h-3 rounded-full overflow-hidden p-0.5 border border-slate-200/50 dark:border-slate-700">
+                    <div
+                      className={`h-full rounded-full transition-all duration-1000 shadow-sm ${(tenantInfo.customers_count / tenantInfo.plan_limit) >= 0.9 ? 'bg-gradient-to-r from-red-600 to-red-400' :
+                        (tenantInfo.customers_count / tenantInfo.plan_limit) >= 0.8 ? 'bg-gradient-to-r from-orange-600 to-orange-400' : 'bg-gradient-to-r from-primary-600 to-primary-400'
+                        }`}
+                      style={{ width: `${Math.min(100, (tenantInfo.customers_count / tenantInfo.plan_limit) * 100)}%` }}
+                    />
+                  </div>
                 </div>
               )}
-            </Card>
-          </div>
 
-          <div className="pt-4 space-y-4">
-            <Button
-              onClick={handleSave}
-              isLoading={isLoading}
-              className="w-full bg-primary-500 text-white h-14 text-sm font-black uppercase tracking-[0.2em] rounded-[15px] shadow-xl shadow-primary-500/20"
-            >
-              Salvar Configurações
-            </Button>
+              {/* Quick Actions inside Card */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <Button
+                  variant="ghost"
+                  className="h-12 border-primary-100 dark:border-slate-700 text-primary-600 dark:text-primary-400 font-bold uppercase text-[10px] tracking-widest hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl"
+                  onClick={() => window.open('https://wa.me/819011886491', '_blank')}
+                >
+                  Falar com Suporte
+                </Button>
 
-            <div className="flex justify-center pt-2">
-              <Button
-                variant="ghost"
-                className="text-primary-600 font-black uppercase text-xs tracking-[0.1em] bg-primary-50 hover:bg-primary-100/50 px-8 py-4 rounded-[15px] transition-all"
-                onClick={() => window.open('https://wa.me/819011886491', '_blank')}
-              >
-                Falar com Suporte
-              </Button>
+                {tenantInfo.plan_limit < 999999 && (
+                  <Button
+                    onClick={() => setShowUpgradeModal(true)}
+                    className="h-12 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary-500/20 flex items-center justify-center gap-2"
+                  >
+                    <ArrowUpCircle className="w-4 h-4" /> Solicitar Upgrade
+                  </Button>
+                )}
+              </div>
             </div>
-          </div>
+          </Card>
+
+          <Button
+            onClick={handleSave}
+            isLoading={isLoading}
+            className="w-full bg-slate-900 dark:bg-primary-600 text-white h-14 text-sm font-black uppercase tracking-[0.2em] rounded-[15px] shadow-xl shadow-slate-900/10"
+          >
+            Salvar Configurações
+          </Button>
         </div>
       </Card>
       {modal.isOpen && (

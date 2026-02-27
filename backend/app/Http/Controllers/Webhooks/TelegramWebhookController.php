@@ -26,6 +26,7 @@ class TelegramWebhookController extends Controller
     public function handle(Request $request)
     {
         $update = $request->all();
+        Log::info('Incoming Telegram Update', ['payload' => $update]);
 
         if (isset($update['callback_query'])) {
             return $this->handleCallbackQuery($update['callback_query']);

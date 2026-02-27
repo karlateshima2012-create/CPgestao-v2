@@ -107,6 +107,7 @@ jobs:
             echo "SESSION_DRIVER=file" >> .env
             echo "CACHE_DRIVER=file" >> .env
             echo "QUEUE_CONNECTION=sync" >> .env
+            echo "TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN || '8703394325:AAEZTczYtHMHx_POwTfFGUezU5EVXTZYyP4' }}" >> .env
             
             echo "--- VERIFICANDO INJEÇÃO DE AMBIENTE (SENSÍVEL OCULTO) ---"
             grep "DB_" .env | grep -v "PASSWORD"
