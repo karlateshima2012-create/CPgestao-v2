@@ -19,11 +19,21 @@ Este arquivo serve para garantir que o projeto seja restaurado corretamente em q
 
 ## 🚀 Deploy Automático
 
-O projeto está configurado com **GitHub Actions**. Para que funcione, você deve configurar o seguinte no GitHub (Settings > Secrets and variables > Actions):
+O projeto está configurado com **GitHub Actions**. Para que funcione, você deve configurar as seguintes **Secrets** no GitHub (Settings > Secrets and variables > Actions):
 
-- **HOSTINGER_PASSWORD**: `Creative23SSHcp@`
+1.  **Hospedagem:**
+    - `HOSTINGER_PASSWORD`: Sua senha de SSH/FTP (Ex: `Creative23SSHcp@`).
+2.  **Aplicação:**
+    - `APP_KEY`: Chave do Laravel (Gere com `php artisan key:generate --show`).
+3.  **Banco de Dados (MariaDB):**
+    - `DB_HOST`: Host do banco (Geralmente `localhost` ou IP da Hostinger).
+    - `DB_DATABASE`: Nome do banco de dados criado.
+    - `DB_USERNAME`: Usuário do banco de dados.
+    - `DB_PASSWORD`: Senha do banco de dados.
+4.  **Opcional:**
+    - `TELEGRAM_BOT_TOKEN`: Token do bot para notificações.
 
-Toda vez que o código for enviado para o `master`, a Hostinger atualizará automaticamente.
+Toda vez que o código for enviado (push) para o `master`, o deploy será realizado automaticamente para `https://cpgestao.creativeprintjp.com`.
 
 ## 🛠️ Tecnologias
 - **Backend:** Laravel (PHP 8.2+)

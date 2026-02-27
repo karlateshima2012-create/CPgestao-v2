@@ -112,7 +112,8 @@ jobs:
             echo "--- VERIFICANDO INJEÇÃO DE AMBIENTE (SENSÍVEL OCULTO) ---"
             grep "DB_" .env | grep -v "PASSWORD"
             
-            php artisan config:clear
+            php artisan optimize:clear
+            php artisan storage:link
             
             echo "--- EXECUTANDO MIGRAÇÕES ---"
             if php artisan migrate --force; then
