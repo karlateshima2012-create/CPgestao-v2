@@ -295,6 +295,7 @@ class ClientController extends Controller
                 'telegram_chat_id' => $settings ? $settings->telegram_chat_id : null,
                 'telegram_sound_registration' => $settings ? (bool)$settings->telegram_sound_registration : true,
                 'telegram_sound_points' => $settings ? (bool)$settings->telegram_sound_points : true,
+                'telegram_sound_reminders' => $settings ? (bool)$settings->telegram_sound_reminders : true,
                 'pin' => $settings ? $settings->pin : null,
             ]
         ]);
@@ -309,6 +310,7 @@ class ClientController extends Controller
             'telegram_chat_id' => 'sometimes|nullable|string',
             'telegram_sound_registration' => 'sometimes|boolean',
             'telegram_sound_points' => 'sometimes|boolean',
+            'telegram_sound_reminders' => 'sometimes|boolean',
             'description' => 'sometimes|nullable|string|max:500',
             'logo_url' => 'sometimes|nullable|string',
             'cover_url' => 'sometimes|nullable|string',
@@ -363,6 +365,16 @@ class ClientController extends Controller
 
             if ($request->has('telegram_sound_points')) {
                 $settings->telegram_sound_points = $request->telegram_sound_points;
+            }
+
+            if ($request->has('telegram_sound_reminders')) {
+                $settings->telegram_sound_reminders = $request->telegram_sound_reminders;
+            }
+
+            if (!$settings->pin_hash && !$request->pin) {
+                // If it's a new record and no PIN was provided, set default
+                $settings->pin = '1234';
+                $settings->pin_hash = Hash::make('1234');
             }
 
             $settings->save();

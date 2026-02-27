@@ -101,11 +101,11 @@ export const AccountTab: React.FC = () => {
         type: 'success'
       });
       fetchSettings();
-    } catch (error) {
+    } catch (error: any) {
       setModal({
         isOpen: true,
         title: 'Erro ao Salvar',
-        message: 'Não foi possível salvar as alterações. Tente novamente mais tarde.',
+        message: error.response?.data?.message || error.response?.data?.error || 'Não foi possível salvar as alterações. Tente novamente mais tarde.',
         type: 'error'
       });
     } finally {
