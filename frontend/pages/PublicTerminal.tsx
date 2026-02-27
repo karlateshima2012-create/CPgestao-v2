@@ -483,13 +483,13 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             {/* Action 2: Cadastrar */}
             <div
               onClick={() => setMode('REGISTER')}
-              className="group cursor-pointer bg-slate-900 dark:bg-white rounded-[30px] p-8 shadow-xl border border-slate-900 dark:border-white transition-all hover:-translate-y-2 hover:shadow-2xl flex flex-col items-center justify-center text-center space-y-4 min-h-[180px]"
+              className="group cursor-pointer bg-slate-100 dark:bg-slate-800 rounded-[30px] p-8 shadow-xl border border-slate-200 dark:border-slate-700 transition-all hover:-translate-y-2 hover:shadow-2xl flex flex-col items-center justify-center text-center space-y-4 min-h-[180px]"
             >
-              <div className="w-16 h-16 bg-slate-800 dark:bg-slate-100 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
-                <UserPlus className="w-8 h-8 text-white dark:text-slate-900" />
+              <div className="w-16 h-16 bg-white dark:bg-slate-900 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+                <UserPlus className="w-8 h-8 text-slate-900 dark:text-white" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-xl font-black text-white dark:text-slate-900 tracking-tight">Cadastrar</h3>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Cadastrar</h3>
                 <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Criar minha conta</p>
               </div>
             </div>
