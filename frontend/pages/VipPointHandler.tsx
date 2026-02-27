@@ -236,7 +236,7 @@ export const VipPointHandler: React.FC = () => {
                     <div className="pt-2 w-full">
                         <Button
                             onClick={() => window.location.href = '/client'}
-                            className="w-full h-14 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-black uppercase tracking-widest rounded-2xl text-xs"
+                            className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest rounded-2xl text-xs shadow-xl shadow-blue-600/20 transition-all active:scale-95"
                         >
                             Voltar ao Painel
                         </Button>
@@ -278,7 +278,7 @@ export const VipPointHandler: React.FC = () => {
                     <div className="pt-2 w-full">
                         <Button
                             onClick={() => window.location.href = '/client'}
-                            className="w-full h-14 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-black uppercase tracking-widest rounded-2xl text-xs shadow-sm"
+                            className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest rounded-2xl text-xs shadow-xl shadow-blue-600/20 transition-all active:scale-95"
                         >
                             Voltar ao Painel
                         </Button>

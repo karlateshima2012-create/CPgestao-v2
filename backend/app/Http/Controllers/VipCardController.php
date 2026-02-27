@@ -135,7 +135,7 @@ class VipCardController extends Controller
                     return ApiResponse::ok([
                         'points_earned' => $pointsToAdd,
                         'new_balance' => $newBalance,
-                        'message' => "+ {$pointsToAdd} pontos computados com sucesso!",
+                        'message' => "+ {$pointsToAdd} pontos adicionados com sucesso.",
                         'auto_approved' => true
                     ]);
                 } else {
