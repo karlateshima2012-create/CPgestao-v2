@@ -14,7 +14,7 @@ class TelegramService
     public function sendMessage(string $tenantId, string $message, string $type = 'registration'): void
     {
         $settings = TenantSetting::where('tenant_id', $tenantId)->first();
-        $botToken = env('TELEGRAM_BOT_TOKEN');
+        $botToken = config('services.telegram.bot_token');
 
         if (!$settings || !$botToken || !$settings->telegram_chat_id) {
             return;
@@ -52,7 +52,7 @@ class TelegramService
      */
     public function sendDirectMessage(string $chatId, string $message, bool $disableNotification = false, $replyMarkup = null): void
     {
-        $botToken = env('TELEGRAM_BOT_TOKEN');
+        $botToken = config('services.telegram.bot_token');
 
         if (!$botToken || !$chatId) {
             Log::warning('TelegramService (Direct): Missing bot token or chat ID.', ['chat_id' => $chatId]);
@@ -88,7 +88,7 @@ class TelegramService
      */
     public function editMessage(string $chatId, int $messageId, string $text, $replyMarkup = null): void
     {
-        $botToken = env('TELEGRAM_BOT_TOKEN');
+        $botToken = config('services.telegram.bot_token');
 
         if (!$botToken) return;
 
@@ -118,7 +118,7 @@ class TelegramService
      */
     public function answerCallbackQuery(string $callbackQueryId, string $text = '', bool $showAlert = false): void
     {
-        $botToken = env('TELEGRAM_BOT_TOKEN');
+        $botToken = config('services.telegram.bot_token');
 
         if (!$botToken) return;
 
