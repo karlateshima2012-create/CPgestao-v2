@@ -229,8 +229,12 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
     setLoading(true);
     try {
       const res = await terminalService.lookup(tenantSlug, deviceUid, phone, qrToken);
-      setFoundCustomer(res.data);
-      setMode('RESULT_CLIENT');
+      if (res.data && res.data.customer_exists === false) {
+        setMode('REGISTER');
+      } else {
+        setFoundCustomer(res.data);
+        setMode('RESULT_CLIENT');
+      }
     } catch (error: any) {
       if (error.response?.status === 404) {
         setMode('REGISTER');
@@ -521,7 +525,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 variant="secondary"
                 className="w-full h-14 text-sm font-bold bg-slate-800 dark:bg-slate-700 text-white hover:bg-slate-700 dark:hover:bg-slate-600 rounded-[15px] shadow-lg shadow-slate-900/10 gap-2 mt-4 transition-colors"
               >
-                Ver Saldo ou Cadastrar
+                Ver Saldo
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </form>
