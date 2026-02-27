@@ -83,7 +83,7 @@ export const VipPointHandler: React.FC = () => {
             return (
                 <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 font-sans">
                     <div className="bg-white dark:bg-slate-900 rounded-[30px] p-8 max-w-sm w-full shadow-2xl space-y-8 animate-fade-in text-center border border-slate-100 dark:border-slate-800 overflow-hidden relative">
-                        <div className="absolute top-0 left-0 w-full h-1.5 bg-blue-600"></div>
+
                         <div className="text-center space-y-3 pt-4">
                             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Configuração</h3>
                             <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">Cartão Novo!</p>
@@ -126,7 +126,7 @@ export const VipPointHandler: React.FC = () => {
         return (
             <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 font-sans">
                 <div className="bg-white dark:bg-slate-900 rounded-[30px] p-8 max-w-sm w-full shadow-2xl space-y-8 animate-fade-in text-center relative overflow-hidden border border-slate-100 dark:border-slate-800">
-                    <div className="absolute top-0 left-0 w-full h-1.5 bg-blue-600"></div>
+
 
                     <div className="text-center space-y-3 pt-4">
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Conselho do Dia</h3>
@@ -177,7 +177,7 @@ export const VipPointHandler: React.FC = () => {
         return (
             <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 font-sans">
                 <div className="bg-white dark:bg-slate-900 rounded-[30px] p-8 max-w-sm w-full shadow-2xl space-y-8 animate-fade-in text-center border border-slate-100 dark:border-slate-800 overflow-hidden relative">
-                    <div className="absolute top-0 left-0 w-full h-1.5 bg-blue-600"></div>
+
 
                     <div className="text-center space-y-3 pt-4">
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Configuração</h3>
@@ -222,7 +222,7 @@ export const VipPointHandler: React.FC = () => {
         return (
             <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 font-sans">
                 <div className="bg-white dark:bg-slate-900 rounded-[30px] p-8 max-w-sm w-full shadow-2xl space-y-8 animate-fade-in text-center border border-slate-100 dark:border-slate-800 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-1.5 bg-amber-500"></div>
+
 
                     <div className="text-center space-y-3 pt-4">
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Fluxo de Aprovação</h3>
@@ -256,7 +256,7 @@ export const VipPointHandler: React.FC = () => {
         return (
             <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 font-sans">
                 <div className="bg-white dark:bg-slate-900 rounded-[30px] p-8 max-w-sm w-full shadow-2xl space-y-8 animate-fade-in text-center border border-slate-100 dark:border-slate-800 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-1.5 bg-green-500"></div>
+
 
                     <div className="text-center space-y-3 pt-4">
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Operação Finalizada</h3>
@@ -298,7 +298,7 @@ export const VipPointHandler: React.FC = () => {
         return (
             <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 font-sans">
                 <div className="bg-white dark:bg-slate-900 rounded-[30px] p-8 max-w-sm w-full shadow-2xl space-y-8 animate-fade-in text-center border border-slate-100 dark:border-slate-800 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-1.5 bg-red-500"></div>
+
 
                     <div className="text-center space-y-3 pt-4">
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Ops!</h3>
