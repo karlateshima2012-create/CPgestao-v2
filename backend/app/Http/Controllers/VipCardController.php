@@ -115,7 +115,7 @@ class VipCardController extends Controller
                     'customer_id' => $customer->id,
                     'phone' => $customer->phone,
                     'device_id' => null,
-                    'source' => 'nfc_scan', 
+                    'source' => 'manual_card', 
                     'status' => 'pending',
                     'requested_points' => $pointsToAdd,
                     'meta' => ['is_nfc_scan' => true]
