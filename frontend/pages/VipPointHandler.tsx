@@ -88,7 +88,7 @@ export const VipPointHandler: React.FC = () => {
                             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Configuração</h3>
                             <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">Cartão Novo!</p>
                             <div className="inline-flex items-center gap-2 px-5 py-2 rounded-xl border-2 bg-blue-50 border-blue-100 text-blue-700">
-                                <span className="text-[13px] font-black uppercase tracking-widest">✨ Vinculação Pendente</span>
+                                <span className="text-[13px] font-black uppercase tracking-widest">✨ Vincular a um cliente</span>
                             </div>
                         </div>
 
