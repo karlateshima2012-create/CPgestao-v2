@@ -222,7 +222,8 @@ class PublicTerminalController extends Controller
             'remaining' => $remaining,
             'history' => $history,
             'is_premium' => $customer->is_premium,
-            'loyalty_level' => $customer->loyalty_level
+            'loyalty_level' => $customer->loyalty_level,
+            'loyalty_level_name' => $customer->loyalty_level_name
         ]);
     }
 

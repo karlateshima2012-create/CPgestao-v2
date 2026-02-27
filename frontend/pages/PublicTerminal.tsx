@@ -534,48 +534,70 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         )}
 
         {mode === 'RESULT_CLIENT' && foundCustomer && (
-          <div className="bg-white dark:bg-slate-900 rounded-xl p-8 shadow-xl border border-slate-100 dark:border-slate-800 relative overflow-hidden animate-fade-in space-y-6">
-            <button onClick={reset} className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-800 transition-colors bg-slate-50 rounded-full"><X className="w-4 h-4" /></button>
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-2xl border border-slate-100 dark:border-slate-800 relative overflow-hidden animate-fade-in space-y-8">
+            <button onClick={reset} className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-800 transition-colors bg-slate-50 dark:bg-slate-800 rounded-full z-20"><X className="w-5 h-5" /></button>
 
-            <div className="text-center space-y-1">
-              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Cliente</h3>
-              <p className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">{foundCustomer.name || 'Cliente'}</p>
-            </div>
-
-            <div className="text-center">
-              <Badge className="font-semibold uppercase tracking-wide" color="gray">
-                {storeInfo?.levels_config && storeInfo.levels_config[foundCustomer.loyalty_level || 0]
-                  ? storeInfo.levels_config[foundCustomer.loyalty_level || 0].name
-                  : (foundCustomer.is_vip ? 'Cliente VIP' : 'Cliente Padrão')}
-              </Badge>
-            </div>
-
-            <div className="text-center pt-4">
-              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Seu Saldo</h3>
-              <div className="inline-flex items-baseline space-x-1">
-                <span className="text-5xl font-bold text-slate-800 dark:text-white tracking-tight">{foundCustomer.points_balance}</span>
-                <span className="text-sm font-medium text-slate-400">pontos</span>
+            {/* Header: Name and Level */}
+            <div className="text-center space-y-3 pt-4">
+              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Área do Cliente</h3>
+              <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter italic">{foundCustomer.name || 'Cliente'}</p>
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-600/10 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 rounded-full">
+                <ShieldCheck className="w-4 h-4" />
+                <span className="text-xs font-black uppercase tracking-widest">
+                  {foundCustomer.loyalty_level_name || (foundCustomer.loyalty_level > 0 ? `Nível ${foundCustomer.loyalty_level}` : 'Bronze')}
+                </span>
               </div>
             </div>
 
-            <div className="text-center pt-2">
-              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Meta para o próximo prêmio</h3>
-              <p className="text-lg font-bold text-slate-600 dark:text-slate-300">
-                {storeInfo?.levels_config && storeInfo.levels_config[foundCustomer.loyalty_level || 0]
-                  ? storeInfo.levels_config[foundCustomer.loyalty_level || 0].goal
-                  : storeInfo.points_goal} pontos
-              </p>
+            {/* Main Balance Display */}
+            <div className="bg-slate-900 dark:bg-blue-600 rounded-[30px] p-8 text-white shadow-2xl shadow-blue-500/20 relative overflow-hidden group">
+              {/* Decorative Background Elements */}
+              <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+              <div className="absolute -left-4 -bottom-4 w-32 h-32 bg-blue-400/20 rounded-full blur-3xl"></div>
+
+              <div className="relative z-10 text-center space-y-2">
+                <p className="text-[10px] font-black text-blue-200/60 uppercase tracking-[0.3em]">Saldo Disponível</p>
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-7xl font-black tracking-tighter tabular-nums drop-shadow-xl">{foundCustomer.points_balance}</span>
+                  <div className="flex flex-col items-start leading-none opacity-80">
+                    <span className="text-sm font-black uppercase tracking-widest text-blue-200">Pontos</span>
+                    <span className="text-[10px] font-medium opacity-60">Acumulados</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Reward Integration Inside Card */}
+              <div className="mt-8 pt-6 border-t border-white/10 text-center space-y-3">
+                <div className="inline-flex items-center gap-2 bg-white/10 px-4 py-2 rounded-2xl backdrop-blur-sm border border-white/5">
+                  <Gift className="w-4 h-4 text-blue-200" />
+                  <span className="text-xs font-black uppercase tracking-wider text-white">Próximo Prêmio</span>
+                </div>
+                <p className="text-lg font-bold text-blue-100 tracking-tight leading-tight">
+                  {storeInfo?.levels_config && storeInfo.levels_config[foundCustomer.loyalty_level || 0]?.reward
+                    ? storeInfo.levels_config[foundCustomer.loyalty_level || 0].reward
+                    : storeInfo.reward_text || 'Prêmio em definição'}
+                </p>
+                <div className="flex flex-col items-center gap-1 opacity-60">
+                  <p className="text-[10px] font-bold uppercase tracking-widest">
+                    Meta: {storeInfo?.levels_config?.[foundCustomer.loyalty_level || 0]?.goal || storeInfo.points_goal} pontos
+                  </p>
+                  <div className="w-32 h-1.5 bg-white/10 rounded-full overflow-hidden mt-1">
+                    <div
+                      className="h-full bg-white transition-all duration-1000"
+                      style={{ width: `${Math.min(100, (foundCustomer.points_balance / (storeInfo?.levels_config?.[foundCustomer.loyalty_level || 0]?.goal || storeInfo.points_goal)) * 100)}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="pt-6">
+            {/* Bottom Section: Plan Logic */}
+            <div className="pt-2">
               {storeInfo.tenant_plan === PlanType.CLASSIC ? (
-                <div className="text-center p-6 bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-100 dark:border-amber-900/30 space-y-4">
-                  <div className="flex justify-center flex-col items-center gap-2">
-                    <p className="text-sm font-bold text-amber-700 dark:text-amber-400">TOTEM INFORMATIVO</p>
-                    <p className="text-sm font-medium text-amber-600 dark:text-amber-500 leading-relaxed">
-                      Este terminal é apenas para consulta. Para ganhar seus pontos ou resgatar prêmios, por favor consulte o atendente no balcão.
-                    </p>
-                  </div>
+                <div className="text-center p-6 bg-slate-50 dark:bg-slate-800/40 rounded-[25px] border border-slate-100 dark:border-slate-800 space-y-4 shadow-sm">
+                  <p className="text-sm font-black text-slate-800 dark:text-slate-200 tracking-tight leading-relaxed">
+                    Apresente o seu cartão para pontuar.
+                  </p>
                   <Button
                     onClick={() => {
                       const domain = window.location.host.includes('.cp-fidelidade.com')
@@ -583,43 +605,30 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                         : window.location.host.split('.').slice(-2).join('.');
                       window.open(`https://${storeInfo.slug}.${domain}`, '_blank');
                     }}
-                    className="w-full h-12 bg-slate-800 text-white font-bold rounded-xl"
+                    className="w-full h-14 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 font-black uppercase tracking-widest rounded-2xl hover:bg-slate-200 transition-colors text-xs"
                   >
-                    Visitar Página Pública da Loja
+                    Ver Mais Detalhes
                   </Button>
                 </div>
               ) : storeInfo.device_mode === 'manual' ? (
-                <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                    Apresente seu Cartão VIP ou informe seu telefone ao atendente para pontuar ou resgatar prêmios.
+                <div className="text-center p-6 bg-slate-50 dark:bg-slate-800/40 rounded-[25px] border border-slate-100 dark:border-slate-800">
+                  <p className="text-sm font-bold text-slate-500 dark:text-slate-400 italic">
+                    Apresente seu Cartão VIP ou informe seu telefone ao atendente para pontuar.
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  <Button variant="secondary" onClick={() => handleAction('earn')} isLoading={loading} className="h-14 bg-slate-800 text-white hover:bg-slate-700 rounded-[15px] font-bold text-sm transition-colors">
-                    <Trophy className="w-4 h-4 mr-2" /> {storeInfo.device_mode === 'auto_checkin' || storeInfo.tenant_plan === PlanType.UNLIMITED ? 'Check-in' : 'Solicitar Ponto'}
+                <div className="grid grid-cols-2 gap-4">
+                  <Button variant="secondary" onClick={() => handleAction('earn')} isLoading={loading} className="h-16 bg-blue-600 hover:bg-blue-700 text-white shadow-xl shadow-blue-600/20 rounded-2xl font-black uppercase tracking-widest text-xs transition-all">
+                    <Trophy className="w-5 h-5 mr-2" /> {storeInfo.device_mode === 'auto_checkin' || storeInfo.tenant_plan === PlanType.UNLIMITED ? 'Fazer Check-in' : 'Ganhar Ponto'}
                   </Button>
-                  <Button variant="secondary" onClick={() => handleAction('redeem')} isLoading={loading} className="h-14 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-slate-100 border border-slate-200 dark:border-slate-700 rounded-[15px] font-bold text-sm transition-colors">
-                    <Gift className="w-4 h-4 mr-2" /> Resgatar
+                  <Button variant="secondary" onClick={() => handleAction('redeem')} isLoading={loading} className="h-16 bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 text-white rounded-2xl font-black uppercase tracking-widest text-xs transition-all">
+                    <Gift className="w-5 h-5 mr-2" /> Resgatar Prêmio
                   </Button>
                 </div>
               )}
             </div>
-
-            {(storeInfo?.levels_config && storeInfo.levels_config[foundCustomer.loyalty_level || 0]?.reward) || storeInfo.reward_text ? (
-              <div className="pt-6 border-t border-slate-100 dark:border-slate-800 text-center space-y-2 mt-2">
-                <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Prêmio</h3>
-                <p className="text-base font-medium text-slate-700 dark:text-slate-300">
-                  {storeInfo?.levels_config && storeInfo.levels_config[foundCustomer.loyalty_level || 0]?.reward
-                    ? storeInfo.levels_config[foundCustomer.loyalty_level || 0].reward
-                    : storeInfo.reward_text}
-                </p>
-              </div>
-            ) : null}
-
           </div>
         )}
-
         {
           mode === 'REGISTER' && (
             <div className="bg-white dark:bg-slate-900 rounded-xl p-8 shadow-xl border border-slate-100 dark:border-slate-800 relative overflow-hidden animate-fade-in space-y-6">
