@@ -129,7 +129,7 @@ export const VipPointHandler: React.FC = () => {
 
 
                     <div className="text-center space-y-3 pt-4">
-                        <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">Cartão VIP Lido!</p>
+                        <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">Cartão vinculado!</p>
                     </div>
 
                     <div className="bg-white dark:bg-slate-800 rounded-[30px] p-8 text-slate-900 dark:text-white border border-slate-100 dark:border-slate-800 shadow-xl relative overflow-hidden group">
@@ -296,7 +296,7 @@ export const VipPointHandler: React.FC = () => {
 
                     <div className="text-center space-y-3 pt-4">
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Ops!</h3>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">Problema Lido.</p>
+                        <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">Houve um erro.</p>
                         <div className="inline-flex items-center gap-2 px-5 py-2 rounded-xl border-2 bg-red-50 border-red-100 text-red-700">
                             <span className="text-[13px] font-black uppercase tracking-widest">❌ Erro Identificado</span>
                         </div>
