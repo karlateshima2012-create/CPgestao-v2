@@ -523,7 +523,7 @@ export const AccountTab: React.FC = () => {
           <Button
             onClick={handleSave}
             isLoading={isLoading}
-            className="w-full bg-slate-900 dark:bg-primary-600 text-white h-14 text-sm font-black uppercase tracking-[0.2em] rounded-[15px] shadow-xl shadow-slate-900/10"
+            className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-primary-600 text-white h-14 text-sm font-black uppercase tracking-[0.2em] rounded-[15px] shadow-xl shadow-blue-500/20"
           >
             Salvar Configurações
           </Button>
