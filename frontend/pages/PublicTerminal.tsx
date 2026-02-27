@@ -541,51 +541,48 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             <div className="text-center space-y-3 pt-4">
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Área do Cliente</h3>
               <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{foundCustomer.name || 'Cliente'}</p>
-              <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full ${(foundCustomer.loyalty_level || 0) === 0 ? 'bg-orange-400/10 text-orange-600 dark:text-orange-400' :
-                  (foundCustomer.loyalty_level || 0) === 1 ? 'bg-slate-400/10 text-slate-600 dark:text-slate-400' :
-                    (foundCustomer.loyalty_level || 0) === 2 ? 'bg-yellow-400/10 text-yellow-600 dark:text-yellow-500' :
-                      'bg-cyan-400/10 text-cyan-600 dark:text-cyan-400'
+              <div className={`inline-flex items-center gap-2 px-5 py-2 rounded-xl border-2 ${(foundCustomer.loyalty_level || 0) === 0 ? 'bg-orange-50 border-orange-100 text-orange-700' :
+                  (foundCustomer.loyalty_level || 0) === 1 ? 'bg-slate-50 border-slate-100 text-slate-700' :
+                    (foundCustomer.loyalty_level || 0) === 2 ? 'bg-yellow-50 border-yellow-100 text-yellow-700' :
+                      'bg-cyan-50 border-cyan-100 text-cyan-700'
                 }`}>
-                <span className="text-xs font-black uppercase tracking-widest text-center">
+                <span className="text-[13px] font-black uppercase tracking-widest text-center flex items-center gap-2">
+                  {(foundCustomer.loyalty_level || 0) === 0 ? '🥉' :
+                    (foundCustomer.loyalty_level || 0) === 1 ? '🥈' :
+                      (foundCustomer.loyalty_level || 0) === 2 ? '🥇' : '💎'}
                   {foundCustomer.loyalty_level_name || (
-                    (foundCustomer.loyalty_level || 0) === 0 ? '🥉 Bronze' :
-                      (foundCustomer.loyalty_level || 0) === 1 ? '🥈 Prata' :
-                        (foundCustomer.loyalty_level || 0) === 2 ? '🥇 Ouro' : '💎 Diamante'
+                    (foundCustomer.loyalty_level || 0) === 0 ? 'Bronze' :
+                      (foundCustomer.loyalty_level || 0) === 1 ? 'Prata' :
+                        (foundCustomer.loyalty_level || 0) === 2 ? 'Ouro' : 'Diamante'
                   )}
                 </span>
               </div>
             </div>
 
             {/* Main Balance Display */}
-            <div className="bg-slate-900 dark:bg-blue-600 rounded-[30px] p-8 text-white shadow-2xl shadow-blue-500/20 relative overflow-hidden group">
-              {/* Decorative Background Elements */}
-              <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-              <div className="absolute -left-4 -bottom-4 w-32 h-32 bg-blue-400/20 rounded-full blur-3xl"></div>
-
+            <div className="bg-white dark:bg-slate-800 rounded-[30px] p-8 text-slate-900 dark:text-white border border-slate-100 dark:border-slate-800 shadow-xl relative overflow-hidden group">
               <div className="relative z-10 text-center space-y-2">
-                <p className="text-[10px] font-black text-blue-200/60 uppercase tracking-[0.3em]">Saldo Disponível</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Saldo Disponível</p>
                 <div className="flex items-center justify-center gap-2">
-                  <span className="text-7xl font-black tracking-tighter tabular-nums drop-shadow-xl">{foundCustomer.points_balance}</span>
+                  <span className="text-7xl font-black tracking-tighter tabular-nums text-slate-900 dark:text-white">{foundCustomer.points_balance}</span>
                   <div className="flex flex-col items-start leading-none opacity-80">
-                    <span className="text-sm font-black uppercase tracking-widest text-blue-200">Pontos</span>
-                    <span className="text-[10px] font-medium opacity-60">Acumulados</span>
+                    <span className="text-sm font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">Pontos</span>
+                    <span className="text-[10px] font-medium opacity-60 text-slate-400">Acumulados</span>
                   </div>
                 </div>
               </div>
 
-              {/* Reward Meta Integration */}
-              <div className="mt-8 pt-6 border-t border-white/10 text-center">
-                <p className="text-sm font-bold text-blue-50 tracking-tight leading-snug">
-                  Meta <span className="text-blue-200">{storeInfo?.levels_config?.[foundCustomer.loyalty_level || 0]?.goal || storeInfo.points_goal}</span> para ganhar o prêmio: <span className="text-blue-200 font-black">
-                    {storeInfo?.levels_config && storeInfo.levels_config[foundCustomer.loyalty_level || 0]?.reward
-                      ? storeInfo.levels_config[foundCustomer.loyalty_level || 0].reward
-                      : storeInfo.reward_text || 'Prêmio em definição'}
-                  </span>
+              {/* Reward Progress Integration */}
+              <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700 text-center">
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-300 tracking-tight leading-relaxed">
+                  Você está a <span className="font-black text-slate-900 dark:text-white">{Math.max(0, (storeInfo?.levels_config?.[foundCustomer.loyalty_level || 0]?.goal || storeInfo.points_goal) - foundCustomer.points_balance)}</span> pontos do seu prêmio: <span className="font-black text-slate-900 dark:text-white">{storeInfo?.levels_config && storeInfo.levels_config[foundCustomer.loyalty_level || 0]?.reward
+                    ? storeInfo.levels_config[foundCustomer.loyalty_level || 0].reward
+                    : storeInfo.reward_text || 'Prêmio em definição'}</span>
                 </p>
-                <div className="flex flex-col items-center gap-1 opacity-60 mt-4">
-                  <div className="w-32 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                <div className="flex flex-col items-center gap-1 mt-4">
+                  <div className="w-full h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-white transition-all duration-1000"
+                      className="h-full bg-slate-800 dark:bg-blue-500 transition-all duration-1000"
                       style={{ width: `${Math.min(100, (foundCustomer.points_balance / (storeInfo?.levels_config?.[foundCustomer.loyalty_level || 0]?.goal || storeInfo.points_goal)) * 100)}%` }}
                     ></div>
                   </div>
