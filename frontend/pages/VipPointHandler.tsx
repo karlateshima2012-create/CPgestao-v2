@@ -69,8 +69,11 @@ export const VipPointHandler: React.FC = () => {
 
     if (mode === 'loading') {
         return (
-            <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
+            <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4">
+                <div className="relative">
+                    <div className="w-16 h-16 rounded-full border-4 border-blue-100 dark:border-blue-900/30 border-t-blue-600 animate-spin"></div>
+                </div>
+                <p className="mt-4 text-xs font-black text-gray-400 uppercase tracking-widest animate-pulse">Lendo Cartão VIP...</p>
             </div>
         );
     }
@@ -78,25 +81,27 @@ export const VipPointHandler: React.FC = () => {
     if (mode === 'owner_prompt' && data) {
         if (data.is_unlinked) {
             return (
-                <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4 font-sans text-white">
-                    <div className="bg-slate-800 rounded-3xl p-8 max-w-sm w-full shadow-2xl space-y-6 animate-fade-in text-center border border-slate-700">
-                        <div className="w-20 h-20 bg-slate-700/50 rounded-full flex items-center justify-center mx-auto shadow-inner">
-                            <Smartphone className="w-10 h-10 text-emerald-400" />
+                <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 font-sans">
+                    <div className="bg-white dark:bg-slate-900 rounded-[30px] p-8 max-w-sm w-full shadow-2xl space-y-6 animate-fade-in text-center border border-gray-100 dark:border-slate-800">
+                        <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+                            <Smartphone className="w-10 h-10 text-blue-600" />
                         </div>
                         <div className="space-y-2">
-                            <h2 className="text-2xl font-bold tracking-tight">Cartão Novo Lido!</h2>
-                            <p className="text-slate-400 text-sm">Este Cartão VIP ainda não foi entregue a nenhum cliente.</p>
-                            <p className="text-emerald-400 font-mono text-sm mt-2">{data.card_uid}</p>
+                            <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tighter italic">Cartão Novo Lido!</h2>
+                            <p className="text-gray-500 dark:text-slate-400 text-sm font-medium">Este Cartão VIP ainda não foi entregue a nenhum cliente.</p>
+                            <div className="bg-gray-50 dark:bg-slate-800/50 py-2 rounded-xl border border-gray-100 dark:border-slate-800 inline-block px-4">
+                                <p className="text-blue-600 dark:text-blue-400 font-mono text-sm font-bold uppercase select-all tracking-wider">{data.card_uid}</p>
+                            </div>
                         </div>
                         <Button
                             onClick={() => window.location.href = `/client?tab=devices&link_uid=${data.card_uid}`}
-                            className="w-full h-14 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-2xl shadow-lg shadow-emerald-500/20"
+                            className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-blue-600/20 text-sm"
                         >
-                            Vincular a um Cliente Agora
+                            Vincular Cartão Agora
                         </Button>
                         <button
                             onClick={() => window.location.href = '/client'}
-                            className="w-full mt-2 h-12 text-slate-400 hover:text-white text-sm font-medium transition-colors"
+                            className="w-full mt-2 h-12 text-gray-400 hover:text-gray-600 dark:hover:text-white text-xs font-black uppercase tracking-widest transition-colors"
                         >
                             Voltar ao Painel
                         </button>
@@ -106,37 +111,43 @@ export const VipPointHandler: React.FC = () => {
         }
 
         return (
-            <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4 font-sans text-white">
-                <div className="bg-slate-800 rounded-3xl p-8 max-w-sm w-full shadow-2xl space-y-8 animate-fade-in text-center relative overflow-hidden border border-slate-700">
-                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
+            <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 font-sans">
+                <div className="bg-white dark:bg-slate-900 rounded-[30px] p-8 max-w-sm w-full shadow-2xl space-y-8 animate-fade-in text-center relative overflow-hidden border border-gray-100 dark:border-slate-800">
+                    <div className="absolute top-0 left-0 w-full h-1.5 bg-blue-600"></div>
 
-                    <div className="w-20 h-20 bg-slate-700/50 rounded-full flex items-center justify-center mx-auto shadow-inner">
-                        <Smartphone className="w-10 h-10 text-emerald-400" />
+                    <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+                        <Smartphone className="w-10 h-10 text-blue-600" />
                     </div>
 
                     <div className="space-y-1">
-                        <h2 className="text-2xl font-bold tracking-tight">Cartão VIP Aberto!</h2>
-                        <p className="text-slate-400">Cliente: <span className="font-bold text-white text-lg block mt-1">{data.customer.name}</span></p>
+                        <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tighter italic">Cartão VIP Aberto!</h2>
+                        <div className="mt-4 p-4 bg-gray-50 dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-slate-800">
+                            <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Cliente Associado</p>
+                            <span className="font-black text-gray-900 dark:text-white text-xl block leading-tight">{data.customer.name}</span>
+                        </div>
                     </div>
 
-                    <div className="bg-slate-900/50 rounded-2xl p-4 border border-slate-700/50">
-                        <p className="text-sm text-slate-400 font-medium uppercase tracking-widest">Saldo Atual</p>
-                        <p className="text-3xl font-black text-white mt-1">{data.customer.points_balance} <span className="text-lg text-slate-500 font-medium">/ {data.goal}</span></p>
+                    <div className="bg-blue-600 py-6 px-4 rounded-[25px] shadow-xl shadow-blue-600/20">
+                        <p className="text-[10px] text-blue-100 font-black uppercase tracking-[0.2em]">Saldo de Pontos</p>
+                        <p className="text-4xl font-black text-white mt-2 flex items-center justify-center gap-2">
+                            {data.customer.points_balance}
+                            <span className="text-lg text-blue-200/60 font-medium">/ {data.goal}</span>
+                        </p>
                     </div>
 
                     <div className="pt-2">
                         <Button
                             onClick={handleAddPoint}
                             isLoading={loadingPoint}
-                            className="w-full h-14 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-2xl text-lg shadow-lg shadow-emerald-500/20"
+                            className="w-full h-16 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest rounded-2xl text-base shadow-xl shadow-blue-600/20"
                         >
                             Confirmar +{data.points_to_add || 1} Ponto{data.points_to_add > 1 ? 's' : ''}
                         </Button>
                         <button
                             onClick={() => window.location.href = '/client'}
-                            className="w-full mt-4 h-12 text-slate-400 hover:text-white text-sm font-medium transition-colors"
+                            className="w-full mt-4 h-12 text-gray-400 hover:text-red-500 text-xs font-black uppercase tracking-widest transition-colors"
                         >
-                            Cancelar
+                            Cancelar Operação
                         </button>
                     </div>
                 </div>
@@ -146,26 +157,28 @@ export const VipPointHandler: React.FC = () => {
 
     if (mode === 'guest_unlinked' && data) {
         return (
-            <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4 font-sans text-white">
-                <div className="bg-slate-800 rounded-3xl p-8 max-w-sm w-full shadow-2xl space-y-6 animate-fade-in text-center border border-slate-700">
-                    <div className="w-20 h-20 bg-slate-700/50 rounded-full flex items-center justify-center mx-auto shadow-inner">
-                        <Smartphone className="w-10 h-10 text-emerald-400" />
+            <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 font-sans">
+                <div className="bg-white dark:bg-slate-900 rounded-[30px] p-8 max-w-sm w-full shadow-2xl space-y-6 animate-fade-in text-center border border-gray-100 dark:border-slate-800">
+                    <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+                        <Smartphone className="w-10 h-10 text-blue-600" />
                     </div>
                     <div className="space-y-2">
-                        <h2 className="text-2xl font-bold tracking-tight">Cartão Novo!</h2>
-                        <p className="text-slate-400 text-sm">Este Cartão VIP ainda não foi vinculado a um cliente.</p>
-                        <p className="text-emerald-400 font-mono text-xs mt-2 select-all">ID: {data.card_uid}</p>
+                        <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tighter italic">Cartão Novo!</h2>
+                        <p className="text-gray-500 dark:text-slate-400 text-sm font-medium">Este Cartão VIP ainda não foi vinculado a um cliente.</p>
+                        <div className="bg-gray-50 dark:bg-slate-800/50 py-2 rounded-xl border border-gray-100 dark:border-slate-800 inline-block px-4 mt-2">
+                            <p className="text-blue-600 dark:text-blue-400 font-mono text-xs font-bold uppercase select-all tracking-wider">ID: {data.card_uid}</p>
+                        </div>
                     </div>
 
-                    <div className="bg-emerald-500/10 p-4 rounded-xl border border-emerald-500/20">
-                        <p className="text-xs text-emerald-400 font-bold leading-tight uppercase tracking-tight">
+                    <div className="bg-blue-600/10 p-4 rounded-2xl border border-blue-600/20">
+                        <p className="text-[10px] text-blue-600 dark:text-blue-400 font-black leading-tight uppercase tracking-widest">
                             Lojista: Entre na sua conta para vincular este cartão ao CRM.
                         </p>
                     </div>
 
                     <Button
                         onClick={() => window.location.href = `/client?tab=devices&link_uid=${data.card_uid}`}
-                        className="w-full h-14 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-2xl shadow-lg shadow-emerald-500/20"
+                        className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-blue-600/20 text-sm"
                     >
                         Entrar e Vincular
                     </Button>
@@ -176,20 +189,20 @@ export const VipPointHandler: React.FC = () => {
 
     if (mode === 'pending') {
         return (
-            <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4 font-sans text-white">
-                <div className="bg-slate-800 rounded-3xl p-8 max-w-sm w-full shadow-2xl space-y-6 animate-fade-in text-center border border-slate-700 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-2 bg-blue-500"></div>
-                    <div className="w-24 h-24 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto">
-                        <Smartphone className="w-14 h-14 text-blue-500 animate-pulse" />
+            <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 font-sans">
+                <div className="bg-white dark:bg-slate-900 rounded-[30px] p-8 max-w-sm w-full shadow-2xl space-y-6 animate-fade-in text-center border border-gray-100 dark:border-slate-800 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-1.5 bg-blue-600"></div>
+                    <div className="w-24 h-24 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto">
+                        <Smartphone className="w-14 h-14 text-blue-600 animate-pulse" />
                     </div>
                     <div className="space-y-2">
-                        <h2 className="text-2xl font-bold tracking-tight">Aguardando Aprovação</h2>
-                        <p className="text-slate-400 font-medium">Enviamos um pedido de confirmação para o Telegram do lojista.</p>
+                        <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tighter italic">Aguardando...</h2>
+                        <p className="text-gray-500 dark:text-slate-400 font-medium">Enviamos um pedido de confirmação para o Telegram do lojista.</p>
                     </div>
                     <div className="pt-2 w-full">
                         <Button
                             onClick={() => window.location.href = '/client'}
-                            className="w-full h-14 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-2xl"
+                            className="w-full h-14 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white font-black uppercase tracking-widest rounded-2xl text-xs"
                         >
                             Voltar ao Painel
                         </Button>
@@ -201,24 +214,27 @@ export const VipPointHandler: React.FC = () => {
 
     if (mode === 'success') {
         return (
-            <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4 font-sans text-white">
-                <div className="bg-slate-800 rounded-3xl p-8 max-w-sm w-full shadow-2xl space-y-6 animate-fade-in text-center border border-slate-700 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
-                    <div className="w-24 h-24 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto">
-                        <CheckCircle className="w-14 h-14 text-emerald-500" />
+            <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 font-sans">
+                <div className="bg-white dark:bg-slate-900 rounded-[30px] p-8 max-w-sm w-full shadow-2xl space-y-6 animate-fade-in text-center border border-gray-100 dark:border-slate-800 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-1.5 bg-blue-600"></div>
+                    <div className="w-24 h-24 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto">
+                        <CheckCircle className="w-14 h-14 text-blue-600" />
                     </div>
                     <div className="space-y-2">
-                        <h2 className="text-3xl font-bold tracking-tight">Sucesso!</h2>
-                        <p className="text-emerald-400 font-medium text-lg leading-tight">{data.success_message}</p>
+                        <h2 className="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-tighter italic">Sucesso!</h2>
+                        <p className="text-blue-600 dark:text-blue-400 font-black text-lg leading-tight italic">{data.success_message}</p>
                     </div>
-                    <div className="bg-slate-900/50 rounded-2xl p-4 border border-slate-700/50 w-full">
-                        <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Novo Saldo</p>
-                        <p className="text-2xl font-black text-white mt-1">{data.new_balance} / {data.goal}</p>
+                    <div className="bg-blue-600 py-6 px-4 rounded-[25px] shadow-xl shadow-blue-600/20 w-full">
+                        <p className="text-[10px] text-blue-100 font-black uppercase tracking-[0.2em]">Novo Saldo</p>
+                        <p className="text-3xl font-black text-white mt-1 flex items-center justify-center gap-2">
+                            {data.new_balance}
+                            <span className="text-lg text-blue-200/60 font-medium">/ {data.goal}</span>
+                        </p>
                     </div>
                     <div className="pt-2 w-full">
                         <Button
                             onClick={() => window.location.href = '/client'}
-                            className="w-full h-14 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-2xl"
+                            className="w-full h-14 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white font-black uppercase tracking-widest rounded-2xl text-xs"
                         >
                             Voltar ao Painel
                         </Button>
@@ -230,18 +246,18 @@ export const VipPointHandler: React.FC = () => {
 
     if (mode === 'error') {
         return (
-            <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4 font-sans text-white">
-                <div className="bg-slate-800 rounded-3xl p-8 max-w-sm w-full shadow-2xl space-y-6 animate-fade-in text-center border border-slate-700">
-                    <div className="w-24 h-24 bg-red-500/10 rounded-full flex items-center justify-center mx-auto">
-                        <XCircle className="w-14 h-14 text-red-500" />
+            <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 font-sans">
+                <div className="bg-white dark:bg-slate-900 rounded-[30px] p-8 max-w-sm w-full shadow-2xl space-y-6 animate-fade-in text-center border border-gray-100 dark:border-slate-800">
+                    <div className="w-24 h-24 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto">
+                        <XCircle className="w-14 h-14 text-red-600" />
                     </div>
                     <div className="space-y-2">
-                        <h2 className="text-2xl font-bold tracking-tight">Ops, problema.</h2>
-                        <p className="text-slate-400 font-medium">{errorMsg}</p>
+                        <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tighter italic">Ops, problema.</h2>
+                        <p className="text-gray-500 dark:text-slate-400 font-medium">{errorMsg}</p>
                     </div>
                     <Button
                         onClick={() => window.location.href = '/client'}
-                        className="w-full h-14 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-2xl mt-4"
+                        className="w-full h-14 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white font-black uppercase tracking-widest rounded-2xl text-xs mt-4"
                     >
                         Voltar
                     </Button>
