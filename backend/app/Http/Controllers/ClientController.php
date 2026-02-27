@@ -10,7 +10,8 @@ use App\Services\DeviceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Exception;
-
+use App\Models\PointMovement;
+use App\Models\LoyaltySetting;
 use App\Http\Responses\ApiResponse;
 use App\Utils\PhoneHelper;
 use App\Services\TelegramService;
@@ -340,13 +341,16 @@ class ClientController extends Controller
                 $tenant->update($tenantUpdate);
             }
 
-            // TenantSetting uses tenant_id as PK, so we use find()
-            $settings = TenantSetting::first();
-            
-            if (!$settings) {
-                $settings = new TenantSetting();
-                $settings->tenant_id = $tenant->id;
-            }
+            // Update or Create TenantSettings
+            $settings = TenantSetting::updateOrCreate(
+                ['tenant_id' => $tenant->id],
+                [
+                    'telegram_chat_id' => $request->telegram_chat_id,
+                    'telegram_sound_registration' => $request->boolean('telegram_sound_registration', true),
+                    'telegram_sound_points' => $request->boolean('telegram_sound_points', true),
+                    'telegram_sound_reminders' => $request->boolean('telegram_sound_reminders', true),
+                ]
+            );
 
             if ($request->has('pin') && !empty($request->pin)) {
                 $settings->pin = $request->pin;
@@ -354,27 +358,11 @@ class ClientController extends Controller
                 $settings->pin_updated_at = now();
             }
 
-
-            if ($request->has('telegram_chat_id')) {
-                $settings->telegram_chat_id = $request->telegram_chat_id;
-            }
-
-            if ($request->has('telegram_sound_registration')) {
-                $settings->telegram_sound_registration = $request->telegram_sound_registration;
-            }
-
-            if ($request->has('telegram_sound_points')) {
-                $settings->telegram_sound_points = $request->telegram_sound_points;
-            }
-
-            if ($request->has('telegram_sound_reminders')) {
-                $settings->telegram_sound_reminders = $request->telegram_sound_reminders;
-            }
-
-            if (!$settings->pin_hash && !$request->pin) {
-                // If it's a new record and no PIN was provided, set default
+            // Ensure a default PIN exists if this is a new record or PIN is missing
+            if (!$settings->pin_hash) {
                 $settings->pin = '1234';
                 $settings->pin_hash = Hash::make('1234');
+                $settings->pin_updated_at = now();
             }
 
             $settings->save();
@@ -690,89 +678,94 @@ class ClientController extends Controller
 
     public function getDashboardMetrics(Request $request)
     {
-        $tenantId = $request->user()->tenant_id;
-        $tenant = $request->user()->tenant;
-        
-        // Básicos
-        $totalCustomers = Customer::count();
-        $activeCustomers30d = Customer::where('last_activity_at', '>=', now()->subDays(30))->count();
-        $newCustomers30d = Customer::where('created_at', '>=', now()->subDays(30))->count();
-        $prevNewCustomers30d = Customer::where('created_at', '>=', now()->subDays(60))
-                                       ->where('created_at', '<', now()->subDays(30))
+        try {
+            $tenantId = $request->user()->tenant_id;
+            $tenant = $request->user()->tenant;
+            
+            // Básicos
+            $totalCustomers = Customer::count();
+            $activeCustomers30d = Customer::where('last_activity_at', '>=', now()->subDays(30))->count();
+            $newCustomers30d = Customer::where('created_at', '>=', now()->subDays(30))->count();
+            $prevNewCustomers30d = Customer::where('created_at', '>=', now()->subDays(60))
+                                           ->where('created_at', '<', now()->subDays(30))
+                                           ->count();
+            
+            $customerGrowth = 0;
+            if ($prevNewCustomers30d > 0) {
+                $customerGrowth = (($newCustomers30d - $prevNewCustomers30d) / $prevNewCustomers30d) * 100;
+            } elseif ($newCustomers30d > 0) {
+                $customerGrowth = 100;
+            }
+
+            $pointsInCirculation = (int)Customer::sum('points_balance');
+            $totalRevenue = (float)Customer::sum('total_spent');
+            
+            $totalPointsEarned = (int)PointMovement::where('type', 'earn')->sum('points');
+            $totalRedemptions = PointMovement::where('type', 'redeem')->count();
+            
+            // Taxa de Resgate
+            $redemptionRate = 0;
+            if ($totalPointsEarned > 0) {
+                $pointsRedeemed = (int)PointMovement::where('type', 'redeem')->sum('points');
+                $pointsRedeemedAbs = abs($pointsRedeemed);
+                $redemptionRate = ($pointsRedeemedAbs / $totalPointsEarned) * 100;
+            }
+
+            // Sugestões
+            $loyalty = LoyaltySetting::where('tenant_id', $tenantId)->first();
+            $pointsGoal = $loyalty ? $loyalty->points_goal : 10;
+            
+            $nearRewardCount = Customer::where('points_balance', '>=', $pointsGoal * 0.8)
+                                       ->where('points_balance', '<', $pointsGoal)
                                        ->count();
-        
-        $customerGrowth = 0;
-        if ($prevNewCustomers30d > 0) {
-            $customerGrowth = (($newCustomers30d - $prevNewCustomers30d) / $prevNewCustomers30d) * 100;
-        } elseif ($newCustomers30d > 0) {
-            $customerGrowth = 100;
-        }
-
-        $pointsInCirculation = (int)Customer::sum('points_balance');
-        $totalRevenue = (float)Customer::sum('total_spent');
-        
-        $totalPointsEarned = (int)\App\Models\PointMovement::where('type', 'earn')->sum('points');
-        $totalRedemptions = \App\Models\PointMovement::where('type', 'redeem')->count();
-        
-        // Taxa de Resgate
-        $redemptionRate = 0;
-        if ($totalPointsEarned > 0) {
-            $pointsRedeemed = (int)\App\Models\PointMovement::where('type', 'redeem')->sum('points');
-            $pointsRedeemedAbs = abs($pointsRedeemed);
-            $redemptionRate = ($pointsRedeemedAbs / $totalPointsEarned) * 100;
-        }
-
-        // Sugestões
-        $loyalty = \App\Models\LoyaltySetting::where('tenant_id', $tenantId)->first();
-        $pointsGoal = $loyalty ? $loyalty->points_goal : 10;
-        
-        $nearRewardCount = Customer::where('points_balance', '>=', $pointsGoal * 0.8)
-                                   ->where('points_balance', '<', $pointsGoal)
+                                       
+            $inactive30d = Customer::where('last_activity_at', '<=', now()->subDays(30))
                                    ->count();
-                                   
-        $inactive30d = Customer::where('last_activity_at', '<=', now()->subDays(30))
-                               ->count();
 
-        $suggestions = [];
-        if ($nearRewardCount > 0) {
-            $suggestions[] = [
-                'type' => 'opportunity',
-                'title' => 'Oportunidade de Resgate',
-                'text' => "{$nearRewardCount} clientes estão perto de resgatar prêmio",
-                'color' => 'orange'
-            ];
-        }
-        if ($inactive30d > 0) {
-            $suggestions[] = [
-                'type' => 'warning',
-                'title' => 'Risco de Churn',
-                'text' => "{$inactive30d} clientes estão inativos há mais de 30 dias",
-                'color' => 'red'
-            ];
-        }
-        if ($redemptionRate < 15 && $totalPointsEarned > 100) {
-            $suggestions[] = [
-                'type' => 'info',
-                'title' => 'Otimização de Fidelidade',
-                'text' => "Sua taxa de resgate está baixa (" . round($redemptionRate, 1) . "%)",
-                'color' => 'blue'
-            ];
-        }
+            $suggestions = [];
+            if ($nearRewardCount > 0) {
+                $suggestions[] = [
+                    'type' => 'opportunity',
+                    'title' => 'Oportunidade de Resgate',
+                    'text' => "{$nearRewardCount} clientes estão perto de resgatar prêmio",
+                    'color' => 'orange'
+                ];
+            }
+            if ($inactive30d > 0) {
+                $suggestions[] = [
+                    'type' => 'warning',
+                    'title' => 'Risco de Churn',
+                    'text' => "{$inactive30d} clientes estão inativos há mais de 30 dias",
+                    'color' => 'red'
+                ];
+            }
+            if ($redemptionRate < 15 && $totalPointsEarned > 100) {
+                $suggestions[] = [
+                    'type' => 'info',
+                    'title' => 'Otimização de Fidelidade',
+                    'text' => "Sua taxa de resgate está baixa (" . round($redemptionRate, 1) . "%)",
+                    'color' => 'blue'
+                ];
+            }
 
-        return ApiResponse::ok([
-            'total_customers' => $totalCustomers,
-            'active_customers' => $activeCustomers30d,
-            'new_customers_30d' => $newCustomers30d,
-            'customer_growth_30d' => round($customerGrowth, 1),
-            'points_in_circulation' => $pointsInCirculation,
-            'total_redemptions' => $totalRedemptions,
-            'total_revenue' => $totalRevenue,
-            'public_page_visits' => $tenant->public_page_visits ?? 0,
-            'redemption_rate' => round($redemptionRate, 1),
-            'suggestions' => $suggestions,
-            'total_points_generated' => $totalPointsEarned, 
-            'total_premium_customers' => Customer::where('is_premium', true)->count(),
-            'total_linked_cards' => \App\Models\Device::where('status', 'linked')->count(),
-        ]);
+            return ApiResponse::ok([
+                'total_customers' => $totalCustomers,
+                'active_customers' => $activeCustomers30d,
+                'new_customers_30d' => $newCustomers30d,
+                'customer_growth_30d' => round($customerGrowth, 1),
+                'points_in_circulation' => $pointsInCirculation,
+                'total_redemptions' => $totalRedemptions,
+                'total_revenue' => $totalRevenue,
+                'public_page_visits' => $tenant->public_page_visits ?? 0,
+                'redemption_rate' => round($redemptionRate, 1),
+                'suggestions' => $suggestions,
+                'total_points_generated' => $totalPointsEarned,
+                'total_premium_customers' => Customer::where('is_premium', true)->count(),
+                'total_linked_cards' => \App\Models\Device::where('status', 'linked')->count(),
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Dashboard Metrics Error: ' . $e->getMessage());
+            return ApiResponse::error('Erro ao carregar métricas: ' . $e->getMessage());
+        }
     }
 }

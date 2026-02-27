@@ -422,9 +422,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   if (mode === 'INVALID_DEVICE') return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 font-sans"><p className="text-gray-400 font-bold">{errorMsg || 'DISPOSITIVO INVÁLIDO OU NÃO ENCONTRADO'}</p></div>;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-gray-950 font-sans flex flex-col items-center pb-12">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-950 font-sans flex flex-col items-center md:pb-12">
       {/* 1. HERO SECTION */}
-      <div className="w-full md:w-[80%] max-w-3xl bg-white dark:bg-gray-900 shadow-lg overflow-hidden relative mb-4 animate-fade-in md:rounded-b-xl">
+      <div className="w-full md:w-[80%] max-w-3xl bg-white dark:bg-gray-900 md:shadow-lg overflow-hidden relative md:mb-4 animate-fade-in md:rounded-b-xl">
         {/* Cover Image Background */}
         <div className="h-72 md:h-80 w-full bg-gray-200 dark:bg-gray-800 relative">
           {storeInfo.cover_url ? (
@@ -456,9 +456,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         </div>
       </div>
 
-      <div className="w-full md:w-[80%] max-w-3xl flex flex-col gap-6">
+      <div className="w-full md:w-[80%] max-w-3xl flex flex-col md:gap-6">
         {/* Description Below Hero */}
-        <div className="w-full text-center px-6 py-8 md:py-10">
+        <div className="w-full text-center px-6 py-6 md:py-10">
           <p className="text-sm md:text-base text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
             {storeInfo.description || 'A descrição do programa de fidelidade da sua loja aparecerá aqui. Escreva um texto mostrando onde ela está, explicando as regras e benefícios aos clientes.'}
           </p>
