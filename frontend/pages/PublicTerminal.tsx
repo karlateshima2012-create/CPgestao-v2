@@ -470,14 +470,14 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               {/* Action 1: Consultar Saldo */}
               <div
                 onClick={() => setMode('CONSULT')}
-                className="group cursor-pointer bg-slate-50/50 dark:bg-slate-800/30 rounded-[30px] p-8 shadow-sm border border-slate-100/50 dark:border-slate-800/50 transition-all hover:shadow-md hover:bg-slate-50 dark:hover:bg-slate-800/50 flex flex-col items-center justify-center text-center space-y-4 min-h-[160px]"
+                className="group cursor-pointer bg-white dark:bg-slate-800/80 rounded-[30px] p-8 shadow-xl border border-slate-50 dark:border-slate-700 transition-all hover:-translate-y-1 hover:shadow-2xl flex flex-col items-center justify-center text-center space-y-4 min-h-[160px]"
               >
-                <div className="w-14 h-14 bg-white dark:bg-slate-900 rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                  <Search className="w-7 h-7 text-slate-400 group-hover:text-slate-600 dark:text-slate-500 transition-colors" />
+                <div className="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+                  <Search className="w-7 h-7 text-slate-900 dark:text-white" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-lg font-black text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white transition-colors tracking-tight">Ver meu Saldo</h3>
-                  <p className="text-[10px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-[0.2em]">Consultar</p>
+                  <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Ver meu Saldo</h3>
+                  <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Consultar</p>
                 </div>
               </div>
 
@@ -486,7 +486,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 onClick={() => setMode('REGISTER')}
                 className="group cursor-pointer bg-white dark:bg-slate-800/80 rounded-[30px] p-8 shadow-xl border border-slate-50 dark:border-slate-700 transition-all hover:-translate-y-1 hover:shadow-2xl flex flex-col items-center justify-center text-center space-y-4 min-h-[160px]"
               >
-                <div className="w-14 h-14 bg-slate-100 dark:bg-slate-700 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+                <div className="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
                   <UserPlus className="w-7 h-7 text-slate-900 dark:text-white" />
                 </div>
                 <div className="space-y-1">
