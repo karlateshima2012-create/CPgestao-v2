@@ -424,9 +424,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gray-950 font-sans flex flex-col items-center md:pb-12">
       {/* 1. HERO SECTION */}
-      <div className="w-full md:w-[80%] max-w-3xl bg-white dark:bg-gray-900 md:shadow-lg overflow-hidden relative md:mb-4 animate-fade-in md:rounded-b-xl">
+      <div className="w-full md:w-[80%] max-w-3xl bg-white dark:bg-gray-900 md:shadow-lg overflow-hidden relative animate-fade-in">
         {/* Cover Image Background */}
-        <div className="h-72 md:h-80 w-full bg-gray-200 dark:bg-gray-800 relative">
+        <div className="h-72 md:h-[400px] w-full bg-gray-200 dark:bg-gray-800 relative">
           {storeInfo.cover_url ? (
             <img src={storeInfo.cover_url} alt="Cover" className="w-full h-full object-cover" />
           ) : (
@@ -434,7 +434,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           )}
           {/* Enhanced gradient overlay to guarantee text readability on light or dark images */}
           <div className="absolute inset-0 bg-black/20 mix-blend-multiply"></div>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
         </div>
 
         {/* Content over Cover Image */}
@@ -456,16 +456,16 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         </div>
       </div>
 
-      <div className="w-full md:w-[80%] max-w-3xl flex flex-col md:gap-6">
-        {/* Description Below Hero */}
-        <div className="w-full text-center px-6 py-6 md:py-10">
-          <p className="text-sm md:text-base text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
+      <div className="w-full md:w-[80%] max-w-3xl bg-white dark:bg-slate-900 md:rounded-[45px] shadow-2xl -mt-16 md:-mt-24 relative z-20 border md:border-t-0 border-slate-100 dark:border-slate-800 flex flex-col overflow-hidden animate-fade-in">
+        {/* Description Header Inside Card */}
+        <div className="w-full text-center px-6 py-10 md:py-14 border-b border-slate-50 dark:border-slate-800/50 bg-slate-50/30 dark:bg-slate-800/20">
+          <p className="text-sm md:text-lg text-slate-600 dark:text-slate-300 font-semibold leading-relaxed max-w-2xl mx-auto px-4">
             {storeInfo.description || 'A descrição do programa de fidelidade da sua loja aparecerá aqui. Escreva um texto mostrando onde ela está, explicando as regras e benefícios aos clientes.'}
           </p>
         </div>
 
         {mode === 'START' && (
-          <div className="bg-white dark:bg-slate-900 md:rounded-[40px] p-6 md:p-12 shadow-2xl border-y md:border border-slate-100 dark:border-slate-800 animate-fade-in w-full">
+          <div className="p-6 md:p-12 animate-fade-in w-full">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
               {/* Action 1: Consultar Saldo */}
               <div
@@ -499,7 +499,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         )}
 
         {mode === 'CONSULT' && (
-          <div className="bg-white dark:bg-slate-900 md:rounded-[30px] p-6 md:p-10 shadow-xl border-y md:border border-slate-100 dark:border-slate-800 text-center relative overflow-hidden animate-fade-in space-y-8">
+          <div className="p-6 md:p-10 text-center relative overflow-hidden animate-fade-in space-y-8 w-full border-b border-slate-50 dark:border-slate-800/50">
             <div className="flex items-center justify-start absolute top-6 left-6">
               <button type="button" onClick={() => setMode('START')} className="p-3 bg-slate-50 dark:bg-slate-800 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"><ChevronLeft className="w-5 h-5" /></button>
             </div>
@@ -537,7 +537,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         )}
 
         {mode === 'RESULT_CLIENT' && foundCustomer && (
-          <div className="bg-white dark:bg-slate-900 md:rounded-3xl p-6 md:p-8 shadow-2xl border-y md:border border-slate-100 dark:border-slate-800 relative overflow-hidden animate-fade-in space-y-8">
+          <div className="p-6 md:p-8 relative overflow-hidden animate-fade-in space-y-8 w-full">
             <button onClick={reset} className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-800 transition-colors bg-slate-50 dark:bg-slate-800 rounded-full z-20"><X className="w-5 h-5" /></button>
 
             {/* Header: Name and Level */}
@@ -619,7 +619,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         )}
         {
           mode === 'REGISTER' && (
-            <div className="bg-white dark:bg-slate-900 md:rounded-xl p-6 md:p-8 shadow-xl border-y md:border border-slate-100 dark:border-slate-800 relative overflow-hidden animate-fade-in space-y-6">
+            <div className="p-6 md:p-8 relative overflow-hidden animate-fade-in space-y-6 w-full">
               {storeInfo?.is_limit_reached ? (
                 <div className="py-12 flex flex-col items-center text-center space-y-6">
                   <div className="w-20 h-20 bg-amber-50 dark:bg-amber-900/20 rounded-full flex items-center justify-center border-4 border-amber-100 dark:border-amber-900/10">
@@ -764,7 +764,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
         {
           mode === 'WAITING_APPROVAL' && (
-            <div className="bg-white dark:bg-slate-900 md:rounded-xl p-6 md:p-8 shadow-xl border-y md:border border-slate-100 dark:border-slate-800 text-center py-12 animate-fade-in space-y-8">
+            <div className="p-6 md:p-8 text-center py-12 animate-fade-in space-y-8 w-full">
               <div className="relative mx-auto w-24 h-24">
                 <div className="absolute inset-0 bg-blue-500/20 rounded-full animate-ping"></div>
                 <div className="relative w-24 h-24 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center border-4 border-blue-100 dark:border-blue-900/30">
@@ -787,7 +787,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         }
 
         {(mode === 'SUCCESS' || mode === 'AUTO_SUCCESS') && approvedData && (
-          <div className="bg-white dark:bg-slate-900 md:rounded-xl p-6 md:p-8 shadow-2xl border-y md:border border-slate-100 dark:border-slate-800 text-center py-10 animate-fade-in relative overflow-hidden">
+          <div className="p-6 md:p-8 text-center py-10 animate-fade-in relative overflow-hidden w-full">
             {/* Background Decorative Element */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-green-500/5 rounded-full blur-3xl -z-10"></div>
 
@@ -850,7 +850,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
         {
           mode === 'ERROR' && (
-            <div className="bg-white dark:bg-slate-900 md:rounded-xl p-6 md:p-8 shadow-xl border-y md:border border-slate-100 dark:border-slate-800 text-center py-10 animate-fade-in space-y-6">
+            <div className="p-6 md:p-8 text-center py-10 animate-fade-in space-y-6 w-full">
               <div className="w-24 h-24 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto">
                 <XCircle className="w-12 h-12 text-red-500" />
               </div>
@@ -862,7 +862,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             </div>
           )
         }
+      </div>
 
+      <div className="w-full md:w-[80%] max-w-3xl flex flex-col items-center pb-8">
         {/* 3. RULES SECTION */}
         <div className="w-full text-center px-4 py-8 md:py-10 animate-fade-in space-y-4">
           <h3 className="text-sm font-semibold text-slate-700 dark:text-white uppercase tracking-wide">Regras do Programa</h3>
