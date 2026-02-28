@@ -596,22 +596,32 @@ class PublicTerminalController extends Controller
     }
     public function register(Request $request, $slug, $uid = null)
     {
-        $request->validate([
+        $data = $request->all();
+        // Convert empty strings to null to avoid validation errors with 'nullable|date' etc.
+        foreach (['email', 'city', 'province', 'postal_code', 'address', 'birthday'] as $field) {
+            if (isset($data[$field]) && $data[$field] === '') {
+                $data[$field] = null;
+            }
+        }
+
+        $rules = [
             'name' => 'required|string|max:100',
             'phone' => 'required|string',
-            'email' => 'nullable|email|max:100',
-            'city' => 'required|string|max:100',
-            'province' => 'required|string|max:100',
-            'postal_code' => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:255',
-            'birthday' => 'nullable|date',
-        ]);
+            'email' => 'sometimes|nullable|email|max:100',
+            'city' => 'sometimes|nullable|string|max:100',
+            'province' => 'sometimes|nullable|string|max:100', // Allow them to be nullable just in case
+            'postal_code' => 'sometimes|nullable|string|max:20',
+            'address' => 'sometimes|nullable|string|max:255',
+            'birthday' => 'sometimes|nullable|date',
+        ];
+
+        \Illuminate\Support\Facades\Validator::make($data, $rules)->validate();
 
         try {
-            return DB::transaction(function () use ($request, $slug, $uid) {
+            return DB::transaction(function () use ($data, $slug, $uid) {
                 [$tenant, $device] = $this->validateDevice($slug, $uid);
 
-                $phone = PhoneHelper::normalize($request->phone);
+                $phone = PhoneHelper::normalize($data['phone']);
 
                 // Check for existing
                 if (Customer::withoutGlobalScopes()->where('tenant_id', $tenant->id)->where('phone', $phone)->exists()) {
@@ -624,18 +634,18 @@ class PublicTerminalController extends Controller
                     return ApiResponse::error('Limite de clientes atingido para esta loja.', 'PLAN_LIMIT_REACHED', 403);
                 }
 
-                $birthday = $request->birthday ?: null;
+                $birthday = $data['birthday'] ?? null;
                 if ($birthday === '') $birthday = null;
 
                 $customer = Customer::create([
                     'tenant_id' => $tenant->id,
-                    'name' => $request->name,
+                    'name' => $data['name'],
                     'phone' => $phone,
-                    'email' => $request->email ?: null,
-                    'city' => $request->city ?: null,
-                    'province' => $request->province ?: null,
-                    'postal_code' => $request->postal_code ?: null,
-                    'address' => $request->address ?: null,
+                    'email' => $data['email'] ?? null,
+                    'city' => $data['city'] ?? null,
+                    'province' => $data['province'] ?? null,
+                    'postal_code' => $data['postal_code'] ?? null,
+                    'address' => $data['address'] ?? null,
                     'birthday' => $birthday,
                     'source' => 'terminal',
                     'last_activity_at' => now()
