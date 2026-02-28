@@ -808,120 +808,94 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               </div>
             </div>
 
-            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6 space-y-4">
-              <div className="space-y-1">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Saldo Atual</p>
-                <p className="text-4xl font-black text-slate-900 dark:text-white">{foundCustomer.points_balance} pts</p>
-              </div>
+            {(() => {
+              const levelIdx = Math.max(0, (Number(foundCustomer.loyalty_level) || 1) - 1);
+              const goal = Number(foundCustomer.points_goal || storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo.points_goal);
+              const balance = Number(foundCustomer.points_balance);
+              const remaining = Math.max(0, goal - balance);
+              const canRedeem = balance >= goal;
 
-              {/* Progress Bar for Lojista */}
-              <div className="pt-2">
-                <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-slate-800 dark:bg-blue-500 transition-all duration-1000"
-                    style={{
-                      width: `${Math.min(100, (foundCustomer.points_balance / (foundCustomer.points_goal || storeInfo?.levels_config?.[Math.max(0, (foundCustomer.loyalty_level || 1) - 1)]?.goal || storeInfo.points_goal)) * 100)}%`
-                    }}
-                  ></div>
-                </div>
-                <div className="mt-2 flex justify-between items-center">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">
-                    Meta: {foundCustomer.points_goal || storeInfo?.levels_config?.[Math.max(0, (Number(foundCustomer.loyalty_level) || 1) - 1)]?.goal || storeInfo.points_goal} pts
-                  </p>
-                  <div className="text-right">
-                    {(() => {
-                      const levelIdx = Math.max(0, (Number(foundCustomer.loyalty_level) || 1) - 1);
-                      const goal = storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo.points_goal;
-                      const remaining = Math.max(0, goal - foundCustomer.points_balance);
-
-                      if (remaining === 0) return (
-                        <span className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase animate-pulse">
-                          🎉 META ATINGIDA!
-                        </span>
-                      );
-                      if (remaining === 1) return (
-                        <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase">
-                          🎁 Falta apenas 1 ponto!
-                        </span>
-                      );
-                      return (
-                        <span className="text-[10px] font-black text-slate-500 uppercase">
-                          Faltam {remaining} pts
-                        </span>
-                      );
-                    })()}
-                  </div>
-                </div>
-                {(() => {
-                  const levelIdx = Math.max(0, (Number(foundCustomer.loyalty_level) || 1) - 1);
-                  const goal = Number(foundCustomer.points_goal || storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo.points_goal);
-                  const balance = Number(foundCustomer.points_balance);
-                  const remaining = Math.max(0, goal - balance);
-
-                  if (balance >= goal) return (
-                    <div className="mt-3 text-[11px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-tight text-center bg-amber-50 dark:bg-amber-900/20 py-2 rounded-lg border border-amber-100 dark:border-amber-900/30 animate-bounce">
-                      🚀 META ATINGIDA! O PRÊMIO PODE SER ENTREGUE AGORA!
+              return (
+                <>
+                  <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6 space-y-4">
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Saldo Atual</p>
+                      <p className="text-4xl font-black text-slate-900 dark:text-white">{balance} pts</p>
                     </div>
-                  );
 
-                  if (remaining === 1) return (
-                    <div className="mt-3 text-[11px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-tight text-center bg-blue-50 dark:bg-blue-900/20 py-2 rounded-lg border border-blue-100 dark:border-blue-900/30">
-                      🎁 O cliente está a apenas 1 ponto de atingir a meta!
-                    </div>
-                  );
-
-                  return null;
-                })()}
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-4">
-              {(() => {
-                const levelIdx = Math.max(0, (Number(foundCustomer.loyalty_level) || 1) - 1);
-                const goal = Number(foundCustomer.points_goal || storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo.points_goal);
-                const balance = Number(foundCustomer.points_balance);
-                const canRedeem = balance >= goal;
-
-                if (canRedeem) {
-                  return (
-                    <Button
-                      onClick={() => handleAction('redeem')}
-                      isLoading={loading}
-                      className="h-24 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black uppercase tracking-widest text-lg shadow-xl shadow-amber-500/20 transition-all flex flex-col items-center justify-center gap-0 group"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Gift className="w-6 h-6 animate-bounce" />
-                        <span>PRÊMIO ENTREGUE</span>
+                    <div className="pt-2">
+                      <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-slate-800 dark:bg-blue-500 transition-all duration-1000"
+                          style={{ width: `${Math.min(100, (balance / (goal || 1)) * 100)}%` }}
+                        ></div>
                       </div>
-                      <span className="text-[10px] opacity-90 font-bold tracking-tight normal-case">(esta ação reiniciará o ciclo do cliente)</span>
-                    </Button>
-                  );
-                }
-                return null;
-              })()}
-              <Button
-                onClick={() => handleAction('earn')}
-                isLoading={loading}
-                className="h-20 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-black uppercase tracking-widest text-lg shadow-xl shadow-green-600/20 transition-all flex flex-col items-center justify-center gap-0 group"
-              >
-                <div className="flex items-center gap-2">
-                  <Trophy className="w-6 h-6 group-hover:scale-110 transition-transform" />
-                  <span>Dê +{(() => {
-                    const levelIdx = Math.max(0, (foundCustomer.loyalty_level || 1) - 1);
-                    return storeInfo?.levels_config?.[levelIdx]?.points_per_visit || 1;
-                  })()} Pontos</span>
-                </div>
-                <span className="text-[10px] opacity-80 font-bold tracking-tight normal-case">Pontuação do Nível {foundCustomer.loyalty_level_name || 'Atual'}</span>
-              </Button>
+                      <div className="mt-2 flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase text-left">
+                        <div className="flex flex-col">
+                           <span>Meta: {goal} pts</span>
+                           {!canRedeem && <span className="text-slate-500 normal-case opacity-60">Faltam {remaining} pts</span>}
+                        </div>
+                        {canRedeem && (
+                          <span className="text-amber-500 animate-pulse font-black text-right">🚀 META ATINGIDA!</span>
+                        )}
+                      </div>
+                      
+                      {canRedeem && (
+                        <div className="mt-4 text-[11px] font-black text-amber-900 bg-amber-100 dark:bg-amber-950 dark:text-amber-400 uppercase tracking-tight text-center py-4 rounded-xl border-2 border-amber-200 dark:border-amber-900/50 animate-bounce shadow-lg">
+                          🚀 META ATINGIDA! RESGATE O PRÊMIO ABAIXO! 🎁
+                        </div>
+                      )}
 
-              <Button
-                variant="ghost"
-                onClick={reset}
-                className="h-10 text-slate-400 font-bold uppercase tracking-widest text-[9px] hover:text-slate-600"
-              >
-                CANCELAR
-              </Button>
-            </div>
+                      {!canRedeem && remaining === 1 && (
+                        <div className="mt-3 text-[11px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-tight text-center bg-blue-50 dark:bg-blue-900/20 py-2 rounded-lg border border-blue-100 dark:border-blue-900/30">
+                          🎁 O cliente está a apenas 1 ponto de atingir a meta!
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-4">
+                    {canRedeem ? (
+                      <Button
+                        onClick={() => handleAction('redeem')}
+                        isLoading={loading}
+                        className="h-24 bg-amber-500 hover:bg-amber-600 text-white rounded-[22px] font-black uppercase tracking-widest text-lg shadow-xl shadow-amber-500/30 transition-all flex flex-col items-center justify-center gap-0 group border-none"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Gift className="w-8 h-8 animate-bounce" />
+                          <span>PRÊMIO ENTREGUE</span>
+                        </div>
+                        <span className="text-[10px] opacity-90 font-bold tracking-tight normal-case mt-1">(esta ação reiniciará o ciclo do cliente)</span>
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => handleAction('earn')}
+                        isLoading={loading}
+                        className="h-20 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-black uppercase tracking-widest text-lg shadow-xl shadow-green-600/20 transition-all flex flex-col items-center justify-center gap-0 group"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Trophy className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                          <span>Dê +{(() => {
+                            const lIdx = Math.max(0, (foundCustomer.loyalty_level || 1) - 1);
+                            return storeInfo?.levels_config?.[lIdx]?.points_per_visit || 1;
+                          })()} Pontos</span>
+                        </div>
+                        <span className="text-[10px] opacity-80 font-bold tracking-tight normal-case">Pontuação do Nível {foundCustomer.loyalty_level_name || 'Atual'}</span>
+                      </Button>
+                    )}
+
+                    <Button
+                      variant="ghost"
+                      onClick={reset}
+                      className="h-12 text-slate-400 font-bold uppercase tracking-widest text-xs hover:text-slate-600"
+                    >
+                      CANCELAR
+                    </Button>
+                  </div>
+                </>
+              );
+            })()}
+
 
             {/* Se o lojista escaneou e o cliente não está vinculado (ou link incompleto) */}
             {deviceUid && (
