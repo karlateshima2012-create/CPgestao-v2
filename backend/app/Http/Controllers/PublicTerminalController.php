@@ -334,20 +334,8 @@ class PublicTerminalController extends Controller
             }
 
             $loyalty = $tenant->loyaltySettings ?: \App\Models\LoyaltySetting::create(['tenant_id' => $tenant->id]);
-
-            // ANTI-FRAUDE: Cooldown padrão do sistema (60s) - Bypassed for tokens as they are single-use
-            if (!$token) {
-                $cooldown = 60;
-                $lastMovement = PointMovement::where('customer_id', $customer->id)
-                    ->where('tenant_id', $tenant->id)
-                    ->where('type', 'earn')
-                    ->where('created_at', '>', now()->subSeconds($cooldown))
-                    ->first();
-
-                if ($lastMovement) {
-                    return ApiResponse::error('Aguarde um momento para pontuar novamente', 'COOLDOWN', 429);
-                }
-            }
+            $levelsConfig = $loyalty->levels_config;
+            $currentLevel = $customer->fresh()->loyalty_level ?? 0;
 
             // Grant signup bonus if new
             if ($isNew && $loyalty->signup_bonus_points > 0) {
@@ -372,7 +360,7 @@ class PublicTerminalController extends Controller
                 : ($loyalty->regular_points_per_scan ?? 1); 
 
             if (is_array($levelsConfig)) {
-                $lvlIdx = max(0, $currentLevel - 1);
+                $lvlIdx = max(0, (int)$currentLevel - 1);
                 if (isset($levelsConfig[$lvlIdx]) && isset($levelsConfig[$lvlIdx]['points_per_visit'])) {
                     $pointsToAdd = (int) $levelsConfig[$lvlIdx]['points_per_visit'];
                 }
