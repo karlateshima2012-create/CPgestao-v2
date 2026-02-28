@@ -143,6 +143,22 @@ class PublicTerminalController extends Controller
         // Check if token is valid (re-verify for the response)
         $tokenValid = $token ? $this->qrTokenService->isValid($token, $tenant->id) : false;
 
+        // Check if device is a linked card
+        $prefillPhone = null;
+        $deviceType = $device ? $device->type : 'web';
+
+        if ($uid && $uid !== 'null') {
+            $card = \App\Models\LoyaltyCard::withoutGlobalScopes()
+                ->where('uid', $uid)
+                ->where('tenant_id', $tenant->id)
+                ->where('status', 'linked')
+                ->first();
+            if ($card && $card->customer) {
+                $prefillPhone = $card->customer->phone;
+                $deviceType = 'premium';
+            }
+        }
+
         return ApiResponse::ok([
             'name' => $tenant->name,
             'slug' => $tenant->slug,
@@ -154,6 +170,8 @@ class PublicTerminalController extends Controller
             'reward_text' => $tenant->reward_text,
             'device_name' => $device ? $device->name : 'Navegador Web',
             'device_mode' => $device ? $device->mode : 'standard',
+            'device_type' => $deviceType,
+            'prefill_phone' => $prefillPhone,
             'token_valid' => $tokenValid,
             'tenant_name' => $tenant->name,
             'tenant_plan' => $tenant->plan,

@@ -250,7 +250,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           setFoundCustomer(lookupRes.data);
           setMode('LOJISTA_ACTIONS');
         } else {
-          handleLookup();
+          handleLookup(res.data.prefill_phone);
         }
       } else if (res.data.device_type === 'premium' && !res.data.prefill_phone && isAdmin) {
         // Cartão não vinculado mas lido pelo lojista
@@ -266,11 +266,13 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   };
 
 
-  const handleLookup = async () => {
-    if (!phone) return;
+  const handleLookup = async (overridePhone?: string) => {
+    const targetPhone = overridePhone || phone;
+    if (!targetPhone) return;
+    if (overridePhone) setPhone(overridePhone);
     setLoading(true);
     try {
-      const res = await terminalService.lookup(tenantSlug, deviceUid, phone, qrToken);
+      const res = await terminalService.lookup(tenantSlug, deviceUid, targetPhone, qrToken);
       if (res.data && res.data.customer_exists === false) {
         const isAdmin = !!localStorage.getItem('auth_token');
         if (isAdmin) {
@@ -477,7 +479,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
 
   const reset = () => {
-    setMode('CONSULT');
+    setMode('START');
+    setPhone('');
     setCustomerData({ name: '', email: '', city: '', province: '', postalCode: '', address: '', birthday: '' });
     setBDay('');
     setBMonth('');
@@ -603,7 +606,13 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
         {mode === 'RESULT_CLIENT' && foundCustomer && (
           <div className="p-6 md:p-8 relative overflow-hidden animate-fade-in space-y-8 w-full">
-            <button onClick={reset} className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-800 transition-colors bg-slate-50 dark:bg-slate-800 rounded-full z-20"><X className="w-5 h-5" /></button>
+            <button
+              onClick={reset}
+              className="absolute top-6 right-6 p-2.5 bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-md text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all rounded-full z-20 border border-slate-200/50 dark:border-slate-700/50 shadow-sm active:scale-90"
+              title="Fechar"
+            >
+              <X className="w-5 h-5" />
+            </button>
 
             {/* Header: Name and Level */}
             <div className="text-center space-y-3 pt-4">
