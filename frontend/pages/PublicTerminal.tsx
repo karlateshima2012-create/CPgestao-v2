@@ -485,15 +485,15 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
       });
       const isAdmin = !!localStorage.getItem('auth_token');
       if (isAdmin && res.data.points_balance !== undefined) {
-        setApprovedData({
-          customer_name: res.data.name || customerData.name,
-          points_balance: res.data.points_balance,
-          loyalty_level_name: res.data.loyalty_level_name || 'Bronze',
-          points_goal: storeInfo?.levels_config?.[0]?.goal || storeInfo.points_goal,
-          tenant_name: storeInfo.name,
-          is_redemption: false
+        // Corrected lojista flow: Stay in actions mode instead of success screen
+        setFoundCustomer(res.data);
+        setMode('LOJISTA_ACTIONS');
+        setModal({
+          isOpen: true,
+          title: 'Cadastro Realizado!',
+          message: res.data.message || 'O cliente foi cadastrado e pontuado com sucesso.',
+          type: 'success'
         });
-        setMode('AUTO_SUCCESS');
       } else {
         setModal({
           isOpen: true,
@@ -857,16 +857,19 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                   const goal = Number(foundCustomer.points_goal || storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo.points_goal);
                   const balance = Number(foundCustomer.points_balance);
                   const remaining = Math.max(0, goal - balance);
+
+                  if (balance >= goal) return (
+                    <div className="mt-3 text-[11px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-tight text-center bg-amber-50 dark:bg-amber-900/20 py-2 rounded-lg border border-amber-100 dark:border-amber-900/30 animate-bounce">
+                      🚀 META ATINGIDA! O PRÊMIO PODE SER ENTREGUE AGORA!
+                    </div>
+                  );
+
                   if (remaining === 1) return (
                     <div className="mt-3 text-[11px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-tight text-center bg-blue-50 dark:bg-blue-900/20 py-2 rounded-lg border border-blue-100 dark:border-blue-900/30">
                       🎁 O cliente está a apenas 1 ponto de atingir a meta!
                     </div>
                   );
-                  if (remaining === 0) return (
-                    <div className="mt-3 text-[11px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-tight text-center bg-amber-50 dark:bg-amber-900/20 py-2 rounded-lg border border-amber-100 dark:border-amber-900/30 animate-bounce">
-                      🚀 META ATINGIDA! O PRÊMIO PODE SER ENTREGUE AGORA!
-                    </div>
-                  );
+
                   return null;
                 })()}
               </div>

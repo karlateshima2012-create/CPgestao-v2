@@ -780,6 +780,7 @@ class PublicTerminalController extends Controller
                 return ApiResponse::ok([
                     'customer_exists' => true,
                     'points_balance' => $customer->fresh()->points_balance,
+                    'loyalty_level' => $customer->fresh()->loyalty_level,
                     'loyalty_level_name' => $customer->fresh()->loyalty_level_name,
                     'points_goal' => $goal,
                     'id' => $customer->id,
