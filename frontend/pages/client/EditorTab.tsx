@@ -248,9 +248,12 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
   const [tagModal, setTagModal] = useState(false);
   const [isTagSelectOpen, setIsTagSelectOpen] = useState(false);
   const [newTagForm, setNewTagForm] = useState({ name: '', category: 'Comportamento', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800' });
+  const [pointsInput, setPointsInput] = useState('1');
+  const [loyaltySettings, setLoyaltySettings] = useState<any>(null);
 
   useEffect(() => {
     loadTags();
+    fetchLoyaltySettings();
     if (selectedContact) {
       setFormData({ ...initialData, ...selectedContact });
       if (selectedContact.id) loadHistory(selectedContact.id);
@@ -259,6 +262,27 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
       setServiceHistory([]);
     }
   }, [selectedContact, initialData]);
+
+  const fetchLoyaltySettings = async () => {
+    try {
+      const res = await api.get('/client/loyalty/settings');
+      setLoyaltySettings(res.data);
+    } catch (err) { console.error('Erro ao carregar configurações de fidelidade:', err); }
+  };
+
+  const addManualPoints = (amount: number) => {
+    if (isNaN(amount) || amount === 0) return;
+    setFormData(prev => ({
+      ...prev,
+      pointsBalance: (prev.pointsBalance || 0) + amount
+    }));
+  };
+
+  const addDefaultPoints = () => {
+    const levelIdx = Math.max(0, (formData.loyaltyLevel || 1) - 1);
+    const defaultPoints = loyaltySettings?.levels_config?.[levelIdx]?.points_per_visit || 1;
+    addManualPoints(Number(defaultPoints));
+  };
 
   const loadHistory = async (id: string, page: number = 1) => {
     try {
@@ -463,13 +487,30 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
           </div>
 
           <div className="md:col-span-2 space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">NOTAS / OBSERVAÇÕES</label>
-            <textarea
-              value={formData.notes || ''}
-              onChange={e => handleCapitalize('notes', e.target.value)}
-              placeholder="Algum detalhe importante sobre este cliente..."
-              className="w-full h-11 p-3 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-[15px] font-medium text-sm outline-none focus:ring-2 focus:ring-primary-500/20 transition-all resize-none"
-            />
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">PONTUAR CLIENTE</label>
+            <div className="flex gap-2">
+              <div className="flex-1 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-[15px] h-11 flex items-center px-4 focus-within:ring-2 focus-within:ring-primary-500/20 transition-all">
+                <input
+                  type="number"
+                  placeholder="Quantidade..."
+                  value={pointsInput}
+                  onChange={e => setPointsInput(e.target.value)}
+                  className="w-full bg-transparent text-sm font-bold outline-none text-gray-700 dark:text-gray-300"
+                />
+              </div>
+              <Button
+                onClick={() => addManualPoints(parseInt(pointsInput) || 0)}
+                className="px-4 bg-gray-900 dark:bg-gray-800 text-white font-black text-[10px] uppercase rounded-[12px] hover:scale-105 active:scale-95 transition-all shadow-lg shadow-gray-900/10"
+              >
+                PONTUAR
+              </Button>
+              <Button
+                onClick={addDefaultPoints}
+                className="px-4 bg-primary-500 text-white font-black text-[10px] uppercase rounded-[12px] flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary-500/20"
+              >
+                <Star className="w-3 h-3 fill-white" /> + PONTO
+              </Button>
+            </div>
           </div>
         </div>
       </Card>
