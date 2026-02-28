@@ -195,7 +195,7 @@ class PublicTerminalController extends Controller
         [$tenant, $device] = $this->validateDevice($slug, $uid, $request->token);
         
         $phone = PhoneHelper::normalize($request->phone);
-        $customer = Customer::where('tenant_id', $tenant->id)
+        $customer = Customer::withoutGlobalScopes()->where('tenant_id', $tenant->id)
             ->where('phone', $phone)
             ->first();
 
@@ -612,7 +612,7 @@ class PublicTerminalController extends Controller
                 $phone = PhoneHelper::normalize($request->phone);
 
                 // Check for existing
-                if (Customer::where('tenant_id', $tenant->id)->where('phone', $phone)->exists()) {
+                if (Customer::withoutGlobalScopes()->where('tenant_id', $tenant->id)->where('phone', $phone)->exists()) {
                     return ApiResponse::error('Este número de telefone já está cadastrado nesta loja. Para visualizar os pontos, utilize a opção Consultar saldo.', 'DUPLICATE_PHONE', 409);
                 }
 
@@ -657,8 +657,9 @@ class PublicTerminalController extends Controller
                     \Illuminate\Support\Facades\Log::warning("Registration Telegram alert failed: " . $te->getMessage());
                 }
 
-                $loyalty = \App\Models\LoyaltySetting::firstOrCreate(['tenant_id' => $tenant->id]);
+                $loyalty = \App\Models\LoyaltySetting::withoutGlobalScopes()->firstOrCreate(['tenant_id' => $tenant->id]);
                 $levels = $loyalty->levels_config;
+                $bonus = 0;
                 if (is_array($levels) && count($levels) > 0 && isset($levels[0]['points_per_signup'])) {
                     $bonus = (int)$levels[0]['points_per_signup'];
                 } else {
@@ -690,10 +691,10 @@ class PublicTerminalController extends Controller
                 
                 // 1. Link Card if UID is a premium card
                 $linkMessage = "";
-                if ($uid) {
-                    $card = \App\Models\LoyaltyCard::where('tenant_id', $tenant->id)
+                if ($uid && $uid !== 'null') {
+                    $card = \App\Models\LoyaltyCard::withoutGlobalScopes()
+                        ->where('tenant_id', $tenant->id)
                         ->where('uid', $uid)
-                        ->where('type', 'premium')
                         ->first();
                     
                     if ($card && !$card->linked_customer_id) {

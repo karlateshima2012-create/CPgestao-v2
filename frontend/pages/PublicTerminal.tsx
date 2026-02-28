@@ -145,7 +145,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   };
 
   useEffect(() => {
-    console.log("CP Gestao Version: 2.1.0 - Loyalty Fixes Active");
+    console.log("CP Gestao Version: 2.1.2 - Loyalty & Registration Fixes");
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
     if (token) setQrToken(token);
@@ -242,16 +242,16 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
       const isAdmin = !!localStorage.getItem('auth_token');
 
-      // Se for um dispositivo PREMIUM e estiver VINCULADO
-      if (res.data.device_type === 'premium' && res.data.prefill_phone) {
+      // Se houver telefone pré-preenchido (cartão já vinculado)
+      if (res.data.prefill_phone) {
         setPhone(res.data.prefill_phone);
         // Se for o lojista escaneando, vamos direto para a tela de ação do lojista
         if (isAdmin) {
-          const lookupRes = await terminalService.lookup(slug, uid || null, res.data.prefill_phone, token);
+          const lookupRes = await terminalService.lookup(slug, uid || null, res.data.prefill_phone, token || qrToken);
           setFoundCustomer(lookupRes.data);
           setMode('LOJISTA_ACTIONS');
         } else {
-          await handleLookup(res.data.prefill_phone, slug, uid || null);
+          await handleLookup(res.data.prefill_phone, slug, uid || null, token || qrToken);
         }
       } else if (res.data.device_type === 'premium' && !res.data.prefill_phone && isAdmin) {
         // Cartão não vinculado mas lido pelo lojista
@@ -267,16 +267,17 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   };
 
 
-  const handleLookup = async (overridePhone?: string, overrideSlug?: string, overrideUid?: string | null) => {
+  const handleLookup = async (overridePhone?: string, overrideSlug?: string, overrideUid?: string | null, overrideToken?: string | null) => {
     const targetPhone = overridePhone || phone;
     const targetSlug = overrideSlug || tenantSlug;
     const targetUid = overrideUid === undefined ? deviceUid : overrideUid;
+    const targetToken = overrideToken || qrToken;
 
     if (!targetPhone || !targetSlug) return;
     if (overridePhone) setPhone(overridePhone);
     setLoading(true);
     try {
-      const res = await terminalService.lookup(targetSlug, targetUid, targetPhone, qrToken);
+      const res = await terminalService.lookup(targetSlug, targetUid, targetPhone, targetToken);
       if (res.data && res.data.customer_exists === false) {
         const isAdmin = !!localStorage.getItem('auth_token');
         if (isAdmin) {
