@@ -387,7 +387,10 @@ class PublicTerminalController extends Controller
             $isClassic = (strtolower($tenant->plan) === 'classic');
             
             $canAutoApprove = false;
-            if ($isElite) {
+            // If merchant is logged in, auto-approve
+            if (auth('sanctum')->check()) {
+                $canAutoApprove = true;
+            } elseif ($isElite) {
                 // Elite: 100% automatic (Requirement: "pontuação continua sendo automática")
                 $canAutoApprove = true;
             } elseif ($isPro) {
@@ -444,10 +447,11 @@ class PublicTerminalController extends Controller
                 $goal = (int)($levelsConfig[$lvlIdx]['goal'] ?? $goal);
             }
 
-            $msg = "✅ +{$pointsToAdd} ponto(s) adicionado(s). Saldo: {$newBalance} / Meta: {$goal}.";
+            $msg = ($canAutoApprove ? "✅ +{$pointsToAdd} ponto(s) adicionado(s) com sucesso." : "Solicitação de +{$pointsToAdd} ponto(s) enviada.") 
+                 . " Saldo: {$newBalance} / Meta: {$goal}.";
             
             if ($newBalance >= $goal) {
-                $msg .= " 🎉 Meta atingida! Pronto para resgatar.";
+                $msg .= " 🎉 META ATINGIDA!";
             }
 
             return ApiResponse::ok([
@@ -538,7 +542,11 @@ class PublicTerminalController extends Controller
             $isClassic = (strtolower($tenant->plan) === 'classic');
             
             $canAutoApprove = false;
-            if ($isElite) {
+            
+            // If merchant is logged in, auto-approve
+            if (auth('sanctum')->check()) {
+                $canAutoApprove = true;
+            } elseif ($isElite) {
                 $canAutoApprove = true;
             } elseif ($isPro) {
                 $canAutoApprove = false;
@@ -584,13 +592,18 @@ class PublicTerminalController extends Controller
                 $goal = (int)($levelsConfig[$currentLevel]['goal'] ?? $goal);
             }
 
+            $msg = 'Solicitação de resgate enviada com sucesso.';
+            if ($canAutoApprove) {
+                $msg = "Prêmio entregue com sucesso! O cliente reiniciou no nível {$customer->loyalty_level_name} com +{$pointsToAdd} ponto(s).";
+            }
+
             return ApiResponse::ok([
                 'request_id' => $requestRecord->id,
                 'customer_name' => $customer->name,
                 'new_balance' => $newBalance,
                 'loyalty_level_name' => $customer->loyalty_level_name,
                 'points_goal' => $goal,
-                'message' => 'Solicitação de resgate enviada com sucesso.',
+                'message' => $msg,
                 'auto_approved' => $canAutoApprove
             ]);
         });

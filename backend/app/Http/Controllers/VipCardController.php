@@ -125,7 +125,7 @@ class VipCardController extends Controller
                     'meta' => ['is_nfc_scan' => true]
                 ]);
 
-                $isAutoApprovePlan = in_array(strtolower($tenant->plan ?? ''), ['elite', 'classic']);
+                $isAutoApprovePlan = in_array(strtolower($tenant->plan ?? ''), ['elite', 'classic']) || auth('sanctum')->check();
                 
                 if ($isAutoApprovePlan) {
                     $this->pointRequestService->applyPoints($requestRecord);
@@ -226,8 +226,8 @@ class VipCardController extends Controller
                     ]
                 ]);
 
-                // Auto-approve if plan is Elite or Classic
-                $isAutoApprovePlan = in_array(strtolower($tenant->plan ?? ''), ['elite', 'classic']);
+                // Auto-approve if plan is Elite or Classic OR merchant is authenticated
+                $isAutoApprovePlan = in_array(strtolower($tenant->plan ?? ''), ['elite', 'classic']) || auth('sanctum')->check();
                 
                 if ($isAutoApprovePlan) {
                     $this->pointRequestService->applyPoints($requestRecord);
