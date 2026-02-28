@@ -704,51 +704,15 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               })()}
             </div>
 
-            {/* Bottom Section: Unified Action Buttons for all plans */}
-            <div className="pt-2">
-              {storeInfo.device_mode === 'manual' ? (
-                <div className="text-center p-6 bg-slate-50 dark:bg-slate-800/40 rounded-[25px] border border-slate-100 dark:border-slate-800">
-                  <p className="text-sm font-bold text-slate-500 dark:text-slate-400 italic">
-                    Apresente seu Cartão VIP ou informe seu telefone ao atendente para pontuar.
-                  </p>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-4 w-full">
-                  {(() => {
-                    const levelIdx = Math.max(0, (foundCustomer.loyalty_level || 1) - 1);
-                    const goal = storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo.points_goal;
-                    const canRedeem = foundCustomer.points_balance >= goal;
-
-                    if (canRedeem) {
-                      return (
-                        <>
-                          <Button variant="secondary" onClick={() => handleAction('redeem')} isLoading={loading} className="h-20 bg-green-600 hover:bg-green-700 text-white shadow-xl shadow-green-600/20 rounded-2xl font-black uppercase tracking-widest text-sm transition-all flex flex-col items-center justify-center gap-1 group">
-                            <div className="flex items-center gap-2">
-                              <Gift className="w-6 h-6" />
-                              <span>Confirmar Presença e Resgatar Prêmio</span>
-                            </div>
-                            <span className="text-[10px] opacity-80 font-bold normal-case tracking-tight">Referente à meta batida na visita anterior</span>
-                          </Button>
-                          <Button variant="ghost" onClick={() => handleAction('earn')} isLoading={loading} className="text-slate-500 font-bold text-xs uppercase tracking-widest hover:bg-slate-50">
-                            Apenas pontuar (acumular mais)
-                          </Button>
-                        </>
-                      );
-                    }
-
-                    return (
-                      <div className="grid grid-cols-2 gap-4">
-                        <Button variant="secondary" onClick={() => handleAction('earn')} isLoading={loading} className="h-16 bg-blue-600 hover:bg-blue-700 text-white shadow-xl shadow-blue-600/20 rounded-2xl font-black uppercase tracking-widest text-xs transition-all">
-                          <Trophy className="w-5 h-5 mr-2" /> {storeInfo.device_mode === 'auto_checkin' || storeInfo.tenant_plan === PlanType.UNLIMITED ? 'Fazer Check-in' : 'Ganhar Ponto'}
-                        </Button>
-                        <Button variant="secondary" onClick={() => handleAction('redeem')} isLoading={loading} className="h-16 bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 text-white rounded-2xl font-black uppercase tracking-widest text-xs transition-all">
-                          <Gift className="w-5 h-5 mr-2" /> Resgatar Prêmio
-                        </Button>
-                      </div>
-                    );
-                  })()}
-                </div>
-              )}
+            {/* Bottom Section: Simplified for Client - Only Close button */}
+            <div className="pt-6">
+              <Button
+                onClick={reset}
+                className="w-full h-16 text-base font-black uppercase tracking-widest bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl shadow-xl shadow-slate-900/20 active:scale-95 flex items-center justify-center gap-3 transition-all"
+              >
+                <X className="w-5 h-5" />
+                Fechar e Sair
+              </Button>
             </div>
           </div>
         )}
