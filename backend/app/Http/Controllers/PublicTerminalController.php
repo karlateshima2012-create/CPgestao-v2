@@ -455,7 +455,8 @@ class PublicTerminalController extends Controller
                 'customer_name' => $customer->name,
                 'points_earned' => $pointsToAdd, 
                 'new_balance' => $newBalance,
-                'loyalty_level_name' => $customer->loyalty_level_name,
+                'loyalty_level' => $customer->fresh()->loyalty_level,
+                'loyalty_level_name' => $customer->fresh()->loyalty_level_name,
                 'points_goal' => $goal,
                 'message' => $msg,
                 'auto_approved' => $canAutoApprove
@@ -597,10 +598,11 @@ class PublicTerminalController extends Controller
     public function register(Request $request, $slug, $uid = null)
     {
         $data = $request->all();
-        // Convert empty strings to null to avoid validation errors with 'nullable|date' etc.
+        // Convert empty strings or whitespace strings to null for optional fields
         foreach (['email', 'city', 'province', 'postal_code', 'address', 'birthday'] as $field) {
-            if (isset($data[$field]) && $data[$field] === '') {
-                $data[$field] = null;
+            if (isset($data[$field])) {
+                $trimmed = trim($data[$field]);
+                $data[$field] = $trimmed === '' ? null : $trimmed;
             }
         }
 
@@ -609,13 +611,18 @@ class PublicTerminalController extends Controller
             'phone' => 'required|string',
             'email' => 'sometimes|nullable|email|max:100',
             'city' => 'sometimes|nullable|string|max:100',
-            'province' => 'sometimes|nullable|string|max:100', // Allow them to be nullable just in case
+            'province' => 'sometimes|nullable|string|max:100',
             'postal_code' => 'sometimes|nullable|string|max:20',
             'address' => 'sometimes|nullable|string|max:255',
             'birthday' => 'sometimes|nullable|date',
         ];
 
-        \Illuminate\Support\Facades\Validator::make($data, $rules)->validate();
+        try {
+            \Illuminate\Support\Facades\Validator::make($data, $rules)->validate();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Illuminate\Support\Facades\Log::error("Registration Validation Failed for {$slug}: " . json_encode($e->errors()));
+            return ApiResponse::error('Dados inválidos para cadastro.', 'VALIDATION_ERROR', 422, $e->errors());
+        }
 
         try {
             return DB::transaction(function () use ($data, $slug, $uid) {

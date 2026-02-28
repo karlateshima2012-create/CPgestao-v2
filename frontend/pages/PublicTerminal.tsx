@@ -361,6 +361,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           return {
             ...prev,
             points_balance: res.data.new_balance,
+            loyalty_level: res.data.loyalty_level ?? prev.loyalty_level,
             loyalty_level_name: res.data.loyalty_level_name || prev.loyalty_level_name,
             points_goal: res.data.points_goal || prev.points_goal
           };
@@ -415,6 +416,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           return {
             ...prev,
             points_balance: res.data.new_balance,
+            loyalty_level: res.data.loyalty_level ?? prev.loyalty_level,
             loyalty_level_name: res.data.loyalty_level_name || prev.loyalty_level_name,
             points_goal: res.data.points_goal || prev.points_goal
           };
@@ -459,11 +461,11 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customerData.name || !customerData.city || !customerData.province) {
+    if (!customerData.name) {
       setModal({
         isOpen: true,
-        title: 'Campos Obrigatórios',
-        message: 'Por favor, preencha seu nome completo, cidade e província.',
+        title: 'Campo Obrigatório',
+        message: 'Por favor, preencha seu nome completo.',
         type: 'info'
       });
       return;
@@ -852,8 +854,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 </div>
                 {(() => {
                   const levelIdx = Math.max(0, (Number(foundCustomer.loyalty_level) || 1) - 1);
-                  const goal = foundCustomer.points_goal || storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo.points_goal;
-                  const remaining = Math.max(0, goal - foundCustomer.points_balance);
+                  const goal = Number(foundCustomer.points_goal || storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo.points_goal);
+                  const balance = Number(foundCustomer.points_balance);
+                  const remaining = Math.max(0, goal - balance);
                   if (remaining === 1) return (
                     <div className="mt-3 text-[11px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-tight text-center bg-blue-50 dark:bg-blue-900/20 py-2 rounded-lg border border-blue-100 dark:border-blue-900/30">
                       🎁 O cliente está a apenas 1 ponto de atingir a meta!
@@ -872,8 +875,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             <div className="flex flex-col gap-4">
               {(() => {
                 const levelIdx = Math.max(0, (Number(foundCustomer.loyalty_level) || 1) - 1);
-                const goal = foundCustomer.points_goal || storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo.points_goal;
-                const canRedeem = foundCustomer.points_balance >= goal;
+                const goal = Number(foundCustomer.points_goal || storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo.points_goal);
+                const balance = Number(foundCustomer.points_balance);
+                const canRedeem = balance >= goal;
 
                 if (canRedeem) {
                   return (
