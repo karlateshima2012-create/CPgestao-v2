@@ -658,15 +658,20 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
                     if (pointsNeeded === 0) {
                       return (
-                        <span className="font-black text-amber-600 dark:text-amber-400 animate-pulse text-lg uppercase tracking-tighter">
-                          🚀 META ATINGIDA! VOCÊ GANHOU UM PRÊMIO! 🎁
-                        </span>
+                        <div className="space-y-4 animate-bounce">
+                          <span className="font-black text-amber-600 dark:text-amber-400 text-xl uppercase tracking-tighter">
+                            🚀 META ATINGIDA!
+                          </span>
+                          <p className="text-sm font-black text-slate-700 dark:text-white uppercase">
+                            Na próxima visita você resgata o seu prêmio!
+                          </p>
+                        </div>
                       );
                     }
                     if (pointsNeeded === 1) {
                       return (
                         <>
-                          Você está a apenas <span className="font-black text-slate-900 dark:text-white">1 ponto</span> de receber o seu prêmio: <span className="font-black text-slate-900 dark:text-white">{reward}</span>
+                          Você está a apenas <span className="font-black text-slate-900 dark:text-white">1 ponto</span> de atingir a meta do prêmio: <span className="font-black text-slate-900 dark:text-white">{reward}</span>
                         </>
                       );
                     }
@@ -677,15 +682,26 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                     );
                   })()}
                 </p>
-                <div className="flex flex-col items-center gap-1 mt-4">
-                  <div className="w-full h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-slate-800 dark:bg-blue-500 transition-all duration-1000"
-                      style={{ width: `${Math.min(100, (foundCustomer.points_balance / (storeInfo?.levels_config?.[Math.max(0, (foundCustomer.loyalty_level || 1) - 1)]?.goal || storeInfo.points_goal)) * 100)}%` }}
-                    ></div>
-                  </div>
-                </div>
               </div>
+
+              {(() => {
+                const levelIdx = Math.max(0, (foundCustomer.loyalty_level || 1) - 1);
+                const goal = storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo.points_goal;
+                if (foundCustomer.points_balance >= goal) {
+                  return (
+                    <div className="mt-8 p-6 bg-amber-500 rounded-[25px] shadow-lg shadow-amber-500/20 text-white animate-pulse">
+                      <div className="flex items-center justify-center gap-3">
+                        <Gift className="w-8 h-8" />
+                        <span className="text-xl font-black uppercase tracking-widest">RESGATAR PRÊMIO</span>
+                      </div>
+                      <p className="text-[10px] font-bold mt-2 opacity-90">
+                        (na próxima visita você poderá resgatar o seu prêmio)
+                      </p>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
             </div>
 
             {/* Bottom Section: Unified Action Buttons for all plans */}
@@ -805,7 +821,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                     {(() => {
                       const goal = storeInfo?.levels_config?.[Math.max(0, (foundCustomer.loyalty_level || 1) - 1)]?.goal || storeInfo.points_goal;
                       const remaining = Math.max(0, goal - foundCustomer.points_balance);
-                      if (remaining === 0) return "🚀 META ATINGIDA!";
+                      if (remaining === 0) return "🚀 META ATINGIDA! NA PRÓXIMA VISITA O CLIENTE RESGATA O PRÊMIO!";
+                      if (remaining === 1) return "🎁 Falta apenas 1 ponto p/ a meta!";
                       return `Faltam ${remaining} pts`;
                     })()}
                   </p>
@@ -823,13 +840,13 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                     <Button
                       onClick={() => handleAction('redeem')}
                       isLoading={loading}
-                      className="h-20 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black uppercase tracking-widest text-lg shadow-xl shadow-amber-500/20 transition-all flex flex-col items-center justify-center gap-0 group"
+                      className="h-24 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black uppercase tracking-widest text-lg shadow-xl shadow-amber-500/20 transition-all flex flex-col items-center justify-center gap-0 group"
                     >
                       <div className="flex items-center gap-2">
                         <Gift className="w-6 h-6 animate-bounce" />
-                        <span>RESGATAR PRÊMIO</span>
+                        <span>PRÊMIO ENTREGUE</span>
                       </div>
-                      <span className="text-[10px] opacity-90 font-bold tracking-tight normal-case">Cliente atingiu a meta de pontos!</span>
+                      <span className="text-[10px] opacity-90 font-bold tracking-tight normal-case">(esta ação reiniciará o ciclo do cliente)</span>
                     </Button>
                   );
                 }
@@ -1318,16 +1335,16 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               <h2 className={`text-3xl font-black tracking-tighter uppercase ${approvedData.points_balance >= approvedData.points_goal ? 'text-amber-600 dark:text-amber-400' : 'text-slate-800 dark:text-white'
                 }`}>
                 {approvedData.is_redemption
-                  ? "🎉 PRÊMIO RESGATADO!"
+                  ? "🎉 PRÊMIO ENTREGUE!"
                   : approvedData.points_balance >= approvedData.points_goal
                     ? "🎁 META ATINGIDA!"
                     : "✅ PONTO CONFIRMADO!"}
               </h2>
               <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
                 {approvedData.is_redemption
-                  ? `${approvedData.customer_name}, parabéns pelo seu prêmio! Você subiu de nível e iniciou um novo ciclo.`
+                  ? `${approvedData.customer_name}, parabéns pelo seu prêmio! Seu ciclo foi reiniciado. Continue pontuando!`
                   : approvedData.points_balance >= approvedData.points_goal
-                    ? `Parabéns, ${approvedData.customer_name}! Você atingiu sua meta de pontos. Retire seu prêmio agora ou na próxima visita!`
+                    ? `META ATINGIDA! Na próxima visita você resgata o seu prêmio.`
                     : `Parabéns, ${approvedData.customer_name}! Seu ponto foi registrado com sucesso.`}
               </p>
             </div>
@@ -1360,7 +1377,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                   }`}>
                   {(() => {
                     const remaining = Math.max(0, approvedData.points_goal - approvedData.points_balance);
-                    if (remaining === 0) return "🚀 META ATINGIDA! VOCÊ GANHOU UM PRÊMIO! 🎁";
+                    if (remaining === 0) return "🚀 META ATINGIDA! NA PRÓXIMA VISITA VOCÊ RESGATA O SEU PRÊMIO! 🎁";
                     if (remaining === 1) return "🎁 Faltam apenas 1 ponto para você desbloquear o seu próximo prêmio!";
                     return `🎁 Faltam apenas ${remaining} pontos para você desbloquear o seu próximo prêmio!`;
                   })()}
