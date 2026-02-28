@@ -76,10 +76,14 @@ class VipCardController extends Controller
         ]);
     }
 
-    protected function calculatePointsToAdd($customer, $tenant)
+    protected function calculatePointsToAdd($customer, $tenant, $isRedemption = false)
     {
         $loyalty = $tenant->loyaltySettings;
-        $levelIndex = max(0, ($customer->loyalty_level ?? 1) - 1);
+        $currentLevel = (int)($customer->loyalty_level ?? 1);
+        
+        // If it's a redemption, we are moving to the NEXT level
+        $levelIndex = $isRedemption ? $currentLevel : max(0, $currentLevel - 1);
+        
         $levelsConfig = $loyalty ? $loyalty->levels_config : null;
 
         if (is_array($levelsConfig) && isset($levelsConfig[$levelIndex]) && isset($levelsConfig[$levelIndex]['points_per_visit'])) {
@@ -173,6 +177,98 @@ class VipCardController extends Controller
                 'card_uid' => $uid,
                 'exception' => $e
             ]);
+            return ApiResponse::error("Erro no processamento: " . $e->getMessage(), 'SERVER_ERROR', 500);
+        }
+    }
+
+    public function redeem(Request $request, $uid)
+    {
+        $uid = trim($uid);
+        $card = LoyaltyCard::where('uid', $uid)->where('type', 'premium')->first();
+
+        if (!$card || !$card->linked_customer_id) {
+            return ApiResponse::error('Cartão não encontrado ou não vinculado.', 'NOT_LINKED', 404);
+        }
+
+        try {
+            return DB::transaction(function () use ($card) {
+                $customer = $card->customer;
+                $tenant = $card->tenant;
+                $loyalty = $tenant->loyaltySettings;
+                
+                // Calculate goal based on levels
+                $levelIdx = max(0, ((int)$customer->loyalty_level ?? 1) - 1);
+                $levelsConfig = $loyalty ? $loyalty->levels_config : null;
+                $goal = $tenant->points_goal;
+                if (is_array($levelsConfig) && isset($levelsConfig[$levelIdx])) {
+                    $goal = (int)($levelsConfig[$levelIdx]['goal'] ?? $goal);
+                }
+
+                if ($customer->points_balance < $goal) {
+                    return ApiResponse::error("Saldo insuficiente para resgate (meta: {$goal} pts)", 'INSUFFICIENT_POINTS', 409);
+                }
+
+                // Points to add for the NEXT visit/level
+                $pointsToAdd = $this->calculatePointsToAdd($customer, $tenant, true);
+                
+                $requestRecord = $this->createPointRequest([
+                    'tenant_id' => $tenant->id,
+                    'customer_id' => $customer->id,
+                    'phone' => $customer->phone,
+                    'device_id' => null,
+                    'source' => 'manual_card',
+                    'status' => 'pending',
+                    'requested_points' => $pointsToAdd,
+                    'meta' => [
+                        'is_redemption' => true,
+                        'is_nfc_scan' => true,
+                        'goal' => $goal
+                    ]
+                ]);
+
+                // Auto-approve if plan is Elite or Classic
+                $isAutoApprovePlan = in_array(strtolower($tenant->plan ?? ''), ['elite', 'classic']);
+                
+                if ($isAutoApprovePlan) {
+                    $this->pointRequestService->applyPoints($requestRecord);
+                    $requestRecord->update(['status' => 'auto_approved', 'approved_at' => now()]);
+                    
+                    event(new \App\Events\PointRequestStatusUpdated($requestRecord));
+
+                    $customer->update(['last_activity_at' => now()]);
+                    $newBalance = $customer->fresh()->points_balance;
+                    
+                    return ApiResponse::ok([
+                        'points_earned' => $pointsToAdd,
+                        'new_balance' => $newBalance,
+                        'message' => "Prêmio resgatado e +{$pointsToAdd} pontos do novo nível adicionados.",
+                        'auto_approved' => true
+                    ]);
+                } else {
+                    $settings = \App\Models\TenantSetting::where('tenant_id', $tenant->id)->first();
+                    $chatId = $settings ? $settings->telegram_chat_id : null;
+                    if ($chatId) {
+                        $escName = TelegramService::escapeMarkdownV2($customer->name ?? 'Cliente');
+                        $message = "🎁 *Pedido de Resgate VIP\!*\n\n"
+                                 . "O cliente *{$escName}* deseja resgatar o prêmio do nível *{$customer->loyalty_level_name}*\.";
+                        
+                        $replyMarkup = [
+                            'inline_keyboard' => [[
+                                ['text' => '✅ APROVAR', 'callback_data' => "approve_request:{$requestRecord->id}"],
+                                ['text' => '❌ RECUSAR', 'callback_data' => "reject_request:{$requestRecord->id}"]
+                            ]]
+                        ];
+                        $this->telegramService->sendDirectMessage($chatId, $message, false, $replyMarkup);
+                    }
+                    
+                    return ApiResponse::ok([
+                        'request_id' => $requestRecord->id,
+                        'message' => 'Pedido de resgate enviado para o Telegram.',
+                        'auto_approved' => false
+                    ]);
+                }
+            });
+        } catch (\Exception $e) {
             return ApiResponse::error("Erro no processamento: " . $e->getMessage(), 'SERVER_ERROR', 500);
         }
     }

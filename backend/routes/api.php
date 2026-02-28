@@ -131,7 +131,9 @@ Route::prefix('vip')->group(function () {
     // Resolve owner vs public without enforcing auth block
     Route::get('/resolve/{uid}', [\App\Http\Controllers\VipCardController::class, 'resolve']);
     
-    // Add point is explicitely protected
+    // Add point & Redeem are explicitly protected
     Route::post('/point/{uid}', [\App\Http\Controllers\VipCardController::class, 'addPoint'])
+        ->middleware(['auth:sanctum', 'role:client']);
+    Route::post('/redeem/{uid}', [\App\Http\Controllers\VipCardController::class, 'redeem'])
         ->middleware(['auth:sanctum', 'role:client']);
 });

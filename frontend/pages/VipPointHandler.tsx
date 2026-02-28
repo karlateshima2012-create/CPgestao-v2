@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Smartphone, CheckCircle, XCircle } from 'lucide-react';
+import { Smartphone, CheckCircle, XCircle, Gift, Trophy, ShieldCheck } from 'lucide-react';
 import { Button } from '../components/ui';
 import api from '../services/api';
 
@@ -12,6 +12,7 @@ export const VipPointHandler: React.FC = () => {
     const [data, setData] = useState<any>(null);
     const [errorMsg, setErrorMsg] = useState('');
     const [loadingPoint, setLoadingPoint] = useState(false);
+    const [loadingRedeem, setLoadingRedeem] = useState(false);
 
     useEffect(() => {
         if (!uid) {
@@ -42,6 +43,30 @@ export const VipPointHandler: React.FC = () => {
                 setMode('error');
             });
     }, [uid]);
+
+    const handleRedeem = async () => {
+        if (!window.confirm('Confirmar entrega de prêmio? O ciclo do cliente será reiniciado.')) return;
+        setLoadingRedeem(true);
+        try {
+            const res = await api.post(`/vip/redeem/${uid}`);
+            setData({
+                ...data,
+                new_balance: res.data.new_balance,
+                success_message: res.data.message
+            });
+
+            if (res.data.auto_approved === false) {
+                setMode('pending');
+            } else {
+                setMode('success');
+            }
+        } catch (err: any) {
+            setErrorMsg(err.response?.data?.message || 'Erro ao processar resgate.');
+            setMode('error');
+        } finally {
+            setLoadingRedeem(false);
+        }
+    };
 
     const handleAddPoint = async () => {
         setLoadingPoint(true);
@@ -79,6 +104,10 @@ export const VipPointHandler: React.FC = () => {
     }
 
     if (mode === 'owner_prompt' && data) {
+        const balance = Number(data.customer.points_balance);
+        const goal = Number(data.goal);
+        const canRedeem = balance >= goal;
+
         if (data.is_unlinked) {
             return (
                 <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 font-sans">
@@ -129,32 +158,49 @@ export const VipPointHandler: React.FC = () => {
 
 
                     <div className="text-center space-y-3 pt-4">
-                        <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">Cartão vinculado!</p>
+                        <h3 className={`text-[10px] font-black uppercase tracking-[0.2em] ${canRedeem ? 'text-amber-500 animate-pulse' : 'text-slate-400'}`}>
+                            {canRedeem ? 'META ATINGIDA - PREMIAR' : 'Cartão vinculado!'}
+                        </h3>
+                        <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{data.customer.name}</p>
                     </div>
 
                     <div className="bg-white dark:bg-slate-800 rounded-[30px] p-8 text-slate-900 dark:text-white border border-slate-100 dark:border-slate-800 shadow-xl relative overflow-hidden group">
                         <div className="relative z-10 text-center space-y-2">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Cliente Associado</p>
-                            <span className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter block">{data.customer.name}</span>
-                        </div>
-
-                        <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700 text-center space-y-2">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Saldo Atual</p>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Saldo Atual</p>
                             <p className="text-5xl font-black tracking-tighter tabular-nums text-slate-900 dark:text-white">
                                 {data.customer.points_balance}
                                 <span className="text-xl text-slate-300 dark:text-slate-600 ml-2">/ {data.goal}</span>
                             </p>
+                            {canRedeem && (
+                                <div className="mt-4 p-3 bg-amber-500 rounded-2xl text-white animate-pulse">
+                                    <span className="text-xs font-black uppercase tracking-widest">🏆 META ATINGIDA!</span>
+                                </div>
+                            )}
                         </div>
                     </div>
 
                     <div className="pt-2">
-                        <Button
-                            onClick={handleAddPoint}
-                            isLoading={loadingPoint}
-                            className="w-full h-16 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest rounded-2xl text-base shadow-xl shadow-blue-600/20 transition-all active:scale-95"
-                        >
-                            Confirmar +{data.points_to_add || 1} Ponto{data.points_to_add > 1 ? 's' : ''}
-                        </Button>
+                        {canRedeem ? (
+                            <Button
+                                onClick={handleRedeem}
+                                isLoading={loadingRedeem}
+                                className="w-full h-20 bg-amber-500 hover:bg-amber-600 text-white font-black uppercase tracking-widest rounded-2xl text-lg shadow-xl shadow-amber-500/20 transition-all active:scale-95 flex flex-col items-center justify-center gap-0"
+                            >
+                                <div className="flex items-center gap-2">
+                                    <Gift className="w-6 h-6 animate-bounce" />
+                                    <span>PRÊMIO ENTREGUE</span>
+                                </div>
+                                <span className="text-[9px] opacity-80 normal-case font-bold mt-1">(reinicia o ciclo)</span>
+                            </Button>
+                        ) : (
+                            <Button
+                                onClick={handleAddPoint}
+                                isLoading={loadingPoint}
+                                className="w-full h-16 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest rounded-2xl text-base shadow-xl shadow-blue-600/20 transition-all active:scale-95"
+                            >
+                                Confirmar +{data.points_to_add || 1} Ponto{data.points_to_add > 1 ? 's' : ''}
+                            </Button>
+                        )}
                         <button
                             onClick={() => window.location.href = '/client'}
                             className="w-full mt-4 h-12 text-slate-400 hover:text-red-500 text-xs font-black uppercase tracking-widest transition-colors"
@@ -272,6 +318,11 @@ export const VipPointHandler: React.FC = () => {
                                 {data.new_balance}
                                 <span className="text-xl text-slate-300 dark:text-slate-600 ml-2">/ {data.goal}</span>
                             </p>
+                            {Number(data.new_balance) >= Number(data.goal) && (
+                                <div className="mt-4 p-3 bg-amber-500 rounded-2xl text-white animate-pulse">
+                                    <span className="text-xs font-black uppercase tracking-widest">🏆 META ATINGIDA!</span>
+                                </div>
+                            )}
                         </div>
                     </div>
 
