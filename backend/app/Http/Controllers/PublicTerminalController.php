@@ -475,6 +475,13 @@ class PublicTerminalController extends Controller
                 ? ($loyalty->vip_points_per_scan ?? 2) 
                 : ($loyalty->regular_points_per_scan ?? 1);
 
+            // Important: As we are redeeming and moving to the next level, the visit point
+            // should follow the configuration of that next level.
+            $nextLevelIdx = $currentLevel; // If currentLevel is Bronze (1), index 1 is Silver.
+            if (is_array($levelsConfig) && isset($levelsConfig[$nextLevelIdx]) && isset($levelsConfig[$nextLevelIdx]['points_per_visit'])) {
+                $pointsToAdd = (int) $levelsConfig[$nextLevelIdx]['points_per_visit'];
+            }
+
             $bonus = $loyalty->redeem_bonus_points ?? 0;
             $vipInitial = $loyalty->vip_initial_points ?? 0;
             
