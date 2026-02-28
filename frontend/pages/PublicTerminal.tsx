@@ -347,12 +347,33 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   };
 
   const handleEarn = async () => {
+    const isAdmin = !!localStorage.getItem('auth_token');
     setLoading(true);
     try {
       const res = await terminalService.earn(tenantSlug, deviceUid, phone, qrToken);
       const isAuto = res.data.auto_approved;
       setRequestId(res.data.request_id);
-      if (isAuto) {
+
+      if (isAdmin && isAuto) {
+        // Update local state so lojista sees new balance/goal status immediately
+        setFoundCustomer(prev => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            points_balance: res.data.new_balance,
+            loyalty_level_name: res.data.loyalty_level_name || prev.loyalty_level_name,
+            points_goal: res.data.points_goal || prev.points_goal
+          };
+        });
+
+        setModal({
+          isOpen: true,
+          title: 'Ponto Adicionado!',
+          message: res.data.message || `Lançamento de ponto realizado com sucesso para ${res.data.customer_name || foundCustomer?.name}.`,
+          type: 'success'
+        });
+        // Stay in LOJISTA_ACTIONS mode (or where it was)
+      } else if (isAuto) {
         setApprovedData({
           customer_name: res.data.customer_name || foundCustomer?.name,
           points_balance: res.data.new_balance,
@@ -381,12 +402,32 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   };
 
   const handleRedeem = async () => {
+    const isAdmin = !!localStorage.getItem('auth_token');
     setLoading(true);
     try {
       const res = await terminalService.redeem(tenantSlug, deviceUid, phone, qrToken);
       const isAuto = res.data.auto_approved;
       setRequestId(res.data.request_id);
-      if (isAuto) {
+
+      if (isAdmin && isAuto) {
+        setFoundCustomer(prev => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            points_balance: res.data.new_balance,
+            loyalty_level_name: res.data.loyalty_level_name || prev.loyalty_level_name,
+            points_goal: res.data.points_goal || prev.points_goal
+          };
+        });
+
+        setModal({
+          isOpen: true,
+          title: 'Prêmio Entregue!',
+          message: res.data.message || `Resgate processado com sucesso para ${res.data.customer_name || foundCustomer?.name}.`,
+          type: 'success'
+        });
+        // Stay in LOJISTA_ACTIONS mode
+      } else if (isAuto) {
         setApprovedData({
           customer_name: res.data.customer_name || foundCustomer?.name,
           points_balance: res.data.new_balance,
