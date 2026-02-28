@@ -15,7 +15,7 @@ class PointRequestService
     public function applyPoints(PointRequest $request)
     {
         return DB::transaction(function () use ($request) {
-            $customer = Customer::findOrFail($request->customer_id);
+            $customer = Customer::withoutGlobalScopes()->findOrFail($request->customer_id);
             $meta = $request->meta ?? [];
             $isRedemption = $meta['is_redemption'] ?? false;
             
@@ -27,7 +27,7 @@ class PointRequestService
                 $wasPremium = $customer->is_premium;
 
                 // Determine new level and any initial bonus for it
-                $loyalty = \App\Models\LoyaltySetting::where('tenant_id', $request->tenant_id)->first();
+                $loyalty = \App\Models\LoyaltySetting::withoutGlobalScopes()->where('tenant_id', $request->tenant_id)->first();
                 $initialLevelPoints = 0;
                 $nextLevel = ($customer->loyalty_level ?? 1) + 1;
                 
@@ -60,11 +60,11 @@ class PointRequestService
                     'origin' => $request->source,
                     'device_id' => $request->device_id,
                     'description' => 'Resgate de prêmio via solicitação: ' . $request->id,
-                    'meta' => json_encode([
+                    'meta' => [
                         'point_request_id' => $request->id,
                         'goal' => $goal,
                         'new_level' => $customer->loyalty_level,
-                    ])
+                    ]
                 ]);
 
                 // Log Earn Movement
@@ -76,10 +76,10 @@ class PointRequestService
                     'origin' => $request->source,
                     'device_id' => $request->device_id,
                     'description' => 'Pontos da visita (Resgate) via solicitação: ' . $request->id,
-                    'meta' => json_encode([
+                    'meta' => [
                         'point_request_id' => $request->id,
                         'bonus_applied' => $bonus,
-                    ])
+                    ]
                 ]);
             } else {
                 // Simple Credit

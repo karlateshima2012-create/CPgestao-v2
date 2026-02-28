@@ -207,7 +207,8 @@ class PublicTerminalController extends Controller
         }
 
         $balance = $customer->points_balance;
-        $levelsConfig = $tenant->loyaltySettings ? $tenant->loyaltySettings->levels_config : null;
+        $loyalty = \App\Models\LoyaltySetting::withoutGlobalScopes()->where('tenant_id', $tenant->id)->first();
+        $levelsConfig = $loyalty ? $loyalty->levels_config : null;
         $currentLevel = $customer->loyalty_level ?? 1; // Default to level 1 (Bronze) if null
         
         $goal = $tenant->points_goal;
@@ -218,7 +219,8 @@ class PublicTerminalController extends Controller
         $remaining = max(0, $goal - $balance);
 
         // Get recent history
-        $history = PointMovement::where('customer_id', $customer->id)
+        $history = PointMovement::withoutGlobalScopes()
+            ->where('customer_id', $customer->id)
             ->where('tenant_id', $tenant->id)
             ->latest()
             ->limit(10)

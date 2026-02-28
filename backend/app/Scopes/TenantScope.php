@@ -22,7 +22,7 @@ class TenantScope implements Scope
             $user = auth()->user();
             
             // Bypass filtering for Super Admins
-            if ($user && $user->role === 'admin') {
+            if (!$user || $user->role === 'admin') {
                 return;
             }
 

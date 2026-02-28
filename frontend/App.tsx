@@ -94,6 +94,9 @@ const App: React.FC = () => {
 
   // Check login on load
   useEffect(() => {
+    const isPublic = window.location.pathname.startsWith('/terminal') || window.location.pathname.startsWith('/p/') || window.location.pathname.startsWith('/vip/');
+    if (isPublic) return;
+
     const token = localStorage.getItem('auth_token');
     if (token) {
       api.get('/me').then(res => {

@@ -57,7 +57,7 @@ class Customer extends Model
     {
         $cacheKey = "tenant_{$this->tenant_id}_loyalty_levels";
         $levels = cache()->remember($cacheKey, 60 * 24, function () {
-            $settings = \App\Models\LoyaltySetting::where('tenant_id', $this->tenant_id)->first();
+            $settings = \App\Models\LoyaltySetting::withoutGlobalScopes()->where('tenant_id', $this->tenant_id)->first();
             return $settings && !empty($settings->levels_config) ? $settings->levels_config : [
                 ['name' => 'Bronze', 'active' => true],
                 ['name' => 'Prata', 'active' => true],

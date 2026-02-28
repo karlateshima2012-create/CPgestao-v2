@@ -1,0 +1,11 @@
+Tenant: Not Found
+Normalized Phone: 09012345678
+Inside Transaction
+ERROR: Attempt to read property "id" on null
+#0 /Users/karlateshima/Developer/CPgestao-v2/backend/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php(258): Illuminate\Foundation\Bootstrap\HandleExceptions->handleError(2, 'Attempt to read...', '/Users/karlates...', 26)
+#1 /Users/karlateshima/Developer/CPgestao-v2/backend/test_register.php(26): Illuminate\Foundation\Bootstrap\HandleExceptions->{closure:Illuminate\Foundation\Bootstrap\HandleExceptions::forwardsTo():257}(2, 'Attempt to read...', '/Users/karlates...', 26)
+#2 /Users/karlateshima/Developer/CPgestao-v2/backend/vendor/laravel/framework/src/Illuminate/Database/Concerns/ManagesTransactions.php(35): {closure:/Users/karlateshima/Developer/CPgestao-v2/backend/test_register.php:22}(Object(Illuminate\Database\SQLiteConnection))
+#3 /Users/karlateshima/Developer/CPgestao-v2/backend/vendor/laravel/framework/src/Illuminate/Database/DatabaseManager.php(491): Illuminate\Database\Connection->transaction(Object(Closure))
+#4 /Users/karlateshima/Developer/CPgestao-v2/backend/vendor/laravel/framework/src/Illuminate/Support/Facades/Facade.php(363): Illuminate\Database\DatabaseManager->__call('transaction', Array)
+#5 /Users/karlateshima/Developer/CPgestao-v2/backend/test_register.php(22): Illuminate\Support\Facades\Facade::__callStatic('transaction', Array)
+#6 {main}
