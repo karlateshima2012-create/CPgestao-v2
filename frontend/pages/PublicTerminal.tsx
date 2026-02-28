@@ -698,12 +698,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             <div className="bg-white dark:bg-slate-800 rounded-[30px] p-8 text-slate-900 dark:text-white border border-slate-100 dark:border-slate-800 shadow-xl relative overflow-hidden group">
               <div className="relative z-10 text-center space-y-2">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Saldo Disponível</p>
-                <div className="flex items-center justify-center gap-2">
+                <div className="flex items-baseline justify-center gap-2">
                   <span className="text-7xl font-black tracking-tighter tabular-nums text-slate-900 dark:text-white">{foundCustomer.points_balance}</span>
-                  <div className="flex flex-col items-start leading-none opacity-80">
-                    <span className="text-sm font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">Pontos</span>
-                    <span className="text-[10px] font-medium opacity-60 text-slate-400">Acumulados</span>
-                  </div>
+                  <span className="text-2xl font-black text-slate-300 dark:text-slate-600">/ {Number(foundCustomer.points_goal || storeInfo?.levels_config?.[Math.max(0, (foundCustomer.loyalty_level || 1) - 1)]?.goal || storeInfo.points_goal)}</span>
                 </div>
               </div>
 
@@ -819,7 +816,10 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6 space-y-4">
                 <div className="space-y-1">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Saldo Atual</p>
-                  <p className="text-4xl font-black text-slate-900 dark:text-white">{balance} pts</p>
+                  <p className="text-5xl font-black tracking-tighter tabular-nums text-slate-900 dark:text-white">
+                    {balance}
+                    <span className="text-xl text-slate-300 dark:text-slate-600 ml-2">/ {goal}</span>
+                  </p>
                 </div>
 
                 <div className="pt-2">
@@ -1375,7 +1375,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                   <span className="text-7xl font-black text-slate-900 dark:text-white tabular-nums tracking-tighter">
                     {approvedData.points_balance}
                   </span>
-                  <span className="text-sm font-black text-slate-400 uppercase">Pontos</span>
+                  <span className="text-2xl font-black text-slate-300 dark:text-slate-600">/ {approvedData.points_goal}</span>
                 </div>
               </div>
 
