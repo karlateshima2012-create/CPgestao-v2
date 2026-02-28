@@ -13,11 +13,16 @@ class TenantScope implements Scope
      */
     public function apply(Builder $builder, Model $model)
     {
+        // Don't apply tenant filtering for public and VIP NFC routes
+        if (request()->is('api/public/*') || request()->is('api/vip/*')) {
+            return;
+        }
+
         if (auth()->check()) {
             $user = auth()->user();
             
             // Bypass filtering for Super Admins
-            if ($user->role === 'admin') {
+            if ($user && $user->role === 'admin') {
                 return;
             }
 

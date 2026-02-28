@@ -33,8 +33,8 @@ export const VipPointHandler: React.FC = () => {
                 } else if (info.is_owner) {
                     setMode('owner_prompt');
                 } else {
-                    // Redirect to the public terminal to view balance
-                    window.location.href = `/p/${info.tenant.slug}`;
+                    // Redirect to the public terminal to view balance, passing the card UID for automatic lookup
+                    window.location.href = `/p/${info.tenant.slug}?uid=${uid}`;
                 }
             })
             .catch(err => {
