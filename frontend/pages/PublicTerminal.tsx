@@ -251,7 +251,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           setFoundCustomer(lookupRes.data);
           setMode('LOJISTA_ACTIONS');
         } else {
-          handleLookup(res.data.prefill_phone);
+          await handleLookup(res.data.prefill_phone, slug, uid || null);
         }
       } else if (res.data.device_type === 'premium' && !res.data.prefill_phone && isAdmin) {
         // Cartão não vinculado mas lido pelo lojista
@@ -267,13 +267,16 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   };
 
 
-  const handleLookup = async (overridePhone?: string) => {
+  const handleLookup = async (overridePhone?: string, overrideSlug?: string, overrideUid?: string | null) => {
     const targetPhone = overridePhone || phone;
-    if (!targetPhone) return;
+    const targetSlug = overrideSlug || tenantSlug;
+    const targetUid = overrideUid === undefined ? deviceUid : overrideUid;
+
+    if (!targetPhone || !targetSlug) return;
     if (overridePhone) setPhone(overridePhone);
     setLoading(true);
     try {
-      const res = await terminalService.lookup(tenantSlug, deviceUid, targetPhone, qrToken);
+      const res = await terminalService.lookup(targetSlug, targetUid, targetPhone, qrToken);
       if (res.data && res.data.customer_exists === false) {
         const isAdmin = !!localStorage.getItem('auth_token');
         if (isAdmin) {
