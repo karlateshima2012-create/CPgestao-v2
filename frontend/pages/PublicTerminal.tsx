@@ -432,16 +432,14 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           ) : (
             <div className="w-full h-full bg-gradient-to-r from-gray-700 to-gray-900" />
           )}
-          {/* Enhanced gradient overlay to guarantee text readability on light or dark images */}
-          <div className="absolute inset-0 bg-black/20 mix-blend-multiply"></div>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+          {/* Removed dark overlays to keep cover image original colors */}
         </div>
 
         {/* Content over Cover Image */}
         <div className="absolute inset-0 flex flex-col justify-center p-6 z-10 text-white">
           <div className="flex items-center gap-6 md:gap-8 w-full">
-            {/* Logo left aligned, larger, centered vertically with text */}
-            <div className="w-24 h-24 md:w-32 md:h-32 bg-white dark:bg-gray-900 rounded-[24px] shadow-2xl flex shrink-0 items-center justify-center overflow-hidden border-2 border-white/50 bg-center bg-cover">
+            {/* Logo left aligned, larger, centered vertically with text - No border, floating shadow effect */}
+            <div className="w-24 h-24 md:w-32 md:h-32 bg-white dark:bg-gray-900 rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex shrink-0 items-center justify-center overflow-hidden bg-center bg-cover transform -translate-y-2">
               {storeInfo.logo_url ? (
                 <img src={storeInfo.logo_url} alt={storeInfo.tenant_name} className="w-full h-full object-cover" />
               ) : (
@@ -449,7 +447,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               )}
             </div>
 
-            <div className="flex flex-col drop-shadow-2xl" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.9), 0 1px 3px rgba(0,0,0,1)' }}>
+            <div className="flex flex-col drop-shadow-2xl" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white leading-tight">{storeInfo.name}</h1>
             </div>
           </div>
