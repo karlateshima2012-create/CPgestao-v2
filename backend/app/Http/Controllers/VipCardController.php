@@ -58,6 +58,16 @@ class VipCardController extends Controller
         $card->load('customer', 'tenant');
         $customer = $card->customer;
 
+        $loyalty = $tenant->loyaltySettings;
+        $levelsConfig = $loyalty ? $loyalty->levels_config : null;
+        $currentLevel = $customer->loyalty_level ?? 1;
+        
+        $goal = $tenant->points_goal;
+        $lvlIdx = max(0, (int)$currentLevel - 1);
+        if (is_array($levelsConfig) && isset($levelsConfig[$lvlIdx])) {
+            $goal = (int)($levelsConfig[$lvlIdx]['goal'] ?? $goal);
+        }
+
         // Retorna infos para o Frontend (VipPointHandler) decidir a View
         return ApiResponse::ok([
             'is_owner' => $isOwner,
@@ -69,8 +79,10 @@ class VipCardController extends Controller
             'customer' => [
                 'name' => $customer->name,
                 'points_balance' => $customer->points_balance,
+                'loyalty_level' => $customer->loyalty_level,
+                'loyalty_level_name' => $customer->loyalty_level_name,
             ],
-            'goal' => $tenant->points_goal,
+            'goal' => $goal,
             'card_uid' => $card->uid,
             'points_to_add' => $this->calculatePointsToAdd($customer, $tenant)
         ]);
@@ -136,9 +148,23 @@ class VipCardController extends Controller
                     $customer->update(['last_activity_at' => now()]);
                     $newBalance = $customer->fresh()->points_balance;
                     
+                    $customer = $customer->fresh();
+                    $newBalance = $customer->points_balance;
+                    
+                    // Goal calculation
+                    $loyalty = $tenant->loyaltySettings;
+                    $levelsConfig = $loyalty ? $loyalty->levels_config : null;
+                    $currentLevel = $customer->loyalty_level ?? 1;
+                    $currentGoal = $tenant->points_goal;
+                    $lvlIdx = max(0, (int)$currentLevel - 1);
+                    if (is_array($levelsConfig) && isset($levelsConfig[$lvlIdx])) {
+                        $currentGoal = (int)($levelsConfig[$lvlIdx]['goal'] ?? $currentGoal);
+                    }
+                    
                     return ApiResponse::ok([
                         'points_earned' => $pointsToAdd,
                         'new_balance' => $newBalance,
+                        'new_goal' => $currentGoal,
                         'message' => "+ {$pointsToAdd} pontos adicionados com sucesso.",
                         'auto_approved' => true
                     ]);
@@ -238,9 +264,23 @@ class VipCardController extends Controller
                     $customer->update(['last_activity_at' => now()]);
                     $newBalance = $customer->fresh()->points_balance;
                     
+                    $customer = $customer->fresh();
+                    $newBalance = $customer->points_balance;
+                    
+                    // Goal calculation for the NEW level
+                    $loyalty = $tenant->loyaltySettings;
+                    $levelsConfig = $loyalty ? $loyalty->levels_config : null;
+                    $currentLevel = $customer->loyalty_level ?? 1;
+                    $newGoal = $tenant->points_goal;
+                    $lvlIdx = max(0, (int)$currentLevel - 1);
+                    if (is_array($levelsConfig) && isset($levelsConfig[$lvlIdx])) {
+                        $newGoal = (int)($levelsConfig[$lvlIdx]['goal'] ?? $newGoal);
+                    }
+                    
                     return ApiResponse::ok([
                         'points_earned' => $pointsToAdd,
                         'new_balance' => $newBalance,
+                        'new_goal' => $newGoal,
                         'message' => "Prêmio resgatado e +{$pointsToAdd} pontos do novo nível adicionados.",
                         'auto_approved' => true
                     ]);

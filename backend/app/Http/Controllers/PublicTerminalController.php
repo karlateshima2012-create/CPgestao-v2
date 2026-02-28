@@ -583,13 +583,14 @@ class PublicTerminalController extends Controller
                 $this->telegramService->sendDirectMessage($device->telegram_chat_id, $message, $disableSound, $replyMarkup);
             }
 
-            $customer->update(['last_activity_at' => now()]);
-            $newBalance = $customer->fresh()->points_balance;
+            $customer = $customer->fresh();
+            $newBalance = $customer->points_balance;
 
             $goal = $tenant->points_goal;
-            $currentLevel = $customer->loyalty_level ?? 0;
-            if (is_array($levelsConfig) && isset($levelsConfig[$currentLevel])) {
-                $goal = (int)($levelsConfig[$currentLevel]['goal'] ?? $goal);
+            $currentLevel = (int)($customer->loyalty_level ?? 1);
+            $lvlIdx = max(0, $currentLevel - 1);
+            if (is_array($levelsConfig) && isset($levelsConfig[$lvlIdx])) {
+                $goal = (int)($levelsConfig[$lvlIdx]['goal'] ?? $goal);
             }
 
             $msg = 'Solicitação de resgate enviada com sucesso.';

@@ -54,6 +54,7 @@ export const VipPointHandler: React.FC = () => {
             setData({
                 ...data,
                 new_balance: res.data.new_balance,
+                goal: res.data.new_goal || data.goal,
                 success_message: res.data.message
             });
 
@@ -78,6 +79,7 @@ export const VipPointHandler: React.FC = () => {
                 ...data,
                 points_earned: res.data.points_earned,
                 new_balance: res.data.new_balance,
+                goal: res.data.new_goal || data.goal,
                 success_message: res.data.message
             });
 
