@@ -438,10 +438,10 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         {/* Content over Cover Image (Absolute Overlay) */}
         <div className="absolute top-0 left-0 right-0 h-72 md:h-[450px] flex flex-col justify-center p-6 z-10 text-white">
           <div className="flex items-center gap-6 md:gap-8 w-full">
-            {/* Logo - Border Radius 25%, floating shadow */}
-            <div className="w-24 h-24 md:w-36 md:h-36 bg-white dark:bg-gray-900 rounded-[25%] shadow-[0_30px_70px_rgba(0,0,0,0.4)] flex shrink-0 items-center justify-center overflow-hidden bg-center bg-cover transform -translate-y-4">
+            {/* Logo - Reduced Border Radius, floating shadow */}
+            <div className="w-24 h-24 md:w-36 md:h-36 bg-white dark:bg-gray-900 rounded-[22px] shadow-[0_30px_70px_rgba(0,0,0,0.4)] flex shrink-0 items-center justify-center overflow-hidden bg-center bg-cover transform -translate-y-4">
               {storeInfo.logo_url ? (
-                <img src={storeInfo.logo_url} alt={storeInfo.tenant_name} className="w-full h-full object-cover rounded-[25%]" />
+                <img src={storeInfo.logo_url} alt={storeInfo.tenant_name} className="w-full h-full object-cover rounded-[22px]" />
               ) : (
                 <DefaultLogo className="w-full h-full p-4" />
               )}
