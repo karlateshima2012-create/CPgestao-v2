@@ -403,13 +403,26 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         address: customerData.address,
         birthday: customerData.birthday
       });
-      setModal({
-        isOpen: true,
-        title: 'Cadastro Realizado!',
-        message: res.data.message || 'Seu cadastro foi concluído com sucesso.',
-        type: 'success'
-      });
-      handleLookup();
+      const isAdmin = !!localStorage.getItem('auth_token');
+      if (isAdmin && res.data.points_balance !== undefined) {
+        setApprovedData({
+          customer_name: res.data.name || customerData.name,
+          points_balance: res.data.points_balance,
+          loyalty_level_name: res.data.loyalty_level_name || 'Bronze',
+          points_goal: storeInfo?.levels_config?.[0]?.goal || storeInfo.points_goal,
+          tenant_name: storeInfo.name,
+          is_redemption: false
+        });
+        setMode('AUTO_SUCCESS');
+      } else {
+        setModal({
+          isOpen: true,
+          title: 'Cadastro Realizado!',
+          message: res.data.message || 'Seu cadastro foi concluído com sucesso.',
+          type: 'success'
+        });
+        handleLookup();
+      }
     } catch (error: any) {
       let msg = error.response?.data?.message || 'Não foi possível completar seu cadastro agora.';
 
@@ -785,8 +798,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                     }
                   }}
                   className={`w-full h-14 rounded-2xl font-black text-xs uppercase transition-all ${foundCustomer.is_premium
-                      ? "border-amber-200 text-amber-600 bg-amber-50 hover:bg-amber-100"
-                      : "bg-primary-500 text-white shadow-lg shadow-primary-500/20"
+                    ? "border-amber-200 text-amber-600 bg-amber-50 hover:bg-amber-100"
+                    : "bg-primary-500 text-white shadow-lg shadow-primary-500/20"
                     }`}
                 >
                   <ShieldCheck className="w-5 h-5 mr-3" />
@@ -814,7 +827,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
             <form onSubmit={handleRegister} className="space-y-4 text-left">
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nome Completo</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nome Completo *</label>
                 <input
                   type="text"
                   placeholder="Nome do Cliente"
@@ -829,20 +842,33 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Telefone</label>
-                  <div className="w-full h-12 px-4 bg-slate-100 border-transparent rounded-xl flex items-center font-black text-slate-500">
+                  <div className="w-full h-12 px-4 bg-slate-100 dark:bg-slate-800 border-transparent rounded-xl flex items-center font-black text-slate-500 dark:text-slate-400">
                     {phone}
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Cidade (Opcional)</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Província *</label>
                   <input
                     type="text"
-                    placeholder="Cidade"
+                    placeholder="Ex: Aichi"
                     className="w-full h-12 px-4 bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-800 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-primary-500 transition-all"
-                    value={customerData.city}
-                    onChange={e => setCustomerData({ ...customerData, city: normalizeText(e.target.value) })}
+                    value={customerData.province}
+                    onChange={e => setCustomerData({ ...customerData, province: normalizeText(e.target.value) })}
+                    required
                   />
                 </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Cidade *</label>
+                <input
+                  type="text"
+                  placeholder="Cidade"
+                  className="w-full h-12 px-4 bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-800 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-primary-500 transition-all"
+                  value={customerData.city}
+                  onChange={e => setCustomerData({ ...customerData, city: normalizeText(e.target.value) })}
+                  required
+                />
               </div>
 
               <div className="pt-4 space-y-4">

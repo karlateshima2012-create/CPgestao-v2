@@ -664,24 +664,72 @@ class PublicTerminalController extends Controller
                     $this->pointRequestService->applyPoints($requestRecord);
                     $requestRecord->update(['status' => 'auto_approved', 'approved_at' => now()]);
 
-                    $bonusMessage = " (Bônus de boas-vindas aplicado!)";
+                    $bonusMessage = " (Bônus de boas-vindas: {$bonus} pts)";
                 }
 
-                $successMsg = "✅ Cadastro realizado com sucesso!{$bonusMessage}";
+                // --- NEW INTEGRATED FLOW: Link Card & Award Visit Points ---
                 
-                if ($bonus > 0) {
-                    $bonusMsg = "🎁 <b>Bônus de Cadastro Aplicado</b>\n"
-                              . "👤 <b>Cliente:</b> {$customer->name}\n"
-                              . "💰 <b>Pontos:</b> {$bonus}";
+                // 1. Link Card if UID is a premium card
+                $linkMessage = "";
+                if ($uid) {
+                    $card = \App\Models\LoyaltyCard::where('tenant_id', $tenant->id)
+                        ->where('uid', $uid)
+                        ->where('type', 'premium')
+                        ->first();
+                    
+                    if ($card && !$card->linked_customer_id) {
+                        $card->update([
+                            'linked_customer_id' => $customer->id,
+                            'status' => 'linked',
+                            'active' => true
+                        ]);
+                        $customer->update(['is_premium' => true]);
+                        $linkMessage = " + Cartão Vinculado";
+                    }
+                }
+
+                // 2. Award Visit Points
+                $visitPts = 0;
+                if (is_array($levels) && count($levels) > 0 && isset($levels[0]['points_per_visit'])) {
+                    $visitPts = (int)$levels[0]['points_per_visit'];
+                } else {
+                    $visitPts = (int)($loyalty->regular_points_per_scan ?? 1);
+                }
+
+                if ($visitPts > 0) {
+                    $visitRequest = $this->createPointRequest([
+                        'tenant_id' => $tenant->id,
+                        'customer_id' => $customer->id,
+                        'phone' => $customer->phone,
+                        'device_id' => $device ? $device->id : null,
+                        'source' => $device ? $device->mode : 'terminal',
+                        'status' => 'pending',
+                        'requested_points' => $visitPts,
+                    ]);
+
+                    $this->pointRequestService->applyPoints($visitRequest);
+                    $visitRequest->update(['status' => 'auto_approved', 'approved_at' => now()]);
+                    
+                    $bonusMessage .= " + Pontos da Visita: {$visitPts} pts";
+                }
+
+                $successMsg = "✅ Cadastro realizado com sucesso!{$bonusMessage}{$linkMessage}";
+                
+                if ($bonus > 0 || $visitPts > 0) {
+                    $totalPts = $bonus + $visitPts;
+                    $summaryMsg = "🎁 <b>Cadastro e Pontuação Direta</b>\n"
+                               . "👤 <b>Cliente:</b> {$customer->name}\n"
+                               . "💰 <b>Total Creditado:</b> {$totalPts} pts"
+                               . ($linkMessage ? "\n💳 <b>Cartão VIP Vinculado\!</b>" : "");
                     
                     try {
                         if ($device && $device->telegram_chat_id) {
-                            $this->telegramService->sendDirectMessage($device->telegram_chat_id, $bonusMsg);
+                            $this->telegramService->sendDirectMessage($device->telegram_chat_id, $summaryMsg);
                         } else {
-                            $this->telegramService->sendMessage($tenant->id, $bonusMsg);
+                            $this->telegramService->sendMessage($tenant->id, $summaryMsg);
                         }
                     } catch (\Exception $te2) {
-                         \Illuminate\Support\Facades\Log::warning("Bonus Telegram alert failed: " . $te2->getMessage());
+                         \Illuminate\Support\Facades\Log::warning("Registration point Telegram alert failed: " . $te2->getMessage());
                     }
                 }
 
