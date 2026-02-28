@@ -813,26 +813,57 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                     }}
                   ></div>
                 </div>
-                <div className="mt-2 flex justify-between items-baseline">
+                <div className="mt-2 flex justify-between items-center">
                   <p className="text-[10px] font-bold text-slate-400 uppercase">
-                    Meta: {storeInfo?.levels_config?.[Math.max(0, (foundCustomer.loyalty_level || 1) - 1)]?.goal || storeInfo.points_goal} pts
+                    Meta: {storeInfo?.levels_config?.[Math.max(0, (Number(foundCustomer.loyalty_level) || 1) - 1)]?.goal || storeInfo.points_goal} pts
                   </p>
-                  <p className="text-[10px] font-black text-slate-500 uppercase">
+                  <div className="text-right">
                     {(() => {
-                      const goal = storeInfo?.levels_config?.[Math.max(0, (foundCustomer.loyalty_level || 1) - 1)]?.goal || storeInfo.points_goal;
+                      const levelIdx = Math.max(0, (Number(foundCustomer.loyalty_level) || 1) - 1);
+                      const goal = storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo.points_goal;
                       const remaining = Math.max(0, goal - foundCustomer.points_balance);
-                      if (remaining === 0) return "🚀 META ATINGIDA! NA PRÓXIMA VISITA O CLIENTE RESGATA O PRÊMIO!";
-                      if (remaining === 1) return `🎁 Você está a apenas 1 ponto de atingir a meta do prêmio!`;
-                      return `Faltam ${remaining} pts`;
+
+                      if (remaining === 0) return (
+                        <span className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase animate-pulse">
+                          🎉 META ATINGIDA!
+                        </span>
+                      );
+                      if (remaining === 1) return (
+                        <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase">
+                          🎁 Falta apenas 1 ponto!
+                        </span>
+                      );
+                      return (
+                        <span className="text-[10px] font-black text-slate-500 uppercase">
+                          Faltam {remaining} pts
+                        </span>
+                      );
                     })()}
-                  </p>
+                  </div>
                 </div>
+                {(() => {
+                  const levelIdx = Math.max(0, (Number(foundCustomer.loyalty_level) || 1) - 1);
+                  const goal = storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo.points_goal;
+                  const remaining = Math.max(0, goal - foundCustomer.points_balance);
+                  if (remaining === 1) return (
+                    <div className="mt-3 text-[11px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-tight text-center bg-blue-50 dark:bg-blue-900/20 py-2 rounded-lg border border-blue-100 dark:border-blue-900/30">
+                      🎁 O cliente está a apenas 1 ponto de atingir a meta!
+                    </div>
+                  );
+                  if (remaining === 0) return (
+                    <div className="mt-3 text-[11px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-tight text-center bg-amber-50 dark:bg-amber-900/20 py-2 rounded-lg border border-amber-100 dark:border-amber-900/30 animate-bounce">
+                      🚀 META ATINGIDA! O PRÊMIO PODE SER ENTREGUE AGORA!
+                    </div>
+                  );
+                  return null;
+                })()}
               </div>
             </div>
 
             <div className="flex flex-col gap-4">
               {(() => {
-                const goal = storeInfo?.levels_config?.[Math.max(0, (foundCustomer.loyalty_level || 1) - 1)]?.goal || storeInfo.points_goal;
+                const levelIdx = Math.max(0, (Number(foundCustomer.loyalty_level) || 1) - 1);
+                const goal = storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo.points_goal;
                 const canRedeem = foundCustomer.points_balance >= goal;
 
                 if (canRedeem) {

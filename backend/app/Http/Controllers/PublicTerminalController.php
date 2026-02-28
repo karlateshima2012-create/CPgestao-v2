@@ -208,11 +208,12 @@ class PublicTerminalController extends Controller
 
         $balance = $customer->points_balance;
         $levelsConfig = $tenant->loyaltySettings ? $tenant->loyaltySettings->levels_config : null;
-        $currentLevel = $customer->loyalty_level ?? 0;
+        $currentLevel = $customer->loyalty_level ?? 1; // Default to level 1 (Bronze) if null
         
         $goal = $tenant->points_goal;
-        if (is_array($levelsConfig) && isset($levelsConfig[$currentLevel])) {
-            $goal = (int)($levelsConfig[$currentLevel]['goal'] ?? $goal);
+        $lvlIdx = max(0, (int)$currentLevel - 1); // 1-indexed to 0-indexed
+        if (is_array($levelsConfig) && isset($levelsConfig[$lvlIdx])) {
+            $goal = (int)($levelsConfig[$lvlIdx]['goal'] ?? $goal);
         }
         $remaining = max(0, $goal - $balance);
 
@@ -436,8 +437,9 @@ class PublicTerminalController extends Controller
 
             $newBalance = $customer->fresh()->points_balance;
             $goal = $tenant->points_goal;
-            if (is_array($levelsConfig) && isset($levelsConfig[$currentLevel])) {
-                $goal = (int)($levelsConfig[$currentLevel]['goal'] ?? $goal);
+            $lvlIdx = max(0, (int)$currentLevel - 1); // 1-indexed to 0-indexed
+            if (is_array($levelsConfig) && isset($levelsConfig[$lvlIdx])) {
+                $goal = (int)($levelsConfig[$lvlIdx]['goal'] ?? $goal);
             }
 
             $msg = "✅ +{$pointsToAdd} ponto(s) adicionado(s). Saldo: {$newBalance} / Meta: {$goal}.";
@@ -478,14 +480,15 @@ class PublicTerminalController extends Controller
 
             $loyalty = $tenant->loyaltySettings ?: \App\Models\LoyaltySetting::create(['tenant_id' => $tenant->id]);
             $levelsConfig = $loyalty->levels_config;
-            $currentLevel = $customer ? ($customer->loyalty_level ?? 0) : 0;
+            $currentLevel = $customer ? ($customer->loyalty_level ?? 1) : 1;
             
             $goal = $tenant->points_goal;
             $levelName = "Nível VIP";
+            $lvlIdx = max(0, (int)$currentLevel - 1); // 1-indexed to 0-indexed
             
-            if (is_array($levelsConfig) && isset($levelsConfig[$currentLevel])) {
-                $goal = (int)($levelsConfig[$currentLevel]['goal'] ?? $goal);
-                $levelName = $levelsConfig[$currentLevel]['name'] ?? $levelName;
+            if (is_array($levelsConfig) && isset($levelsConfig[$lvlIdx])) {
+                $goal = (int)($levelsConfig[$lvlIdx]['goal'] ?? $goal);
+                $levelName = $levelsConfig[$lvlIdx]['name'] ?? $levelName;
             }
 
             if (!$customer || $customer->points_balance < $goal) {
