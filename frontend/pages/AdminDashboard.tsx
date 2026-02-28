@@ -815,7 +815,7 @@ export const AdminDashboard: React.FC = () => {
                               </button>
                               <button
                                 onClick={() => setEditingTenant({ ...editingTenant, plan_expires_at: addMonths(editingTenant.plan_expires_at!, 12) })}
-                                className="flex-1 py-2.5 bg-primary-600 hover:bg-primary-700 rounded-xl text-[10px] font-black text-white transition-all uppercase tracking-widest shadow-md shadow-primary-500/20"
+                                className="flex-1 py-2.5 bg-primary-600 hover:bg-primary-700 rounded-xl text-[10px] font-black text-white transition-all uppercase tracking-widest shadow-md shadow-slate-400/20"
                               >
                                 +12 MESES
                               </button>
@@ -887,7 +887,7 @@ export const AdminDashboard: React.FC = () => {
                           />
                         </div>
                         <Button
-                          className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3.5 font-black uppercase tracking-widest shadow-lg shadow-primary-500/20"
+                          className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3.5 font-black uppercase tracking-widest shadow-lg shadow-slate-400/20"
                           onClick={() => {
                             const data = { ...newDeviceData, mode: 'approval' };
                             tenantsService.createDevice(tenantForDevices!.id, { ...data, responsible_name: data.name })

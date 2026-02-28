@@ -260,7 +260,7 @@ export const LoyaltyTab: React.FC<LoyaltyTabProps> = ({ tenantPlan, contacts = [
 
          <div className="pt-6 mt-8 border-t border-gray-100 dark:border-gray-800">
             <Button
-               className="w-full h-14 bg-primary-500 text-white shadow-xl shadow-primary-500/20 font-black text-sm uppercase tracking-widest rounded-[15px]"
+               className="w-full h-14 bg-primary-500 text-white shadow-xl shadow-slate-400/20 font-black text-sm uppercase tracking-widest rounded-[15px]"
                onClick={handleUpdateSettings}
                disabled={isLoading}
             >

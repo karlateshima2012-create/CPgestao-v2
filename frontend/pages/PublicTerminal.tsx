@@ -922,7 +922,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                     }}
                     className={`w-full h-14 rounded-2xl font-black text-xs uppercase transition-all ${foundCustomer.is_premium
                       ? "border-amber-200 text-amber-600 bg-amber-50 hover:bg-amber-100"
-                      : "bg-primary-500 text-white shadow-lg shadow-primary-500/20"
+                      : "bg-primary-500 text-white shadow-lg shadow-slate-400/20"
                       }`}
                   >
                     <ShieldCheck className="w-5 h-5 mr-3" />
@@ -1073,7 +1073,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                     setLoading(false);
                   }
                 }}
-                className="w-full h-16 bg-primary-500 text-white shadow-xl shadow-primary-500/20 rounded-2xl font-black uppercase tracking-widest"
+                className="w-full h-16 bg-primary-500 text-white shadow-xl shadow-slate-400/20 rounded-2xl font-black uppercase tracking-widest"
               >
                 Vincular
               </Button>
@@ -1148,7 +1148,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 <Button
                   type="submit"
                   isLoading={loading}
-                  className="w-full h-16 bg-primary-500 text-white shadow-xl shadow-primary-500/20 rounded-2xl font-black uppercase tracking-widest text-lg"
+                  className="w-full h-16 bg-primary-500 text-white shadow-xl shadow-slate-400/20 rounded-2xl font-black uppercase tracking-widest text-lg"
                 >
                   CADASTRAR E VINCULAR
                 </Button>

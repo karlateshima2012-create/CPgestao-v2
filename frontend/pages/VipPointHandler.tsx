@@ -140,7 +140,7 @@ export const VipPointHandler: React.FC = () => {
                         <div className="space-y-3">
                             <Button
                                 onClick={() => window.location.href = `/client?tab=devices&link_uid=${data.card_uid}`}
-                                className="w-full h-16 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-blue-600/20 text-sm transition-all active:scale-95"
+                                className="w-full h-16 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-slate-400/20 text-sm transition-all active:scale-95"
                             >
                                 Vincular Agora
                             </Button>
@@ -200,7 +200,7 @@ export const VipPointHandler: React.FC = () => {
                             <Button
                                 onClick={handleAddPoint}
                                 isLoading={loadingPoint}
-                                className="w-full h-16 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest rounded-2xl text-base shadow-xl shadow-blue-600/20 transition-all active:scale-95"
+                                className="w-full h-16 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest rounded-2xl text-base shadow-xl shadow-slate-400/20 transition-all active:scale-95"
                             >
                                 Confirmar +{data.points_to_add || 1} Ponto{data.points_to_add > 1 ? 's' : ''}
                             </Button>
