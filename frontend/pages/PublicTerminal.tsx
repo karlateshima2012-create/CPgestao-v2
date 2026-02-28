@@ -423,23 +423,23 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gray-950 font-sans flex flex-col items-center md:pb-12">
-      {/* 1. HERO SECTION */}
-      <div className="w-full md:w-[80%] max-w-3xl bg-white dark:bg-gray-900 md:shadow-lg overflow-hidden relative animate-fade-in">
-        {/* Cover Image Background */}
-        <div className="h-72 md:h-[400px] w-full bg-gray-200 dark:bg-gray-800 relative">
+      {/* MAIN UNIFIED CARD */}
+      <div className="w-full md:w-[80%] max-w-3xl bg-white dark:bg-slate-900 md:rounded-[45px] shadow-2xl relative z-20 flex flex-col overflow-hidden animate-fade-in">
+        {/* 1. HERO SECTION - Now part of the unified card */}
+        <div className="h-72 md:h-[400px] w-full bg-gray-200 dark:bg-gray-800 relative shrink-0">
           {storeInfo.cover_url ? (
-            <img src={storeInfo.cover_url} alt="Cover" className="w-full h-full object-cover" />
+            <img src={storeInfo.cover_url} alt="Cover" className="w-full h-full object-cover block" />
           ) : (
             <div className="w-full h-full bg-gradient-to-r from-gray-700 to-gray-900" />
           )}
           {/* Removed dark overlays to keep cover image original colors */}
         </div>
 
-        {/* Content over Cover Image */}
-        <div className="absolute inset-0 flex flex-col justify-center p-6 z-10 text-white">
+        {/* Content over Cover Image (Absolute Overlay) */}
+        <div className="absolute top-0 left-0 right-0 h-72 md:h-[400px] flex flex-col justify-center p-6 z-10 text-white">
           <div className="flex items-center gap-6 md:gap-8 w-full">
-            {/* Logo left aligned, larger, centered vertically with text - No border, floating shadow effect */}
-            <div className="w-24 h-24 md:w-32 md:h-32 bg-white dark:bg-gray-900 rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex shrink-0 items-center justify-center overflow-hidden bg-center bg-cover transform -translate-y-2">
+            {/* Logo - Border Radius 25%, floating shadow */}
+            <div className="w-24 h-24 md:w-32 md:h-32 bg-white dark:bg-gray-900 rounded-[25%] shadow-[0_25px_60px_rgba(0,0,0,0.35)] flex shrink-0 items-center justify-center overflow-hidden bg-center bg-cover transform -translate-y-2">
               {storeInfo.logo_url ? (
                 <img src={storeInfo.logo_url} alt={storeInfo.tenant_name} className="w-full h-full object-cover" />
               ) : (
@@ -452,13 +452,11 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="w-full md:w-[80%] max-w-3xl bg-white dark:bg-slate-900 md:rounded-[45px] shadow-2xl -mt-16 md:-mt-24 relative z-20 border-none flex flex-col overflow-hidden animate-fade-in">
-        {/* Description Header Inside Card */}
-        <div className="w-full text-center px-6 py-10 md:py-14 bg-slate-50/20 dark:bg-slate-800/10 Seamless">
+        {/* Description Header Inside Unified Card */}
+        <div className="w-full text-center px-6 py-10 md:py-14 bg-slate-50/20 dark:bg-slate-800/10">
           <p className="text-sm md:text-lg text-slate-600 dark:text-slate-300 font-semibold leading-relaxed max-w-2xl mx-auto px-4">
-            {storeInfo.description || 'A descrição do programa de fidelidade da sua loja aparecerá aqui. Escreva um texto mostrando onde ela está, explicando as regras e benefícios aos clientes.'}
+            {storeInfo.description || 'A descrição do programa de fidelidade da sua loja aparecerá aqui.'}
           </p>
         </div>
 
@@ -468,7 +466,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               {/* Action 1: Consultar Saldo */}
               <div
                 onClick={() => setMode('CONSULT')}
-                className="group cursor-pointer bg-white dark:bg-slate-800/80 rounded-[35px] p-8 shadow-[0_15px_40px_rgba(0,0,0,0.06)] border-none transition-all hover:-translate-y-1 hover:shadow-[0_25px_50px_rgba(0,0,0,0.12)] flex flex-col items-center justify-center text-center space-y-4 min-h-[160px]"
+                className="group cursor-pointer bg-white dark:bg-slate-800/80 rounded-[22px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.12)] border-none transition-all hover:-translate-y-1 hover:shadow-[0_30px_60px_rgba(0,0,0,0.18)] flex flex-col items-center justify-center text-center space-y-4 min-h-[160px]"
               >
                 <div className="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
                   <Search className="w-7 h-7 text-slate-900 dark:text-white" />
@@ -482,7 +480,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               {/* Action 2: Cadastrar */}
               <div
                 onClick={() => setMode('REGISTER')}
-                className="group cursor-pointer bg-white dark:bg-slate-800/80 rounded-[35px] p-8 shadow-[0_15px_40px_rgba(0,0,0,0.06)] border-none transition-all hover:-translate-y-1 hover:shadow-[0_25px_50px_rgba(0,0,0,0.12)] flex flex-col items-center justify-center text-center space-y-4 min-h-[160px]"
+                className="group cursor-pointer bg-white dark:bg-slate-800/80 rounded-[22px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.12)] border-none transition-all hover:-translate-y-1 hover:shadow-[0_30px_60px_rgba(0,0,0,0.18)] flex flex-col items-center justify-center text-center space-y-4 min-h-[160px]"
               >
                 <div className="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
                   <UserPlus className="w-7 h-7 text-slate-900 dark:text-white" />
