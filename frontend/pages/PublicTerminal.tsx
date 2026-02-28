@@ -454,9 +454,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         </div>
       </div>
 
-      <div className="w-full md:w-[80%] max-w-3xl bg-white dark:bg-slate-900 md:rounded-[45px] shadow-2xl -mt-16 md:-mt-24 relative z-20 border md:border-t-0 border-slate-100 dark:border-slate-800 flex flex-col overflow-hidden animate-fade-in">
+      <div className="w-full md:w-[80%] max-w-3xl bg-white dark:bg-slate-900 md:rounded-[45px] shadow-2xl -mt-16 md:-mt-24 relative z-20 border-none flex flex-col overflow-hidden animate-fade-in">
         {/* Description Header Inside Card */}
-        <div className="w-full text-center px-6 py-10 md:py-14 border-b border-slate-50 dark:border-slate-800/50 bg-slate-50/30 dark:bg-slate-800/20">
+        <div className="w-full text-center px-6 py-10 md:py-14 bg-slate-50/20 dark:bg-slate-800/10 Seamless">
           <p className="text-sm md:text-lg text-slate-600 dark:text-slate-300 font-semibold leading-relaxed max-w-2xl mx-auto px-4">
             {storeInfo.description || 'A descrição do programa de fidelidade da sua loja aparecerá aqui. Escreva um texto mostrando onde ela está, explicando as regras e benefícios aos clientes.'}
           </p>
@@ -468,7 +468,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               {/* Action 1: Consultar Saldo */}
               <div
                 onClick={() => setMode('CONSULT')}
-                className="group cursor-pointer bg-white dark:bg-slate-800/80 rounded-[30px] p-8 shadow-xl border border-slate-50 dark:border-slate-700 transition-all hover:-translate-y-1 hover:shadow-2xl flex flex-col items-center justify-center text-center space-y-4 min-h-[160px]"
+                className="group cursor-pointer bg-white dark:bg-slate-800/80 rounded-[35px] p-8 shadow-[0_15px_40px_rgba(0,0,0,0.06)] border-none transition-all hover:-translate-y-1 hover:shadow-[0_25px_50px_rgba(0,0,0,0.12)] flex flex-col items-center justify-center text-center space-y-4 min-h-[160px]"
               >
                 <div className="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
                   <Search className="w-7 h-7 text-slate-900 dark:text-white" />
@@ -482,7 +482,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               {/* Action 2: Cadastrar */}
               <div
                 onClick={() => setMode('REGISTER')}
-                className="group cursor-pointer bg-white dark:bg-slate-800/80 rounded-[30px] p-8 shadow-xl border border-slate-50 dark:border-slate-700 transition-all hover:-translate-y-1 hover:shadow-2xl flex flex-col items-center justify-center text-center space-y-4 min-h-[160px]"
+                className="group cursor-pointer bg-white dark:bg-slate-800/80 rounded-[35px] p-8 shadow-[0_15px_40px_rgba(0,0,0,0.06)] border-none transition-all hover:-translate-y-1 hover:shadow-[0_25px_50px_rgba(0,0,0,0.12)] flex flex-col items-center justify-center text-center space-y-4 min-h-[160px]"
               >
                 <div className="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
                   <UserPlus className="w-7 h-7 text-slate-900 dark:text-white" />
@@ -497,7 +497,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         )}
 
         {mode === 'CONSULT' && (
-          <div className="p-6 md:p-10 text-center relative overflow-hidden animate-fade-in space-y-8 w-full border-b border-slate-50 dark:border-slate-800/50">
+          <div className="p-6 md:p-10 text-center relative overflow-hidden animate-fade-in space-y-8 w-full">
             <div className="flex items-center justify-start absolute top-6 left-6">
               <button type="button" onClick={() => setMode('START')} className="p-3 bg-slate-50 dark:bg-slate-800 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"><ChevronLeft className="w-5 h-5" /></button>
             </div>
