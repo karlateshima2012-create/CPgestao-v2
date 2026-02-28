@@ -361,19 +361,24 @@ class PublicTerminalController extends Controller
                 'meta' => $token ? ['qr_token' => $token] : null,
             ]);
 
-            // Flow 3: AUTO-APPROVE Logic
+            // Flow 3: PLAN-BASED APPROVAL LOCK (Locked per requirement)
             $isElite = (strtolower($tenant->plan) === 'elite');
             $isPro = (strtolower($tenant->plan) === 'pro');
+            $isClassic = (strtolower($tenant->plan) === 'classic');
             
-            // Elite: 100% automatic (per Requirement 3)
-            // Pro: Mandatory Telegram approval (per Requirement 3), regardless of device settings
             $canAutoApprove = false;
             if ($isElite) {
+                // Elite: 100% automatic (Requirement: "pontuação continua sendo automática")
                 $canAutoApprove = true;
             } elseif ($isPro) {
+                // Pro: Mandatory Telegram approval (Requirement: "solicita aprovação via Telegram")
                 $canAutoApprove = false;
+            } elseif ($isClassic) {
+                // Classic: Approval via the loyalty card (Requirement: "se dá por meio do cartão de ponto")
+                // Scanning a card generates a token; manual phone entry does not.
+                $canAutoApprove = !empty($token);
             } else {
-                // Other plans (e.g. Trial/Custom) follow device settings and policy
+                // Follow device settings for other plans/trials
                 $canAutoApprove = ($device && $device->auto_approve && $this->planService->canAutoApprove($tenant));
             }
 
@@ -438,7 +443,8 @@ class PublicTerminalController extends Controller
     {
         $request->validate([
             'phone' => 'required|string',
-            'pin' => 'required|string'
+            'pin' => 'nullable|string',
+            'token' => 'nullable|string'
         ]);
 
         return DB::transaction(function () use ($request, $slug, $uid) {
@@ -500,10 +506,21 @@ class PublicTerminalController extends Controller
                 ]
             ]);
 
-            // Redemptions usually require manual approval except in Elite auto_checkin mode?
-            // Actually, redemptions are "prizes", so manual approval is often preferred.
-            // But if auto_approve is on, follow it.
-            $canAutoApprove = ($device && $device->auto_approve && $this->planService->canAutoApprove($tenant));
+            // Flow 3: PLAN-BASED APPROVAL LOCK (Locked per requirement)
+            $isElite = (strtolower($tenant->plan) === 'elite');
+            $isPro = (strtolower($tenant->plan) === 'pro');
+            $isClassic = (strtolower($tenant->plan) === 'classic');
+            
+            $canAutoApprove = false;
+            if ($isElite) {
+                $canAutoApprove = true;
+            } elseif ($isPro) {
+                $canAutoApprove = false;
+            } elseif ($isClassic) {
+                $canAutoApprove = !empty($request->token);
+            } else {
+                $canAutoApprove = ($device && $device->auto_approve && $this->planService->canAutoApprove($tenant));
+            }
 
             if ($canAutoApprove) {
                 $this->pointRequestService->applyPoints($requestRecord);

@@ -323,7 +323,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   const handleRedeem = async () => {
     setLoading(true);
     try {
-      const res = await terminalService.redeem(tenantSlug, deviceUid, phone);
+      const res = await terminalService.redeem(tenantSlug, deviceUid, phone, qrToken);
       const isAuto = res.data.auto_approved;
       setRequestId(res.data.request_id);
       if (isAuto) {

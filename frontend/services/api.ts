@@ -83,9 +83,9 @@ export const terminalService = {
         : api.post(`/public/p/${slug}/earn`, { phone, token }),
     autoEarn: (slug: string, uid: string) =>
         api.post(`/public/terminal/${slug}/${uid}/auto-earn`),
-    redeem: (slug: string, uid: string | null, phone: string) => uid
-        ? api.post(`/public/terminal/${slug}/${uid}/redeem`, { phone })
-        : api.post(`/public/p/${slug}/redeem`, { phone }),
+    redeem: (slug: string, uid: string | null, phone: string, token?: string | null) => uid
+        ? api.post(`/public/terminal/${slug}/${uid}/redeem`, { phone, token })
+        : api.post(`/public/p/${slug}/redeem`, { phone, token }),
     register: (slug: string, uid: string | null, data: { name: string, phone: string, email?: string, city?: string, province?: string, postal_code?: string, address?: string, birthday?: string }) => uid
         ? api.post(`/public/terminal/${slug}/${uid}/register`, data)
         : api.post(`/public/p/${slug}/register`, data),
