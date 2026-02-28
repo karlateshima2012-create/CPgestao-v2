@@ -442,8 +442,11 @@ class PublicTerminalController extends Controller
 
             return ApiResponse::ok([
                 'request_id' => $requestRecord->id,
+                'customer_name' => $customer->name,
                 'points_earned' => $pointsToAdd, 
                 'new_balance' => $newBalance,
+                'loyalty_level_name' => $customer->loyalty_level_name,
+                'points_goal' => $goal,
                 'message' => $msg,
                 'auto_approved' => $canAutoApprove
             ]);
@@ -563,9 +566,18 @@ class PublicTerminalController extends Controller
             $customer->update(['last_activity_at' => now()]);
             $newBalance = $customer->fresh()->points_balance;
 
+            $goal = $tenant->points_goal;
+            $currentLevel = $customer->loyalty_level ?? 0;
+            if (is_array($levelsConfig) && isset($levelsConfig[$currentLevel])) {
+                $goal = (int)($levelsConfig[$currentLevel]['goal'] ?? $goal);
+            }
+
             return ApiResponse::ok([
                 'request_id' => $requestRecord->id,
+                'customer_name' => $customer->name,
                 'new_balance' => $newBalance,
+                'loyalty_level_name' => $customer->loyalty_level_name,
+                'points_goal' => $goal,
                 'message' => 'Solicitação de resgate enviada com sucesso.',
                 'auto_approved' => $canAutoApprove
             ]);
@@ -733,9 +745,16 @@ class PublicTerminalController extends Controller
                     }
                 }
 
+                $goal = $tenant->points_goal;
+                if (is_array($levels) && count($levels) > 0) {
+                    $goal = (int)($levels[0]['goal'] ?? $goal);
+                }
+
                 return ApiResponse::ok([
                     'customer_exists' => true,
                     'points_balance' => $customer->fresh()->points_balance,
+                    'loyalty_level_name' => $customer->fresh()->loyalty_level_name,
+                    'points_goal' => $goal,
                     'id' => $customer->id,
                     'name' => $customer->name,
                     'is_premium' => false,
