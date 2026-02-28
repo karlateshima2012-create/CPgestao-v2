@@ -209,10 +209,22 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         });
       }
 
-      // Se for um dispositivo PREMIUM e estiver VINCULADO, apenas preenche e consulta
+      const isAdmin = !!localStorage.getItem('auth_token');
+
+      // Se for um dispositivo PREMIUM e estiver VINCULADO
       if (res.data.device_type === 'premium' && res.data.prefill_phone) {
         setPhone(res.data.prefill_phone);
-        handleLookup();
+        // Se for o lojista escaneando, vamos direto para a tela de ação do lojista
+        if (isAdmin) {
+          const lookupRes = await terminalService.lookup(slug, uid || null, res.data.prefill_phone, token);
+          setFoundCustomer(lookupRes.data);
+          setMode('LOJISTA_ACTIONS');
+        } else {
+          handleLookup();
+        }
+      } else if (res.data.device_type === 'premium' && !res.data.prefill_phone && isAdmin) {
+        // Cartão não vinculado mas lido pelo lojista
+        setMode('LOJISTA_SEARCH');
       } else {
         setMode('START');
       }
@@ -233,7 +245,12 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         setMode('REGISTER');
       } else {
         setFoundCustomer(res.data);
-        setMode('RESULT_CLIENT');
+        const isAdmin = !!localStorage.getItem('auth_token');
+        if (isAdmin) {
+          setMode('LOJISTA_ACTIONS');
+        } else {
+          setMode('RESULT_CLIENT');
+        }
       }
     } catch (error: any) {
       if (error.response?.status === 404) {
@@ -658,6 +675,109 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* LOJISTA - ATRIBUIR CARTÃO */}
+        {mode === 'LOJISTA_SEARCH' && (
+          <div className="p-6 md:p-10 text-center animate-fade-in space-y-8 w-full">
+            <div className="pt-4 space-y-2">
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">Vincular Novo Cartão</h2>
+              <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-relaxed">
+                Este cartão ainda não está vinculado.<br />Informe o telefone do cliente para associar.
+              </p>
+            </div>
+
+            <form onSubmit={handleConsult} className="space-y-6">
+              <div className="relative group">
+                <Smartphone className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-300" />
+                <input
+                  type="tel"
+                  placeholder="090-0000-0000"
+                  className="w-full pl-16 pr-8 py-5 bg-slate-50 dark:bg-slate-800/50 border-2 border-slate-100 dark:border-slate-800 rounded-2xl text-2xl font-black text-slate-900 dark:text-white outline-none transition-all placeholder:text-slate-200"
+                  value={phone}
+                  onChange={e => setPhone(formatJapanesePhone(e.target.value))}
+                  autoFocus
+                />
+              </div>
+
+              <Button type="submit" isLoading={loading} className="w-full h-16 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest">
+                BUSCAR CLIENTE
+              </Button>
+            </form>
+          </div>
+        )}
+
+        {/* LOJISTA - CONFIRMAR PONTUAÇÃO */}
+        {mode === 'LOJISTA_ACTIONS' && foundCustomer && (
+          <div className="p-6 md:p-10 text-center animate-fade-in space-y-8 w-full">
+            <div className="space-y-4">
+              <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-3xl flex items-center justify-center mx-auto shadow-inner">
+                <UserCheck className="w-10 h-10 text-slate-900 dark:text-white" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Confirmar Atendimento</h3>
+                <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{foundCustomer.name}</h2>
+                <p className="text-sm font-bold text-slate-500">{foundCustomer.phone}</p>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6 space-y-2">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Saldo Atual</p>
+              <p className="text-4xl font-black text-slate-900 dark:text-white">{foundCustomer.points_balance} pts</p>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <Button
+                onClick={() => handleAction('earn')}
+                isLoading={loading}
+                className="h-20 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-black uppercase tracking-widest text-lg shadow-xl shadow-green-600/20 transition-all flex items-center justify-center gap-2 group"
+              >
+                <Trophy className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                Dê +1 Ponto
+              </Button>
+
+              <Button
+                variant="ghost"
+                onClick={reset}
+                className="h-14 text-slate-400 font-bold uppercase tracking-widest text-xs hover:text-slate-600"
+              >
+                CANCELAR
+              </Button>
+            </div>
+
+            {!foundCustomer.is_premium && deviceUid && (
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+                <Button
+                  onClick={async () => {
+                    try {
+                      setLoading(true);
+                      await terminalService.linkVip(tenantSlug, deviceUid, { phone, target_uid: deviceUid });
+                      setModal({
+                        isOpen: true,
+                        title: 'Cartão Vinculado!',
+                        message: 'Este cartão agora pertence a este cliente.',
+                        type: 'success'
+                      });
+                      handleLookup();
+                    } catch (err: any) {
+                      setModal({
+                        isOpen: true,
+                        title: 'Erro ao Vincular',
+                        message: err.response?.data?.message || 'Erro ao vincular cartão',
+                        type: 'error'
+                      });
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  variant="outline"
+                  className="w-full h-12 border-slate-200 dark:border-slate-700 text-slate-500 rounded-xl font-bold text-xs uppercase"
+                >
+                  <ShieldCheck className="w-4 h-4 mr-2" /> Ativar como Cartão VIP
+                </Button>
+              </div>
+            )}
           </div>
         )}
         {
