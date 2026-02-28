@@ -91,6 +91,7 @@ export const terminalService = {
         : api.post(`/public/p/${slug}/register`, data),
     linkVip: (slug: string, uid: string, data: { phone: string, target_uid: string }) =>
         api.post(`/public/terminal/${slug}/${uid}/link-vip`, data),
-    getRequestStatus: (slug: string, uid: string, requestId: string) =>
-        api.get(`/public/terminal/${slug}/${uid}/point-requests/${requestId}/status`),
+    getRequestStatus: (slug: string, uid: string | null, requestId: string) => uid
+        ? api.get(`/public/terminal/${slug}/${uid}/point-requests/${requestId}/status`)
+        : api.get(`/public/p/${slug}/point-requests/${requestId}/status`),
 };

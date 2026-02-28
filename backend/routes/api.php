@@ -112,8 +112,12 @@ Route::prefix('public')->group(function () {
 
     // Alias endpoints for UID-less operations if called via /p/{slug} in front
     Route::prefix('p/{slug}')->group(function () {
+        Route::get('/', [PublicTerminalController::class, 'getInfo']);
         Route::post('/lookup', [PublicTerminalController::class, 'lookup']);
         Route::post('/register', [PublicTerminalController::class, 'register']);
+        Route::post('/earn', [PublicTerminalController::class, 'earn']);
+        Route::post('/redeem', [PublicTerminalController::class, 'redeem']);
+        Route::get('/point-requests/{requestId}/status', [PublicTerminalController::class, 'getRequestStatus']);
     });
 });
 

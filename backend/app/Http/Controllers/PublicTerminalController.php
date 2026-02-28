@@ -233,7 +233,7 @@ class PublicTerminalController extends Controller
         return ApiResponse::ok(null, 'PIN validado com sucesso');
     }
 
-    public function earn(Request $request, $slug, $uid)
+    public function earn(Request $request, $slug, $uid = null)
     {
         $request->validate([
             'phone' => 'required|string',
@@ -453,7 +453,7 @@ class PublicTerminalController extends Controller
         });
     }
 
-    public function redeem(Request $request, $slug, $uid)
+    public function redeem(Request $request, $slug, $uid = null)
     {
         $request->validate([
             'phone' => 'required|string',
@@ -771,7 +771,7 @@ class PublicTerminalController extends Controller
         }
     }
 
-    public function linkVip(Request $request, $slug, $uid)
+    public function linkVip(Request $request, $slug, $uid = null)
     {
         $request->validate([
             'phone' => 'required|string',
@@ -827,7 +827,7 @@ class PublicTerminalController extends Controller
         });
     }
 
-    public function getRequestStatus($slug, $uid, $requestId)
+    public function getRequestStatus($slug, $uid = null, $requestId)
     {
         $requestRecord = \App\Models\PointRequest::with(['customer', 'store.loyaltySettings'])->findOrFail($requestId);
         
