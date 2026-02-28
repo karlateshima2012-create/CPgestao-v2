@@ -422,13 +422,13 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   if (mode === 'INVALID_DEVICE') return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 font-sans"><p className="text-gray-400 font-bold">{errorMsg || 'DISPOSITIVO INVÁLIDO OU NÃO ENCONTRADO'}</p></div>;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-gray-950 font-sans flex flex-col items-center md:pb-12">
-      {/* MAIN UNIFIED CARD */}
-      <div className="w-full md:w-[80%] max-w-3xl bg-white dark:bg-slate-900 md:rounded-[45px] shadow-2xl relative z-20 flex flex-col overflow-hidden animate-fade-in">
-        {/* 1. HERO SECTION - Now part of the unified card */}
-        <div className="h-72 md:h-[400px] w-full bg-gray-200 dark:bg-gray-800 relative shrink-0">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-950 font-sans flex flex-col items-center pointer-events-auto">
+      {/* MAIN UNIFIED CARD - Glued to top */}
+      <div className="w-full md:w-[85%] max-w-4xl bg-white dark:bg-slate-900 md:rounded-t-none md:rounded-b-[50px] shadow-2xl relative z-20 flex flex-col overflow-hidden animate-fade-in border-none">
+        {/* 1. HERO SECTION - Occupying 100% of the top */}
+        <div className="h-72 md:h-[450px] w-full bg-slate-200 dark:bg-slate-800 relative shrink-0 overflow-hidden">
           {storeInfo.cover_url ? (
-            <img src={storeInfo.cover_url} alt="Cover" className="w-full h-full object-cover block" />
+            <img src={storeInfo.cover_url} alt="Cover" className="w-full h-full object-cover block absolute inset-0" />
           ) : (
             <div className="w-full h-full bg-gradient-to-r from-gray-700 to-gray-900" />
           )}
@@ -436,14 +436,14 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         </div>
 
         {/* Content over Cover Image (Absolute Overlay) */}
-        <div className="absolute top-0 left-0 right-0 h-72 md:h-[400px] flex flex-col justify-center p-6 z-10 text-white">
+        <div className="absolute top-0 left-0 right-0 h-72 md:h-[450px] flex flex-col justify-center p-6 z-10 text-white">
           <div className="flex items-center gap-6 md:gap-8 w-full">
             {/* Logo - Border Radius 25%, floating shadow */}
-            <div className="w-24 h-24 md:w-32 md:h-32 bg-white dark:bg-gray-900 rounded-[25%] shadow-[0_25px_60px_rgba(0,0,0,0.35)] flex shrink-0 items-center justify-center overflow-hidden bg-center bg-cover transform -translate-y-2">
+            <div className="w-24 h-24 md:w-36 md:h-36 bg-white dark:bg-gray-900 rounded-[25%] shadow-[0_30px_70px_rgba(0,0,0,0.4)] flex shrink-0 items-center justify-center overflow-hidden bg-center bg-cover transform -translate-y-4">
               {storeInfo.logo_url ? (
-                <img src={storeInfo.logo_url} alt={storeInfo.tenant_name} className="w-full h-full object-cover" />
+                <img src={storeInfo.logo_url} alt={storeInfo.tenant_name} className="w-full h-full object-cover rounded-[25%]" />
               ) : (
-                <DefaultLogo className="w-full h-full" />
+                <DefaultLogo className="w-full h-full p-4" />
               )}
             </div>
 
