@@ -654,9 +654,7 @@ class PublicTerminalController extends Controller
                     \Illuminate\Support\Facades\Log::warning("Registration Telegram alert failed: " . $te->getMessage());
                 }
 
-                $loyalty = $tenant->loyaltySettings ?: \App\Models\LoyaltySetting::create(['tenant_id' => $tenant->id]);
-                
-                $bonus = 0;
+                $loyalty = \App\Models\LoyaltySetting::firstOrCreate(['tenant_id' => $tenant->id]);
                 $levels = $loyalty->levels_config;
                 if (is_array($levels) && count($levels) > 0 && isset($levels[0]['points_per_signup'])) {
                     $bonus = (int)$levels[0]['points_per_signup'];
@@ -735,10 +733,10 @@ class PublicTerminalController extends Controller
                 
                 if ($bonus > 0 || $visitPts > 0) {
                     $totalPts = $bonus + $visitPts;
-                    $summaryMsg = "🎁 <b>Cadastro e Pontuação Direta</b>\n"
-                               . "👤 <b>Cliente:</b> {$customer->name}\n"
-                               . "💰 <b>Total Creditado:</b> {$totalPts} pts"
-                               . ($linkMessage ? "\n💳 <b>Cartão VIP Vinculado\!</b>" : "");
+                    $summaryMsg = "🎁 *Cadastro e Pontuação Direta*\n"
+                               . "👤 *Cliente:* {$escName}\n"
+                               . "💰 *Total Creditado:* {$totalPts} pts"
+                               . ($linkMessage ? "\n💳 *Cartão VIP Vinculado\!*" : "");
                     
                     try {
                         if ($device && $device->telegram_chat_id) {

@@ -822,7 +822,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                       const goal = storeInfo?.levels_config?.[Math.max(0, (foundCustomer.loyalty_level || 1) - 1)]?.goal || storeInfo.points_goal;
                       const remaining = Math.max(0, goal - foundCustomer.points_balance);
                       if (remaining === 0) return "🚀 META ATINGIDA! NA PRÓXIMA VISITA O CLIENTE RESGATA O PRÊMIO!";
-                      if (remaining === 1) return "🎁 Falta apenas 1 ponto p/ a meta!";
+                      if (remaining === 1) return `🎁 Você está a apenas 1 ponto de atingir a meta do prêmio!`;
                       return `Faltam ${remaining} pts`;
                     })()}
                   </p>
@@ -1378,7 +1378,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                   {(() => {
                     const remaining = Math.max(0, approvedData.points_goal - approvedData.points_balance);
                     if (remaining === 0) return "🚀 META ATINGIDA! NA PRÓXIMA VISITA VOCÊ RESGATA O SEU PRÊMIO! 🎁";
-                    if (remaining === 1) return "🎁 Faltam apenas 1 ponto para você desbloquear o seu próximo prêmio!";
+                    if (remaining === 1) return "🎁 Você está a apenas 1 ponto de atingir a meta do prêmio!";
                     return `🎁 Faltam apenas ${remaining} pontos para você desbloquear o seu próximo prêmio!`;
                   })()}
                 </p>
