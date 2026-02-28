@@ -298,7 +298,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           customer_name: foundCustomer.name,
           points_balance: res.data.new_balance,
           loyalty_level_name: foundCustomer.loyalty_level_name,
-          points_goal: storeInfo?.levels_config?.[foundCustomer.loyalty_level || 0]?.goal || storeInfo.points_goal,
+          points_goal: storeInfo?.levels_config?.[Math.max(0, (foundCustomer.loyalty_level || 1) - 1)]?.goal || storeInfo.points_goal,
           tenant_name: storeInfo.name
         });
         setMode('AUTO_SUCCESS');
@@ -331,7 +331,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           customer_name: foundCustomer.name,
           points_balance: res.data.new_balance,
           loyalty_level_name: foundCustomer.loyalty_level_name,
-          points_goal: storeInfo?.levels_config?.[foundCustomer.loyalty_level || 0]?.goal || storeInfo.points_goal,
+          points_goal: storeInfo?.levels_config?.[Math.max(0, (foundCustomer.loyalty_level || 1) - 1)]?.goal || storeInfo.points_goal,
           tenant_name: storeInfo.name
         });
         setMode('AUTO_SUCCESS');
@@ -573,15 +573,38 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               {/* Reward Progress Integration */}
               <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700 text-center">
                 <p className="text-sm font-medium text-slate-600 dark:text-slate-300 tracking-tight leading-relaxed">
-                  Você está a <span className="font-black text-slate-900 dark:text-white">{Math.max(0, (storeInfo?.levels_config?.[foundCustomer.loyalty_level || 0]?.goal || storeInfo.points_goal) - foundCustomer.points_balance)}</span> pontos do seu prêmio: <span className="font-black text-slate-900 dark:text-white">{storeInfo?.levels_config && storeInfo.levels_config[foundCustomer.loyalty_level || 0]?.reward
-                    ? storeInfo.levels_config[foundCustomer.loyalty_level || 0].reward
-                    : storeInfo.reward_text || 'Prêmio em definição'}</span>
+                  {(() => {
+                    const levelIdx = Math.max(0, (foundCustomer.loyalty_level || 1) - 1);
+                    const goal = storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo.points_goal;
+                    const pointsNeeded = Math.max(0, goal - foundCustomer.points_balance);
+                    const reward = storeInfo?.levels_config?.[levelIdx]?.reward || storeInfo.reward_text || 'Prêmio em definição';
+
+                    if (pointsNeeded === 0) {
+                      return (
+                        <span className="font-black text-green-600 dark:text-green-400">
+                          Atingiu a meta hoje! Receba o seu prêmio na próxima visita. 🎁
+                        </span>
+                      );
+                    }
+                    if (pointsNeeded === 1) {
+                      return (
+                        <>
+                          Você está a apenas <span className="font-black text-slate-900 dark:text-white">1 ponto</span> de receber o seu prêmio: <span className="font-black text-slate-900 dark:text-white">{reward}</span>
+                        </>
+                      );
+                    }
+                    return (
+                      <>
+                        Você está a <span className="font-black text-slate-900 dark:text-white">{pointsNeeded}</span> pontos do seu prêmio: <span className="font-black text-slate-900 dark:text-white">{reward}</span>
+                      </>
+                    );
+                  })()}
                 </p>
                 <div className="flex flex-col items-center gap-1 mt-4">
                   <div className="w-full h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-slate-800 dark:bg-blue-500 transition-all duration-1000"
-                      style={{ width: `${Math.min(100, (foundCustomer.points_balance / (storeInfo?.levels_config?.[foundCustomer.loyalty_level || 0]?.goal || storeInfo.points_goal)) * 100)}%` }}
+                      style={{ width: `${Math.min(100, (foundCustomer.points_balance / (storeInfo?.levels_config?.[Math.max(0, (foundCustomer.loyalty_level || 1) - 1)]?.goal || storeInfo.points_goal)) * 100)}%` }}
                     ></div>
                   </div>
                 </div>
@@ -832,7 +855,12 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               </div>
 
               <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
-                🎁 Faltam apenas {Math.max(0, approvedData.points_goal - approvedData.points_balance)} pontos para você desbloquear o seu próximo prêmio!
+                {(() => {
+                  const remaining = Math.max(0, approvedData.points_goal - approvedData.points_balance);
+                  if (remaining === 0) return "Atingiu a meta hoje! Receba o seu prêmio na próxima visita. 🎁";
+                  if (remaining === 1) return "🎁 Faltam apenas 1 ponto para você desbloquear o seu próximo prêmio!";
+                  return `🎁 Faltam apenas ${remaining} pontos para você desbloquear o seu próximo prêmio!`;
+                })()}
               </p>
             </div>
 
