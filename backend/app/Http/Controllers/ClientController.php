@@ -30,11 +30,22 @@ class ClientController extends Controller
 
     public function getContacts(Request $request)
     {
-        $contacts = Customer::with(['devices' => function($q) {
+        $query = Customer::with(['devices' => function($q) {
                 $q->where('status', 'linked')->where('type', 'premium');
-            }])
-            ->orderBy('created_at', 'desc')
+            }]);
+
+        if ($request->has('search')) {
+            $s = $request->search;
+            $query->where(function($q) use ($s) {
+                $q->where('name', 'like', "%$s%")
+                  ->orWhere('phone', 'like', "%$s%");
+            });
+        }
+
+        $contacts = $query->orderBy('created_at', 'desc')
+            ->limit(10) // Limit results for performance on terminal
             ->get();
+            
         return ApiResponse::ok($contacts);
     }
 

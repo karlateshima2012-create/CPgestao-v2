@@ -57,7 +57,7 @@ export const tenantsService = {
 };
 
 export const contactsService = {
-    getAll: () => api.get('/client/contacts'),
+    getAll: (params?: any) => api.get('/client/contacts', { params }),
     create: (data: any) => api.post('/client/contacts', data),
     update: (id: string, data: any) => api.patch(`/client/contacts/${id}`, data),
     delete: (id: string) => api.delete(`/client/contacts/${id}`),

@@ -21,7 +21,7 @@ import {
   Calendar,
   MapPin
 } from 'lucide-react';
-import { terminalService } from '../services/api';
+import { terminalService, contactsService } from '../services/api';
 import { PlanType } from '../types';
 
 const DefaultLogo: React.FC<{ className?: string }> = ({ className = "w-32 h-32" }) => (
@@ -44,6 +44,8 @@ type TerminalMode =
   | 'LOJISTA_ACTIONS'
   | 'LOJISTA_NEW_CUSTOMER'
   | 'LOJISTA_QUICK_REGISTER'
+  | 'LOJISTA_CARD_PROMPT'
+  | 'LOJISTA_CARD_LINK_SEARCH'
   | 'SUCCESS'
   | 'AUTO_SUCCESS'
   | 'ERROR'
@@ -114,6 +116,33 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [requestId, setRequestId] = useState<string | null>(null);
   const [approvedData, setApprovedData] = useState<any>(null);
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (mode === 'LOJISTA_CARD_LINK_SEARCH' && searchTerm.length >= 2) {
+      const delayDebounceFn = setTimeout(() => {
+        searchCustomers();
+      }, 500);
+      return () => clearTimeout(delayDebounceFn);
+    } else if (mode === 'LOJISTA_CARD_LINK_SEARCH' && searchTerm.length === 0) {
+      setSearchResults([]);
+    }
+  }, [searchTerm, mode]);
+
+  const searchCustomers = async () => {
+    try {
+      setLoading(true);
+      const res = await contactsService.getAll({ search: searchTerm });
+      setSearchResults(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -225,7 +254,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         }
       } else if (res.data.device_type === 'premium' && !res.data.prefill_phone && isAdmin) {
         // Cartão não vinculado mas lido pelo lojista
-        setMode('LOJISTA_SEARCH');
+        setMode('LOJISTA_CARD_PROMPT');
       } else {
         setMode('START');
       }
@@ -812,6 +841,156 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 )}
               </div>
             )}
+          </div>
+        )}
+
+        {/* LOJISTA - CARTÃO NOVO DETECTADO */}
+        {mode === 'LOJISTA_CARD_PROMPT' && (
+          <div className="p-6 md:p-10 text-center animate-fade-in space-y-8 w-full">
+            <div className="space-y-4">
+              <div className="w-24 h-24 bg-amber-50 dark:bg-amber-900/20 rounded-full flex items-center justify-center mx-auto border-4 border-amber-100 dark:border-amber-900/30">
+                <AlertCircle className="w-12 h-12 text-amber-500 animate-pulse" />
+              </div>
+              <div className="space-y-1">
+                <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">Cartão Novo!</h2>
+                <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Este dispositivo ainda está livre</p>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6 space-y-1 text-left">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">ID do Dispositivo</p>
+              <p className="text-lg font-mono font-bold text-slate-700 dark:text-slate-300">{deviceUid}</p>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <Button
+                onClick={() => setMode('LOJISTA_CARD_LINK_SEARCH')}
+                className="h-20 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-lg shadow-xl shadow-slate-900/20 transition-all flex items-center justify-center gap-3"
+              >
+                <ShieldCheck className="w-6 h-6" />
+                Vincular Agora
+              </Button>
+
+              <Button
+                variant="ghost"
+                onClick={reset}
+                className="h-10 text-slate-400 font-bold uppercase tracking-widest text-xs"
+              >
+                MAIS TARDE
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* LOJISTA - BUSCAR CLIENTE PARA VINCULAR */}
+        {mode === 'LOJISTA_CARD_LINK_SEARCH' && (
+          <div className="p-6 md:p-10 animate-fade-in space-y-6 w-full">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">Vincular Cartão</h2>
+              <div className="inline-flex items-center px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">ID: {deviceUid}</span>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="relative group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-primary-500 transition-colors" />
+                <input
+                  type="text"
+                  placeholder="Buscar no CRM (Nome ou Telefone)..."
+                  className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-slate-800/50 border-2 border-slate-100 dark:border-slate-800 rounded-2xl text-lg font-bold text-slate-900 dark:text-white outline-none focus:border-primary-500 transition-all placeholder:text-slate-300"
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  autoFocus
+                />
+              </div>
+
+              <div className="max-h-[300px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                {loading && searchResults.length === 0 && (
+                  <div className="py-8 text-center text-slate-400 font-bold animate-pulse text-xs uppercase tracking-widest">
+                    Buscando clientes...
+                  </div>
+                )}
+
+                {searchResults.map(customer => (
+                  <button
+                    key={customer.id}
+                    onClick={() => {
+                      setSelectedCustomerId(customer.id);
+                      setPhone(customer.phone); // Important for linkVip
+                    }}
+                    className={`w-full p-4 rounded-xl flex items-center justify-between border-2 transition-all ${selectedCustomerId === customer.id
+                        ? "border-primary-500 bg-primary-50 dark:bg-primary-900/10"
+                        : "border-transparent bg-slate-50 dark:bg-slate-800/30 hover:bg-slate-100"
+                      }`}
+                  >
+                    <div className="text-left">
+                      <p className={`font-black uppercase tracking-tight ${selectedCustomerId === customer.id ? 'text-primary-600' : 'text-slate-800 dark:text-white'}`}>
+                        {customer.name}
+                      </p>
+                      <p className="text-xs font-bold text-slate-400">{customer.phone}</p>
+                    </div>
+                    {selectedCustomerId === customer.id && <CheckCircle2 className="w-6 h-6 text-primary-500" />}
+                  </button>
+                ))}
+
+                {searchTerm.length >= 2 && !loading && searchResults.length === 0 && (
+                  <div className="py-8 text-center text-slate-400 font-medium italic text-sm">
+                    Nenhum cliente encontrado com "{searchTerm}"
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-2">
+                <Button
+                  onClick={() => setMode('LOJISTA_QUICK_REGISTER')}
+                  variant="outline"
+                  className="w-full h-14 border-dashed border-2 border-slate-200 dark:border-slate-700 text-slate-500 rounded-xl font-bold text-xs uppercase hover:border-slate-400"
+                >
+                  <UserPlus className="w-5 h-5 mr-3" />
+                  Cadastrar Cliente
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+              <Button
+                disabled={!selectedCustomerId || loading}
+                isLoading={loading}
+                onClick={async () => {
+                  try {
+                    setLoading(true);
+                    await terminalService.linkVip(tenantSlug, deviceUid!, { phone, target_uid: deviceUid! });
+                    setModal({
+                      isOpen: true,
+                      title: 'Sucesso!',
+                      message: 'Cartão vinculado com sucesso. Você já pode pontuar o cliente.',
+                      type: 'success'
+                    });
+                    handleLookup(); // Refresh will take it to LOJISTA_ACTIONS
+                  } catch (err: any) {
+                    setModal({
+                      isOpen: true,
+                      title: 'Erro',
+                      message: err.response?.data?.message || 'Erro ao vincular',
+                      type: 'error'
+                    });
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                className="w-full h-16 bg-primary-500 text-white shadow-xl shadow-primary-500/20 rounded-2xl font-black uppercase tracking-widest"
+              >
+                Vincular
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={reset}
+                className="w-full h-12 text-slate-400 font-bold uppercase tracking-widest text-xs"
+              >
+                CANCELAR
+              </Button>
+            </div>
           </div>
         )}
 
