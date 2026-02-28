@@ -696,59 +696,45 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
               {/* Reward Progress Integration */}
               <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700 text-center">
-                <p className="text-sm font-medium text-slate-600 dark:text-slate-300 tracking-tight leading-relaxed">
-                  {(() => {
-                    const levelIdx = Math.max(0, (foundCustomer.loyalty_level || 1) - 1);
-                    const goal = storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo.points_goal;
-                    const pointsNeeded = Math.max(0, goal - foundCustomer.points_balance);
-                    const reward = storeInfo?.levels_config?.[levelIdx]?.reward || storeInfo.reward_text || 'Prêmio em definição';
+                {(() => {
+                  const levelIdx = Math.max(0, (foundCustomer.loyalty_level || 1) - 1);
+                  const goal = Number(foundCustomer.points_goal || storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo.points_goal);
+                  const balance = Number(foundCustomer.points_balance);
+                  const pointsNeeded = Math.max(0, goal - balance);
+                  const reward = storeInfo?.levels_config?.[levelIdx]?.reward || storeInfo.reward_text || 'Prêmio em definição';
 
-                    if (pointsNeeded === 0) {
-                      return (
-                        <div className="space-y-4 animate-bounce">
-                          <span className="font-black text-amber-600 dark:text-amber-400 text-xl uppercase tracking-tighter">
+                  if (balance >= goal) {
+                    return (
+                      <div className="space-y-6 animate-fade-in-up">
+                        <div className="inline-block px-6 py-3 bg-amber-100 dark:bg-amber-900/40 rounded-2xl border-2 border-amber-200 dark:border-amber-800 animate-bounce shadow-xl">
+                          <span className="font-black text-amber-700 dark:text-amber-400 text-2xl uppercase tracking-tighter">
                             🚀 META ATINGIDA!
                           </span>
-                          <p className="text-sm font-black text-slate-700 dark:text-white uppercase">
-                            Na próxima visita você resgata o seu prêmio!
+                        </div>
+                        <div className="bg-amber-500 rounded-[25px] p-6 shadow-lg shadow-amber-500/20 text-white animate-pulse">
+                          <div className="flex items-center justify-center gap-3">
+                            <Gift className="w-8 h-8" />
+                            <span className="text-xl font-black uppercase tracking-widest">RESGATAR PRÊMIO</span>
+                          </div>
+                          <p className="text-[11px] font-black mt-2 opacity-90 uppercase tracking-tight">
+                            Na próxima visita peça o seu prêmio: {reward}
                           </p>
                         </div>
-                      );
-                    }
-                    if (pointsNeeded === 1) {
-                      return (
-                        <>
-                          Você está a apenas <span className="font-black text-slate-900 dark:text-white">1 ponto</span> de atingir a meta do prêmio: <span className="font-black text-slate-900 dark:text-white">{reward}</span>
-                        </>
-                      );
-                    }
-                    return (
-                      <>
-                        Você está a <span className="font-black text-slate-900 dark:text-white">{pointsNeeded}</span> pontos do seu prêmio: <span className="font-black text-slate-900 dark:text-white">{reward}</span>
-                      </>
-                    );
-                  })()}
-                </p>
-              </div>
-
-              {(() => {
-                const levelIdx = Math.max(0, (foundCustomer.loyalty_level || 1) - 1);
-                const goal = storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo.points_goal;
-                if (foundCustomer.points_balance >= goal) {
-                  return (
-                    <div className="mt-8 p-6 bg-amber-500 rounded-[25px] shadow-lg shadow-amber-500/20 text-white animate-pulse">
-                      <div className="flex items-center justify-center gap-3">
-                        <Gift className="w-8 h-8" />
-                        <span className="text-xl font-black uppercase tracking-widest">RESGATAR PRÊMIO</span>
                       </div>
-                      <p className="text-[10px] font-bold mt-2 opacity-90">
-                        (na próxima visita você poderá resgatar o seu prêmio)
-                      </p>
-                    </div>
+                    );
+                  }
+
+                  return (
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-300 tracking-tight leading-relaxed">
+                      {pointsNeeded === 1 ? (
+                        <>Você está a apenas <span className="font-black text-slate-900 dark:text-white">1 ponto</span> de atingir a meta do prêmio: <span className="font-black text-slate-900 dark:text-white">{reward}</span></>
+                      ) : (
+                        <>Você está a <span className="font-black text-slate-900 dark:text-white">{pointsNeeded}</span> pontos do seu prêmio: <span className="font-black text-slate-900 dark:text-white">{reward}</span></>
+                      )}
+                    </p>
                   );
-                }
-                return null;
-              })()}
+                })()}
+              </div>
             </div>
 
             {/* Bottom Section: Simplified for Client - Only Close button */}
@@ -795,90 +781,110 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         )}
 
         {/* LOJISTA - CONFIRMAR PONTUAÇÃO */}
-        {mode === 'LOJISTA_ACTIONS' && foundCustomer && (
-          <div className="p-6 md:p-10 text-center animate-fade-in space-y-8 w-full">
-            <div className="space-y-4">
-              <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-3xl flex items-center justify-center mx-auto shadow-inner">
-                <UserCheck className="w-10 h-10 text-slate-900 dark:text-white" />
+        {mode === 'LOJISTA_ACTIONS' && foundCustomer && (() => {
+          const levelIdx = Math.max(0, (Number(foundCustomer.loyalty_level) || 1) - 1);
+          const goal = Number(foundCustomer.points_goal || storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo.points_goal);
+          const balance = Number(foundCustomer.points_balance);
+          const remaining = Math.max(0, goal - balance);
+          const canRedeem = balance >= goal;
+
+          return (
+            <div className="p-6 md:p-10 text-center animate-fade-in space-y-8 w-full">
+              <div className="space-y-4">
+                <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-3xl flex items-center justify-center mx-auto shadow-inner">
+                  <UserCheck className="w-10 h-10 text-slate-900 dark:text-white" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className={`text-[10px] font-black uppercase tracking-[0.2em] ${canRedeem ? 'text-amber-500 animate-pulse' : 'text-slate-400'}`}>
+                    {canRedeem ? 'META ATINGIDA - PREMIAR' : 'Confirmar Atendimento'}
+                  </h3>
+                  <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{foundCustomer.name}</h2>
+                  <p className="text-sm font-bold text-slate-500">{foundCustomer.phone}</p>
+                </div>
               </div>
-              <div className="space-y-1">
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Confirmar Atendimento</h3>
-                <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{foundCustomer.name}</h2>
-                <p className="text-sm font-bold text-slate-500">{foundCustomer.phone}</p>
-              </div>
-            </div>
 
-            {(() => {
-              const levelIdx = Math.max(0, (Number(foundCustomer.loyalty_level) || 1) - 1);
-              const goal = Number(foundCustomer.points_goal || storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo.points_goal);
-              const balance = Number(foundCustomer.points_balance);
-              const remaining = Math.max(0, goal - balance);
-              const canRedeem = balance >= goal;
+              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6 space-y-4">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Saldo Atual</p>
+                  <p className="text-4xl font-black text-slate-900 dark:text-white">{balance} pts</p>
+                </div>
 
-              return (
-                <>
-                  <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6 space-y-4">
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Saldo Atual</p>
-                      <p className="text-4xl font-black text-slate-900 dark:text-white">{balance} pts</p>
+                <div className="pt-2">
+                  <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-slate-800 dark:bg-blue-500 transition-all duration-1000"
+                      style={{ width: `${Math.min(100, (balance / (goal || 1)) * 100)}%` }}
+                    ></div>
+                  </div>
+                  <div className="mt-2 flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase text-left">
+                    <div className="flex flex-col">
+                      <span>Meta: {goal} pts</span>
+                      {!canRedeem && <span className="text-slate-500 normal-case opacity-60">Faltam {remaining} pts</span>}
                     </div>
-
-                    <div className="pt-2">
-                      <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-slate-800 dark:bg-blue-500 transition-all duration-1000"
-                          style={{ width: `${Math.min(100, (balance / (goal || 1)) * 100)}%` }}
-                        ></div>
-                      </div>
-                      <div className="mt-2 flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase text-left">
-                        <div className="flex flex-col">
-                           <span>Meta: {goal} pts</span>
-                           {!canRedeem && <span className="text-slate-500 normal-case opacity-60">Faltam {remaining} pts</span>}
-                        </div>
-                        {canRedeem && (
-                          <span className="text-amber-500 animate-pulse font-black text-right">🚀 META ATINGIDA!</span>
-                        )}
-                      </div>
-                      
-                      {canRedeem && (
-                        <div className="mt-4 text-[11px] font-black text-amber-900 bg-amber-100 dark:bg-amber-950 dark:text-amber-400 uppercase tracking-tight text-center py-4 rounded-xl border-2 border-amber-200 dark:border-amber-900/50 animate-bounce shadow-lg">
-                          🚀 META ATINGIDA! RESGATE O PRÊMIO ABAIXO! 🎁
-                        </div>
-                      )}
-
-                      {!canRedeem && remaining === 1 && (
-                        <div className="mt-3 text-[11px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-tight text-center bg-blue-50 dark:bg-blue-900/20 py-2 rounded-lg border border-blue-100 dark:border-blue-900/30">
-                          🎁 O cliente está a apenas 1 ponto de atingir a meta!
-                        </div>
-                      )}
-                    </div>
+                    {canRedeem && (
+                      <span className="text-amber-600 dark:text-amber-400 animate-pulse font-black text-right tracking-tighter">🏆 META ATINGIDA!</span>
+                    )}
                   </div>
 
-                  <div className="flex flex-col gap-4">
-                    {canRedeem ? (
-                      <Button
-                        onClick={() => handleAction('redeem')}
-                        isLoading={loading}
-                        className="h-24 bg-amber-500 hover:bg-amber-600 text-white rounded-[22px] font-black uppercase tracking-widest text-lg shadow-xl shadow-amber-500/30 transition-all flex flex-col items-center justify-center gap-0 group border-none"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Gift className="w-8 h-8 animate-bounce" />
-                          <span>PRÊMIO ENTREGUE</span>
-                        </div>
-                        <span className="text-[10px] opacity-90 font-bold tracking-tight normal-case mt-1">(esta ação reiniciará o ciclo do cliente)</span>
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={() => handleAction('earn')}
-                        isLoading={loading}
-                        className="h-20 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-black uppercase tracking-widest text-lg shadow-xl shadow-green-600/20 transition-all flex flex-col items-center justify-center gap-0 group"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Trophy className="w-6 h-6 group-hover:scale-110 transition-transform" />
-                          <span>Dê +{(() => {
-                            const lIdx = Math.max(0, (foundCustomer.loyalty_level || 1) - 1);
-                            return storeInfo?.levels_config?.[lIdx]?.points_per_visit || 1;
-                          })()} Pontos</span>
+                  {canRedeem && (
+                    <div className="mt-4 p-5 bg-amber-500 rounded-[25px] shadow-lg shadow-amber-500/20 text-white animate-pulse">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[13px] font-black uppercase tracking-widest bg-white/20 py-1 px-3 rounded-full self-center mb-2">Resgate Disponível</span>
+                        <span className="text-xl md:text-2xl font-black uppercase tracking-tighter leading-none">META ATINGIDA - PREMIAR</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {!canRedeem && remaining === 1 && (
+                    <div className="mt-3 text-[11px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-tight text-center bg-blue-50 dark:bg-blue-900/20 py-2 rounded-lg border border-blue-100 dark:border-blue-900/30">
+                      🎁 O cliente está a apenas 1 ponto de atingir a meta!
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-4">
+                {canRedeem ? (
+                  <Button
+                    onClick={() => handleAction('redeem')}
+                    isLoading={loading}
+                    className="h-24 bg-amber-500 hover:bg-amber-600 text-white rounded-[22px] font-black uppercase tracking-widest text-lg shadow-xl shadow-amber-500/30 transition-all flex flex-col items-center justify-center gap-0 group border-none"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Gift className="w-8 h-8 animate-bounce" />
+                      <span>PRÊMIO ENTREGUE</span>
+                    </div>
+                    <span className="text-[10px] opacity-90 font-bold tracking-tight normal-case mt-1">(esta ação reiniciará o ciclo do cliente)</span>
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => handleAction('earn')}
+                    isLoading={loading}
+                    className="h-20 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-black uppercase tracking-widest text-lg shadow-xl shadow-green-600/20 transition-all flex flex-col items-center justify-center gap-0 group"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Trophy className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                      <span>Dê +{(() => {
+                        const lIdx = Math.max(0, (Number(foundCustomer.loyalty_level) || 1) - 1);
+                        return storeInfo?.levels_config?.[lIdx]?.points_per_visit || 1;
+                      })()} Pontos</span>
+                    </div>
+                    <span className="text-[10px] opacity-80 font-bold tracking-tight normal-case">Pontuação do Nível {foundCustomer.loyalty_level_name || 'Atual'}</span>
+                  </Button>
+                )}
+
+                <Button
+                  variant="ghost"
+                  onClick={reset}
+                  className="h-12 text-slate-400 font-bold uppercase tracking-widest text-xs hover:text-slate-600"
+                >
+                  CANCELAR
+                </Button>
+              </div>
+            </div>
+          );
+        })()}
+
                         </div>
                         <span className="text-[10px] opacity-80 font-bold tracking-tight normal-case">Pontuação do Nível {foundCustomer.loyalty_level_name || 'Atual'}</span>
                       </Button>
@@ -895,6 +901,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 </>
               );
             })()}
+          </div>
+        )()}
 
 
             {/* Se o lojista escaneou e o cliente não está vinculado (ou link incompleto) */}
@@ -1017,7 +1025,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                       setPhone(customer.phone); // Important for linkVip
                     }}
                     className={`w-full p-4 rounded-xl flex items-center justify-between border-2 transition-all ${selectedCustomerId === customer.id
-                      ? "border-primary-500 bg-primary-50 dark:bg-primary-900/10"
+                      ? "border-primary-500 bg-primary-50 dark:bg-primary-500/10"
                       : "border-transparent bg-slate-50 dark:bg-slate-800/30 hover:bg-slate-100"
                       }`}
                   >
@@ -1338,14 +1346,13 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
         {(mode === 'SUCCESS' || mode === 'AUTO_SUCCESS') && approvedData && (
           <div className="p-6 md:p-8 text-center py-10 animate-fade-in relative overflow-hidden w-full">
-            {/* Background Decorative Element */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-green-500/5 rounded-full blur-3xl -z-10"></div>
 
-            <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 border-4 ${approvedData.is_redemption || approvedData.points_balance >= approvedData.points_goal
+            <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 border-4 ${approvedData.is_redemption || Number(approvedData.points_balance) >= Number(approvedData.points_goal)
               ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-900/30'
               : 'bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-900/30'
               }`}>
-              {approvedData.is_redemption || approvedData.points_balance >= approvedData.points_goal ? (
+              {approvedData.is_redemption || Number(approvedData.points_balance) >= Number(approvedData.points_goal) ? (
                 <Gift className="w-12 h-12 text-amber-500 animate-bounce" />
               ) : (
                 <CheckCircle2 className="w-12 h-12 text-green-500" />
@@ -1353,26 +1360,26 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             </div>
 
             <div className="space-y-2 mb-8">
-              <h2 className={`text-3xl font-black tracking-tighter uppercase ${approvedData.points_balance >= approvedData.points_goal ? 'text-amber-600 dark:text-amber-400' : 'text-slate-800 dark:text-white'
+              <h2 className={`text-3xl font-black tracking-tighter uppercase ${Number(approvedData.points_balance) >= Number(approvedData.points_goal) ? 'text-amber-600 dark:text-amber-400' : 'text-slate-800 dark:text-white'
                 }`}>
                 {approvedData.is_redemption
                   ? "🎉 PRÊMIO ENTREGUE!"
-                  : approvedData.points_balance >= approvedData.points_goal
-                    ? "🎁 META ATINGIDA!"
-                    : "✅ PONTO CONFIRMADO!"}
+                  : Number(approvedData.points_balance) >= Number(approvedData.points_goal)
+                    ? "META ATINGIDA - PREMIAR"
+                    : "PONTO ADICIONADO!"}
               </h2>
-              <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
+              <p className="text-sm font-bold text-slate-400 uppercase tracking-widest leading-tight">
                 {approvedData.is_redemption
-                  ? `${approvedData.customer_name}, parabéns pelo seu prêmio! Seu ciclo foi reiniciado. Continue pontuando!`
-                  : approvedData.points_balance >= approvedData.points_goal
-                    ? `META ATINGIDA! Na próxima visita você resgata o seu prêmio.`
-                    : `Parabéns, ${approvedData.customer_name}! Seu ponto foi registrado com sucesso.`}
+                  ? "O ciclo do cliente foi reiniciado."
+                  : Number(approvedData.points_balance) >= Number(approvedData.points_goal)
+                    ? "O CLIENTE ATINGIU A META E JÁ PODE RECEBER O PRÊMIO!"
+                    : "Solicitação processada com sucesso."}
               </p>
             </div>
 
             <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-8 mb-8 border border-slate-100 dark:border-slate-800 relative z-10">
-              <div className="flex flex-col items-center">
-                <span className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-2">
+              <div className="space-y-2 mb-6">
+                <span className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">
                   {approvedData.is_redemption ? "Saldo Inicial do Novo Nível" : "Seu Novo Saldo"}
                 </span>
                 <div className="flex items-baseline justify-center gap-2">
@@ -1390,17 +1397,19 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 <div className="w-full h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden mb-4">
                   <div
                     className={`h-full transition-all duration-1000 ${approvedData.is_redemption ? 'bg-amber-500' : 'bg-green-500'}`}
-                    style={{ width: `${Math.min(100, (approvedData.points_balance / approvedData.points_goal) * 100)}%` }}
+                    style={{ width: `${Math.min(100, (Number(approvedData.points_balance) / (Number(approvedData.points_goal) || 1)) * 100)}%` }}
                   ></div>
                 </div>
 
-                <p className={`text-xs font-black uppercase tracking-tight ${approvedData.points_balance >= approvedData.points_goal ? 'text-amber-600 animate-pulse' : 'text-slate-500 dark:text-slate-400'
+                <p className={`text-[11px] font-black uppercase tracking-tight ${Number(approvedData.points_balance) >= Number(approvedData.points_goal) ? 'text-amber-600 animate-pulse' : 'text-slate-500 dark:text-slate-400'
                   }`}>
                   {(() => {
-                    const remaining = Math.max(0, approvedData.points_goal - approvedData.points_balance);
-                    if (remaining === 0) return "🚀 META ATINGIDA! NA PRÓXIMA VISITA VOCÊ RESGATA O SEU PRÊMIO! 🎁";
+                    const balance = Number(approvedData.points_balance);
+                    const goal = Number(approvedData.points_goal);
+                    const remaining = Math.max(0, goal - balance);
+                    if (remaining === 0) return "🚀 META ATINGIDA - PREMIAR DISPONÍVEL! 🎁";
                     if (remaining === 1) return "🎁 Você está a apenas 1 ponto de atingir a meta do prêmio!";
-                    return `🎁 Faltam apenas ${remaining} pontos para você desbloquear o seu próximo prêmio!`;
+                    return `🎁 Faltam apenas ${remaining} pontos para você abrir o seu próximo prêmio!`;
                   })()}
                 </p>
               </div>
@@ -1418,24 +1427,21 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           </div>
         )}
 
-        {
-          mode === 'ERROR' && (
-            <div className="p-6 md:p-8 text-center py-10 animate-fade-in space-y-6 w-full">
-              <div className="w-24 h-24 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto">
-                <XCircle className="w-12 h-12 text-red-500" />
-              </div>
-              <div className="space-y-4">
-                <h2 className="text-xl font-bold text-slate-800 dark:text-white tracking-tight">Ocorreu um erro</h2>
-                <p className="text-sm text-slate-500">Verifique os dados ou contate o atendente.</p>
-                <Button variant="secondary" className="w-full h-12 rounded-[15px] font-bold bg-slate-800 hover:bg-slate-700 text-white transition-colors" onClick={() => setMode('START')}>Tentar Novamente</Button>
-              </div>
+        {mode === 'ERROR' && (
+          <div className="p-6 md:p-8 text-center py-10 animate-fade-in space-y-6 w-full">
+            <div className="w-24 h-24 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto">
+              <XCircle className="w-12 h-12 text-red-500" />
             </div>
-          )
-        }
+            <div className="space-y-4">
+              <h2 className="text-xl font-bold text-slate-800 dark:text-white tracking-tight">Ocorreu um erro</h2>
+              <p className="text-sm text-slate-500">Verifique os dados ou contate o atendente.</p>
+              <Button variant="secondary" className="w-full h-12 rounded-[15px] font-bold bg-slate-800 hover:bg-slate-700 text-white transition-colors" onClick={() => setMode('START')}>Tentar Novamente</Button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="w-full md:w-[80%] max-w-3xl flex flex-col items-center pb-8">
-        {/* 3. RULES SECTION */}
         <div className="w-full text-center px-4 py-8 md:py-10 animate-fade-in space-y-4">
           <h3 className="text-sm font-semibold text-slate-700 dark:text-white uppercase tracking-wide">Regras do Programa</h3>
           <ul className="text-sm text-slate-500 dark:text-slate-400 font-normal space-y-2 list-inside list-disc marker:text-slate-300">
@@ -1459,24 +1465,24 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
       </div>
 
       {
-        modal.isOpen && (
-          <StatusModal
-            isOpen={modal.isOpen}
-            title={modal.title}
-            message={modal.message}
-            type={modal.type}
-            theme="neutral"
-            onClose={() => {
-              setModal(prev => ({ ...prev, isOpen: false }));
-              if (mode === 'SUCCESS' || mode === 'AUTO_SUCCESS') {
-                reset();
-              }
-            }}
-          />
-        )
-      }
-
-
-    </div>
+    modal.isOpen && (
+      <StatusModal
+        isOpen={modal.isOpen}
+        title={modal.title}
+        message={modal.message}
+        type={modal.type}
+        theme="neutral"
+        onClose={() => {
+          setModal(prev => ({ ...prev, isOpen: false }));
+          if (mode === 'SUCCESS' || mode === 'AUTO_SUCCESS') {
+            reset();
+          }
+        }}
+      />
+    )
+  }
+    </div >
   );
 };
+
+export default PublicTerminal;
