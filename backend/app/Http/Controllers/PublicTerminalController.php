@@ -246,9 +246,7 @@ class PublicTerminalController extends Controller
             [$tenant, $device] = $this->validateDevice($slug, $uid, $token);
             
             // CLASSIC PLAN PROTECTION: Passive totem
-            if ($tenant->plan === 'Classic' || $tenant->plan === 'classic') {
-                return ApiResponse::error('Este totem não permite pontuação direta. Consulte o atendente no balcão.', 'PASSIVE_TOTEM', 403);
-            }
+            // Removed plan-based blockade to unify logic across Classic, Pro, and Elite
 
             $phone = PhoneHelper::normalize($request->phone);
 
@@ -446,10 +444,7 @@ class PublicTerminalController extends Controller
         return DB::transaction(function () use ($request, $slug, $uid) {
             [$tenant, $device] = $this->validateDevice($slug, $uid);
 
-            // CLASSIC PLAN PROTECTION: Passive totem
-            if ($tenant->plan === 'Classic' || $tenant->plan === 'classic') {
-                return ApiResponse::error('Este totem não permite resgates diretos. Consulte o atendente no balcão.', 'PASSIVE_TOTEM', 403);
-            }
+            // Removed plan-based blockade to unify logic across Classic, Pro, and Elite
 
 
             $phone = PhoneHelper::normalize($request->phone);

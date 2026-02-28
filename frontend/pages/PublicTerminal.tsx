@@ -612,15 +612,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               </div>
             </div>
 
-            {/* Bottom Section: Plan Logic */}
+            {/* Bottom Section: Unified Action Buttons for all plans */}
             <div className="pt-2">
-              {storeInfo.tenant_plan === PlanType.CLASSIC ? (
-                <div className="text-center p-6 bg-slate-50 dark:bg-slate-800/40 rounded-[25px] border border-slate-100 dark:border-slate-800 shadow-sm">
-                  <p className="text-sm font-black text-slate-800 dark:text-slate-200 tracking-tight leading-relaxed">
-                    Apresente o seu cartão para pontuar.
-                  </p>
-                </div>
-              ) : storeInfo.device_mode === 'manual' ? (
+              {storeInfo.device_mode === 'manual' ? (
                 <div className="text-center p-6 bg-slate-50 dark:bg-slate-800/40 rounded-[25px] border border-slate-100 dark:border-slate-800">
                   <p className="text-sm font-bold text-slate-500 dark:text-slate-400 italic">
                     Apresente seu Cartão VIP ou informe seu telefone ao atendente para pontuar.
