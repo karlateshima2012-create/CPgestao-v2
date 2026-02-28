@@ -766,9 +766,15 @@ class PublicTerminalController extends Controller
             $phone = PhoneHelper::normalize($request->phone);
             $customer = Customer::where('tenant_id', $tenant->id)->where('phone', $phone)->firstOrFail();
 
-            if ($customer->is_premium) {
-                return ApiResponse::error('Este cliente já possui um cartão VIP vinculado.', 'ALREADY_PREMIUM', 400);
-            }
+            // Handle Lost Card / Re-linking
+            // If customer already has a card, we unlink the old one first
+            \App\Models\LoyaltyCard::where('tenant_id', $tenant->id)
+                ->where('linked_customer_id', $customer->id)
+                ->update([
+                    'linked_customer_id' => null,
+                    'status' => 'deactivated', // or 'available' if you want it reusable, but deactivated is safer for lost cards
+                    'active' => false
+                ]);
 
             $targetUidRaw = preg_replace('/\D/', '', $request->target_uid);
             
@@ -798,7 +804,7 @@ class PublicTerminalController extends Controller
 
             $customer->update(['is_premium' => true]);
 
-            return ApiResponse::ok(null, 'Cartão VIP vinculado com sucesso');
+            return ApiResponse::ok(null, 'Cartão VIP vinculado com sucesso. O cartão anterior (se houver) foi invalidado.');
         });
     }
 
