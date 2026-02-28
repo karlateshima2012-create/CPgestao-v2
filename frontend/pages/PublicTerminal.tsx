@@ -332,7 +332,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           points_balance: res.data.new_balance,
           loyalty_level_name: foundCustomer.loyalty_level_name,
           points_goal: storeInfo?.levels_config?.[Math.max(0, (foundCustomer.loyalty_level || 1) - 1)]?.goal || storeInfo.points_goal,
-          tenant_name: storeInfo.name
+          tenant_name: storeInfo.name,
+          is_redemption: true
         });
         setMode('AUTO_SUCCESS');
       } else {
@@ -626,13 +627,40 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-4">
-                  <Button variant="secondary" onClick={() => handleAction('earn')} isLoading={loading} className="h-16 bg-blue-600 hover:bg-blue-700 text-white shadow-xl shadow-blue-600/20 rounded-2xl font-black uppercase tracking-widest text-xs transition-all">
-                    <Trophy className="w-5 h-5 mr-2" /> {storeInfo.device_mode === 'auto_checkin' || storeInfo.tenant_plan === PlanType.UNLIMITED ? 'Fazer Check-in' : 'Ganhar Ponto'}
-                  </Button>
-                  <Button variant="secondary" onClick={() => handleAction('redeem')} isLoading={loading} className="h-16 bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 text-white rounded-2xl font-black uppercase tracking-widest text-xs transition-all">
-                    <Gift className="w-5 h-5 mr-2" /> Resgatar Prêmio
-                  </Button>
+                <div className="flex flex-col gap-4 w-full">
+                  {(() => {
+                    const levelIdx = Math.max(0, (foundCustomer.loyalty_level || 1) - 1);
+                    const goal = storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo.points_goal;
+                    const canRedeem = foundCustomer.points_balance >= goal;
+
+                    if (canRedeem) {
+                      return (
+                        <>
+                          <Button variant="secondary" onClick={() => handleAction('redeem')} isLoading={loading} className="h-20 bg-green-600 hover:bg-green-700 text-white shadow-xl shadow-green-600/20 rounded-2xl font-black uppercase tracking-widest text-sm transition-all flex flex-col items-center justify-center gap-1 group">
+                            <div className="flex items-center gap-2">
+                              <Gift className="w-6 h-6 animate-bounce" />
+                              <span>Resgatar Prêmio Agora</span>
+                            </div>
+                            <span className="text-[10px] opacity-80 font-bold normal-case tracking-tight">E já iniciar o próximo nível com +1 ponto</span>
+                          </Button>
+                          <Button variant="ghost" onClick={() => handleAction('earn')} isLoading={loading} className="text-slate-500 font-bold text-xs uppercase tracking-widest hover:bg-slate-50">
+                            Apenas pontuar (acumular mais)
+                          </Button>
+                        </>
+                      );
+                    }
+
+                    return (
+                      <div className="grid grid-cols-2 gap-4">
+                        <Button variant="secondary" onClick={() => handleAction('earn')} isLoading={loading} className="h-16 bg-blue-600 hover:bg-blue-700 text-white shadow-xl shadow-blue-600/20 rounded-2xl font-black uppercase tracking-widest text-xs transition-all">
+                          <Trophy className="w-5 h-5 mr-2" /> {storeInfo.device_mode === 'auto_checkin' || storeInfo.tenant_plan === PlanType.UNLIMITED ? 'Fazer Check-in' : 'Ganhar Ponto'}
+                        </Button>
+                        <Button variant="secondary" onClick={() => handleAction('redeem')} isLoading={loading} className="h-16 bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 text-white rounded-2xl font-black uppercase tracking-widest text-xs transition-all">
+                          <Gift className="w-5 h-5 mr-2" /> Resgatar Prêmio
+                        </Button>
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
             </div>
@@ -813,59 +841,63 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-green-500/5 rounded-full blur-3xl -z-10"></div>
 
             <div className="w-24 h-24 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-green-100 dark:border-green-900/30">
-              <CheckCircle2 className="w-12 h-12 text-green-500" />
+              {approvedData.is_redemption ? (
+                <Gift className="w-12 h-12 text-amber-500 animate-bounce" />
+              ) : (
+                <CheckCircle2 className="w-12 h-12 text-green-500" />
+              )}
             </div>
 
             <div className="space-y-2 mb-8">
-              <h2 className="text-3xl font-black text-slate-800 dark:text-white tracking-tighter uppercase">🎉 Ponto Confirmado!</h2>
+              <h2 className="text-3xl font-black text-slate-800 dark:text-white tracking-tighter uppercase">
+                {approvedData.is_redemption ? "🎉 PRÊMIO RESGATADO!" : "✅ PONTO CONFIRMADO!"}
+              </h2>
               <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
-                Parabéns, <span className="text-slate-800 dark:text-white">{approvedData.customer_name}</span>! Seu ponto foi registrado com sucesso.
+                {approvedData.is_redemption
+                  ? `${approvedData.customer_name}, parabéns pelo seu prêmio! Você subiu de nível e iniciou um novo ciclo.`
+                  : `Parabéns, ${approvedData.customer_name}! Seu ponto foi registrado com sucesso.`}
               </p>
             </div>
 
-            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 space-y-6 mb-8">
-              <div className="space-y-1">
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center justify-center gap-1">
-                  <Target className="w-3 h-3" /> Seu Progresso Atual
-                </h3>
-                <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-5xl font-black text-slate-800 dark:text-white tracking-tighter">{approvedData.points_balance}</span>
-                  <span className="text-sm font-bold text-slate-400 uppercase">pontos</span>
+            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-8 mb-8 border border-slate-100 dark:border-slate-800 relative z-10">
+              <div className="flex flex-col items-center">
+                <span className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-2">
+                  {approvedData.is_redemption ? "Saldo Inicial do Novo Nível" : "Seu Novo Saldo"}
+                </span>
+                <div className="flex items-baseline justify-center gap-2">
+                  <span className="text-7xl font-black text-slate-900 dark:text-white tabular-nums tracking-tighter">
+                    {approvedData.points_balance}
+                  </span>
+                  <span className="text-sm font-black text-slate-400 uppercase">Pontos</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 flex flex-col items-center gap-1 shadow-sm">
-                  <Trophy className="w-4 h-4 text-amber-500" />
-                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Nível</span>
-                  <span className="text-xs font-bold text-slate-800 dark:text-white">{approvedData.loyalty_level_name}</span>
+              <div className="mt-8 pt-6 border-t border-slate-200/50 dark:border-slate-700/50">
+                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4">
+                  {approvedData.is_redemption ? "📈 Próxima Meta Bloqueada" : "🎁 Progresso para o Prêmio"}
+                </p>
+                <div className="w-full h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden mb-4">
+                  <div
+                    className={`h-full transition-all duration-1000 ${approvedData.is_redemption ? 'bg-amber-500' : 'bg-green-500'}`}
+                    style={{ width: `${Math.min(100, (approvedData.points_balance / approvedData.points_goal) * 100)}%` }}
+                  ></div>
                 </div>
-                <div className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 flex flex-col items-center gap-1 shadow-sm">
-                  <Gift className="w-4 h-4 text-blue-500" />
-                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Faltam</span>
-                  <span className="text-xs font-bold text-slate-800 dark:text-white">{Math.max(0, approvedData.points_goal - approvedData.points_balance)} pontos</span>
-                </div>
-              </div>
 
-              <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-slate-800 dark:bg-slate-100 transition-all duration-1000"
-                  style={{ width: `${Math.min(100, (approvedData.points_balance / approvedData.points_goal) * 100)}%` }}
-                ></div>
+                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                  {(() => {
+                    const remaining = Math.max(0, approvedData.points_goal - approvedData.points_balance);
+                    if (remaining === 0) return "Atingiu a meta hoje! Receba o seu prêmio na próxima visita. 🎁";
+                    if (remaining === 1) return "🎁 Faltam apenas 1 ponto para você desbloquear o seu próximo prêmio!";
+                    return `🎁 Faltam apenas ${remaining} pontos para você desbloquear o seu próximo prêmio!`;
+                  })()}
+                </p>
               </div>
-
-              <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
-                {(() => {
-                  const remaining = Math.max(0, approvedData.points_goal - approvedData.points_balance);
-                  if (remaining === 0) return "Atingiu a meta hoje! Receba o seu prêmio na próxima visita. 🎁";
-                  if (remaining === 1) return "🎁 Faltam apenas 1 ponto para você desbloquear o seu próximo prêmio!";
-                  return `🎁 Faltam apenas ${remaining} pontos para você desbloquear o seu próximo prêmio!`;
-                })()}
-              </p>
             </div>
 
             <p className="text-xs font-medium text-slate-400 mb-6 px-4">
-              Agradecemos a sua visita na <span className="font-bold text-slate-600 dark:text-slate-300">{approvedData.tenant_name}</span>!
+              {approvedData.is_redemption
+                ? "Aproveite seu prêmio! Continue pontuando para ganhar mais."
+                : `Agradecemos a sua visita na ${approvedData.tenant_name}!`}
             </p>
 
             <Button onClick={reset} className="w-full h-16 font-black uppercase tracking-widest bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl shadow-xl shadow-slate-900/20 transition-all">

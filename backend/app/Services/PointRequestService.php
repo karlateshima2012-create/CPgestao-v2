@@ -26,14 +26,28 @@ class PointRequestService
                 $vipInitial = $meta['vip_initial'] ?? 0;
                 $wasPremium = $customer->is_premium;
 
+                // Determine new level and any initial bonus for it
+                $loyalty = \App\Models\LoyaltySetting::where('tenant_id', $request->tenant_id)->first();
+                $initialLevelPoints = 0;
+                $nextLevel = ($customer->loyalty_level ?? 1) + 1;
+                
+                if ($loyalty && is_array($loyalty->levels_config)) {
+                    // level uses 1-based indexing in customer, so index is nextLevel - 1
+                    $nextLevelIdx = $nextLevel - 1;
+                    if (isset($loyalty->levels_config[$nextLevelIdx])) {
+                        $initialLevelPoints = (int)($loyalty->levels_config[$nextLevelIdx]['initial_points'] ?? 0);
+                    }
+                }
+
                 // Update customer state
                 if (!$wasPremium) {
                     $customer->is_premium = true;
                 }
                 
                 $appliedVipInitial = (!$wasPremium) ? $vipInitial : 0;
-                $customer->points_balance = ($customer->points_balance - $goal) + $request->requested_points + $appliedVipInitial;
-                $customer->loyalty_level += 1;
+                // New Balance = (Remaining from previous level) + visit points + vip reward bonus + new level initial bonus
+                $customer->points_balance = ($customer->points_balance - $goal) + $request->requested_points + $appliedVipInitial + $initialLevelPoints;
+                $customer->loyalty_level = $nextLevel;
                 $customer->last_activity_at = now();
                 $customer->save();
 
