@@ -238,7 +238,13 @@ class PublicTerminalController extends Controller
         $request->validate([
             'phone' => 'required|string',
             'pin' => 'nullable|string',
-            'token' => 'nullable|string'
+            'token' => 'nullable|string',
+            'name' => 'sometimes|string',
+            'city' => 'sometimes|string',
+            'province' => 'sometimes|string',
+            'address' => 'sometimes|string',
+            'email' => 'sometimes|email|nullable',
+            'birthday' => 'sometimes|date|nullable'
         ]);
 
         return DB::transaction(function () use ($request, $slug, $uid) {
@@ -264,7 +270,12 @@ class PublicTerminalController extends Controller
                 $customer = Customer::create([
                     'tenant_id' => $tenant->id,
                     'phone' => $phone,
-                    'name' => 'Cliente',
+                    'name' => $request->name ?? 'Cliente',
+                    'city' => $request->city,
+                    'province' => $request->province,
+                    'address' => $request->address,
+                    'email' => $request->email,
+                    'birthday' => $request->birthday,
                     'source' => 'terminal',
                     'last_activity_at' => now()
                 ]);
@@ -342,11 +353,11 @@ class PublicTerminalController extends Controller
                 ? ($loyalty->vip_points_per_scan ?? 2) 
                 : ($loyalty->regular_points_per_scan ?? 1); 
 
-            $levelsConfig = $loyalty->levels_config;
-            $currentLevel = $customer ? ($customer->loyalty_level ?? 0) : 0;
-            
-            if (is_array($levelsConfig) && isset($levelsConfig[$currentLevel]) && isset($levelsConfig[$currentLevel]['points_per_visit'])) {
-                $pointsToAdd = (int) $levelsConfig[$currentLevel]['points_per_visit'];
+            if (is_array($levelsConfig)) {
+                $lvlIdx = max(0, $currentLevel - 1);
+                if (isset($levelsConfig[$lvlIdx]) && isset($levelsConfig[$lvlIdx]['points_per_visit'])) {
+                    $pointsToAdd = (int) $levelsConfig[$lvlIdx]['points_per_visit'];
+                }
             }
 
             // Create Point Request
@@ -698,7 +709,7 @@ class PublicTerminalController extends Controller
         $request->validate([
             'phone' => 'required|string',
             'target_uid' => 'required|string',
-            'pin' => 'required|string'
+            'pin' => 'sometimes|nullable|string'
         ]);
 
         return DB::transaction(function () use ($request, $slug, $uid) {

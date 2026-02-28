@@ -43,6 +43,7 @@ type TerminalMode =
   | 'LOJISTA_SEARCH'
   | 'LOJISTA_ACTIONS'
   | 'LOJISTA_NEW_CUSTOMER'
+  | 'LOJISTA_QUICK_REGISTER'
   | 'SUCCESS'
   | 'AUTO_SUCCESS'
   | 'ERROR'
@@ -242,7 +243,12 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
     try {
       const res = await terminalService.lookup(tenantSlug, deviceUid, phone, qrToken);
       if (res.data && res.data.customer_exists === false) {
-        setMode('REGISTER');
+        const isAdmin = !!localStorage.getItem('auth_token');
+        if (isAdmin) {
+          setMode('LOJISTA_QUICK_REGISTER');
+        } else {
+          setMode('REGISTER');
+        }
       } else {
         setFoundCustomer(res.data);
         const isAdmin = !!localStorage.getItem('auth_token');
@@ -731,22 +737,29 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               <Button
                 onClick={() => handleAction('earn')}
                 isLoading={loading}
-                className="h-20 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-black uppercase tracking-widest text-lg shadow-xl shadow-green-600/20 transition-all flex items-center justify-center gap-2 group"
+                className="h-20 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-black uppercase tracking-widest text-lg shadow-xl shadow-green-600/20 transition-all flex flex-col items-center justify-center gap-0 group"
               >
-                <Trophy className="w-6 h-6 group-hover:scale-110 transition-transform" />
-                Dê +1 Ponto
+                <div className="flex items-center gap-2">
+                  <Trophy className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                  <span>Dê +{(() => {
+                    const levelIdx = Math.max(0, (foundCustomer.loyalty_level || 1) - 1);
+                    return storeInfo?.levels_config?.[levelIdx]?.points_per_visit || 1;
+                  })()} Pontos</span>
+                </div>
+                <span className="text-[10px] opacity-80 font-bold tracking-tight normal-case">Pontuação do Nível {foundCustomer.loyalty_level_name || 'Atual'}</span>
               </Button>
 
               <Button
                 variant="ghost"
                 onClick={reset}
-                className="h-14 text-slate-400 font-bold uppercase tracking-widest text-xs hover:text-slate-600"
+                className="h-10 text-slate-400 font-bold uppercase tracking-widest text-[9px] hover:text-slate-600"
               >
                 CANCELAR
               </Button>
             </div>
 
-            {!foundCustomer.is_premium && deviceUid && (
+            {/* Se o lojista escaneou e o cliente não está vinculado (ou link incompleto) */}
+            {deviceUid && (
               <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
                 <Button
                   onClick={async () => {
@@ -771,13 +784,85 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                       setLoading(false);
                     }
                   }}
-                  variant="outline"
-                  className="w-full h-12 border-slate-200 dark:border-slate-700 text-slate-500 rounded-xl font-bold text-xs uppercase"
+                  className={`w-full h-14 rounded-2xl font-black text-xs uppercase transition-all ${foundCustomer.is_premium
+                      ? "border-amber-200 text-amber-600 bg-amber-50 hover:bg-amber-100"
+                      : "bg-primary-500 text-white shadow-lg shadow-primary-500/20"
+                    }`}
                 >
-                  <ShieldCheck className="w-4 h-4 mr-2" /> Ativar como Cartão VIP
+                  <ShieldCheck className="w-5 h-5 mr-3" />
+                  {foundCustomer.is_premium ? "ATUALIZAR VÍNCULO DO CARTÃO" : "ATIVAR E VINCULAR CARTÃO VIP"}
                 </Button>
+                {foundCustomer.is_premium && (
+                  <p className="text-[9px] font-bold text-amber-500 mt-2 uppercase text-center">
+                    Este cliente já é VIP, mas você pode atualizar o cartão vinculado.
+                  </p>
+                )}
               </div>
             )}
+          </div>
+        )}
+
+        {/* LOJISTA - CADASTRO RÁPIDO */}
+        {mode === 'LOJISTA_QUICK_REGISTER' && (
+          <div className="p-6 md:p-10 text-center animate-fade-in space-y-8 w-full">
+            <div className="pt-4 space-y-2">
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">Cadastro Rápido</h2>
+              <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-relaxed">
+                Novo cliente? Cadastre agora para pontuar e vincular o cartão.
+              </p>
+            </div>
+
+            <form onSubmit={handleRegister} className="space-y-4 text-left">
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nome Completo</label>
+                <input
+                  type="text"
+                  placeholder="Nome do Cliente"
+                  className="w-full h-12 px-4 bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-800 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-primary-500 transition-all"
+                  value={customerData.name}
+                  onChange={e => setCustomerData({ ...customerData, name: normalizeText(e.target.value) })}
+                  autoFocus
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Telefone</label>
+                  <div className="w-full h-12 px-4 bg-slate-100 border-transparent rounded-xl flex items-center font-black text-slate-500">
+                    {phone}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Cidade (Opcional)</label>
+                  <input
+                    type="text"
+                    placeholder="Cidade"
+                    className="w-full h-12 px-4 bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-800 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-primary-500 transition-all"
+                    value={customerData.city}
+                    onChange={e => setCustomerData({ ...customerData, city: normalizeText(e.target.value) })}
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 space-y-4">
+                <Button
+                  type="submit"
+                  isLoading={loading}
+                  className="w-full h-16 bg-primary-500 text-white shadow-xl shadow-primary-500/20 rounded-2xl font-black uppercase tracking-widest text-lg"
+                >
+                  CADASTRAR E VINCULAR
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  onClick={reset}
+                  className="w-full h-12 text-slate-400 font-bold uppercase tracking-widest text-xs"
+                >
+                  CANCELAR
+                </Button>
+              </div>
+            </form>
           </div>
         )}
         {
