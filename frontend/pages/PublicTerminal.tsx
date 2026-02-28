@@ -881,75 +881,51 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                   CANCELAR
                 </Button>
               </div>
+
+              {deviceUid && (
+                <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+                  <Button
+                    onClick={async () => {
+                      try {
+                        setLoading(true);
+                        await terminalService.linkVip(tenantSlug, deviceUid, { phone, target_uid: deviceUid });
+                        setModal({
+                          isOpen: true,
+                          title: 'Cartão Vinculado!',
+                          message: 'Este cartão agora pertence a este cliente.',
+                          type: 'success'
+                        });
+                        handleLookup();
+                      } catch (err: any) {
+                        setModal({
+                          isOpen: true,
+                          title: 'Erro ao Vincular',
+                          message: err.response?.data?.message || 'Erro ao vincular cartão',
+                          type: 'error'
+                        });
+                      } finally {
+                        setLoading(false);
+                      }
+                    }}
+                    className={`w-full h-14 rounded-2xl font-black text-xs uppercase transition-all ${foundCustomer.is_premium
+                      ? "border-amber-200 text-amber-600 bg-amber-50 hover:bg-amber-100"
+                      : "bg-primary-500 text-white shadow-lg shadow-primary-500/20"
+                    }`}
+                  >
+                    <ShieldCheck className="w-5 h-5 mr-3" />
+                    {foundCustomer.is_premium ? "ATUALIZAR VÍNCULO DO CARTÃO" : "ATIVAR E VINCULAR CARTÃO VIP"}
+                  </Button>
+                  {foundCustomer.is_premium && (
+                    <p className="text-[9px] font-bold text-amber-500 mt-2 uppercase text-center">
+                      Este cliente já é VIP, mas você pode atualizar o cartão vinculado.
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           );
         })()}
 
-                        </div>
-                        <span className="text-[10px] opacity-80 font-bold tracking-tight normal-case">Pontuação do Nível {foundCustomer.loyalty_level_name || 'Atual'}</span>
-                      </Button>
-                    )}
-
-                    <Button
-                      variant="ghost"
-                      onClick={reset}
-                      className="h-12 text-slate-400 font-bold uppercase tracking-widest text-xs hover:text-slate-600"
-                    >
-                      CANCELAR
-                    </Button>
-                  </div>
-                </>
-              );
-            })()}
-          </div>
-        )()}
-
-
-            {/* Se o lojista escaneou e o cliente não está vinculado (ou link incompleto) */}
-            {deviceUid && (
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
-                <Button
-                  onClick={async () => {
-                    try {
-                      setLoading(true);
-                      await terminalService.linkVip(tenantSlug, deviceUid, { phone, target_uid: deviceUid });
-                      setModal({
-                        isOpen: true,
-                        title: 'Cartão Vinculado!',
-                        message: 'Este cartão agora pertence a este cliente.',
-                        type: 'success'
-                      });
-                      handleLookup();
-                    } catch (err: any) {
-                      setModal({
-                        isOpen: true,
-                        title: 'Erro ao Vincular',
-                        message: err.response?.data?.message || 'Erro ao vincular cartão',
-                        type: 'error'
-                      });
-                    } finally {
-                      setLoading(false);
-                    }
-                  }}
-                  className={`w-full h-14 rounded-2xl font-black text-xs uppercase transition-all ${foundCustomer.is_premium
-                    ? "border-amber-200 text-amber-600 bg-amber-50 hover:bg-amber-100"
-                    : "bg-primary-500 text-white shadow-lg shadow-primary-500/20"
-                    }`}
-                >
-                  <ShieldCheck className="w-5 h-5 mr-3" />
-                  {foundCustomer.is_premium ? "ATUALIZAR VÍNCULO DO CARTÃO" : "ATIVAR E VINCULAR CARTÃO VIP"}
-                </Button>
-                {foundCustomer.is_premium && (
-                  <p className="text-[9px] font-bold text-amber-500 mt-2 uppercase text-center">
-                    Este cliente já é VIP, mas você pode atualizar o cartão vinculado.
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* LOJISTA - CARTÃO NOVO DETECTADO */}
         {mode === 'LOJISTA_CARD_PROMPT' && (
           <div className="p-6 md:p-10 text-center animate-fade-in space-y-8 w-full">
             <div className="space-y-4">
