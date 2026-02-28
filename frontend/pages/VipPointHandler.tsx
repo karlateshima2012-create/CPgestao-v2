@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Smartphone, CheckCircle, XCircle, Gift, Trophy, ShieldCheck } from 'lucide-react';
-import { Button } from '../components/ui';
+import { Button, StatusModal } from '../components/ui';
 import api from '../services/api';
 
 export const VipPointHandler: React.FC = () => {
@@ -13,6 +13,7 @@ export const VipPointHandler: React.FC = () => {
     const [errorMsg, setErrorMsg] = useState('');
     const [loadingPoint, setLoadingPoint] = useState(false);
     const [loadingRedeem, setLoadingRedeem] = useState(false);
+    const [confirmRedeemOpen, setConfirmRedeemOpen] = useState(false);
 
     useEffect(() => {
         if (!uid) {
@@ -45,7 +46,7 @@ export const VipPointHandler: React.FC = () => {
     }, [uid]);
 
     const handleRedeem = async () => {
-        if (!window.confirm('Confirmar entrega de prêmio? O ciclo do cliente será reiniciado.')) return;
+        setConfirmRedeemOpen(false);
         setLoadingRedeem(true);
         try {
             const res = await api.post(`/vip/redeem/${uid}`);
@@ -182,7 +183,7 @@ export const VipPointHandler: React.FC = () => {
                     <div className="pt-2">
                         {canRedeem ? (
                             <Button
-                                onClick={handleRedeem}
+                                onClick={() => setConfirmRedeemOpen(true)}
                                 isLoading={loadingRedeem}
                                 className="w-full h-20 bg-amber-500 hover:bg-amber-600 text-white font-black uppercase tracking-widest rounded-2xl text-lg shadow-xl shadow-amber-500/20 transition-all active:scale-95 flex flex-col items-center justify-center gap-0"
                             >
@@ -209,6 +210,18 @@ export const VipPointHandler: React.FC = () => {
                         </button>
                     </div>
                 </div>
+
+                <StatusModal
+                    isOpen={confirmRedeemOpen}
+                    onClose={() => setConfirmRedeemOpen(false)}
+                    onConfirm={handleRedeem}
+                    title="Entrega de Prêmio"
+                    message="Deseja confirmar a entrega do prêmio agora? Isso reiniciará o ciclo de pontos do cliente para o próximo nível."
+                    type="warning"
+                    confirmLabel="CONFIRMAR ENTREGA"
+                    cancelLabel="CANCELAR"
+                    theme="accent"
+                />
             </div>
         );
     }

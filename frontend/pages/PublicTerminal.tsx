@@ -101,7 +101,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
     isOpen: boolean;
     title: string;
     message: string;
-    type: 'success' | 'error' | 'info';
+    type: 'success' | 'error' | 'info' | 'warning';
+    onConfirm?: () => void;
   }>({
     isOpen: false,
     title: '',
@@ -402,8 +403,20 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
     }
   };
 
-  const handleRedeem = async () => {
+  const handleRedeem = async (confirmed = false) => {
     const isAdmin = !!localStorage.getItem('auth_token');
+
+    if (isAdmin && !confirmed) {
+      setModal({
+        isOpen: true,
+        title: 'Confirmar Entrega',
+        message: 'Deseja confirmar a entrega do prêmio agora? O ciclo do cliente será reiniciado.',
+        type: 'warning',
+        onConfirm: () => handleRedeem(true)
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await terminalService.redeem(tenantSlug, deviceUid, phone, qrToken);
@@ -456,7 +469,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
   const handleAction = (action: 'earn' | 'redeem') => {
     if (action === 'earn') handleEarn();
-    if (action === 'redeem') handleRedeem();
+    if (action === 'redeem') handleRedeem(false);
   };
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -910,7 +923,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                     className={`w-full h-14 rounded-2xl font-black text-xs uppercase transition-all ${foundCustomer.is_premium
                       ? "border-amber-200 text-amber-600 bg-amber-50 hover:bg-amber-100"
                       : "bg-primary-500 text-white shadow-lg shadow-primary-500/20"
-                    }`}
+                      }`}
                   >
                     <ShieldCheck className="w-5 h-5 mr-3" />
                     {foundCustomer.is_premium ? "ATUALIZAR VÍNCULO DO CARTÃO" : "ATIVAR E VINCULAR CARTÃO VIP"}
@@ -1441,22 +1454,25 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
       </div>
 
       {
-    modal.isOpen && (
-      <StatusModal
-        isOpen={modal.isOpen}
-        title={modal.title}
-        message={modal.message}
-        type={modal.type}
-        theme="neutral"
-        onClose={() => {
-          setModal(prev => ({ ...prev, isOpen: false }));
-          if (mode === 'SUCCESS' || mode === 'AUTO_SUCCESS') {
-            reset();
-          }
-        }}
-      />
-    )
-  }
+        modal.isOpen && (
+          <StatusModal
+            isOpen={modal.isOpen}
+            title={modal.title}
+            message={modal.message}
+            type={modal.type}
+            theme="neutral"
+            confirmLabel={modal.onConfirm ? "CONFIRMAR" : "OK"}
+            cancelLabel="CANCELAR"
+            onConfirm={modal.onConfirm}
+            onClose={() => {
+              setModal(prev => ({ ...prev, isOpen: false }));
+              if (mode === 'SUCCESS' || mode === 'AUTO_SUCCESS') {
+                reset();
+              }
+            }}
+          />
+        )
+      }
     </div >
   );
 };
