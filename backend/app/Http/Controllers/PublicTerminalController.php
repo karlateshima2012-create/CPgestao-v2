@@ -845,9 +845,12 @@ class PublicTerminalController extends Controller
         });
     }
 
-    public function getRequestStatus($slug, $uid = null, $requestId)
+    public function getRequestStatus($slug, $uidOrRequestId, $requestId = null)
     {
-        $requestRecord = \App\Models\PointRequest::with(['customer', 'store.loyaltySettings'])->findOrFail($requestId);
+        // If $requestId is null, it means we are in the /p/{slug} route where only 2 params are passed
+        $actualRequestId = $requestId ?: $uidOrRequestId;
+        
+        $requestRecord = \App\Models\PointRequest::with(['customer', 'store.loyaltySettings'])->findOrFail($actualRequestId);
         
         $customer = $requestRecord->customer;
         $tenant = $requestRecord->store;

@@ -145,8 +145,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   };
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
+    console.log("CP Gestao Version: 2.1.0 - Loyalty Fixes Active");
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
     if (token) setQrToken(token);
   }, []);
 
