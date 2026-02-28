@@ -16,6 +16,7 @@ export const VipPointHandler: React.FC = () => {
     const [confirmRedeemOpen, setConfirmRedeemOpen] = useState(false);
 
     useEffect(() => {
+        console.log("CP Gestao Version: 2.2.0 - Loyalty & NFC Instant Sync (Mobile NFC)");
         if (!uid) {
             setErrorMsg('Código VIP inválido');
             setMode('error');
