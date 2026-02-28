@@ -818,13 +818,13 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                   <div
                     className="h-full bg-slate-800 dark:bg-blue-500 transition-all duration-1000"
                     style={{
-                      width: `${Math.min(100, (foundCustomer.points_balance / (storeInfo?.levels_config?.[Math.max(0, (foundCustomer.loyalty_level || 1) - 1)]?.goal || storeInfo.points_goal)) * 100)}%`
+                      width: `${Math.min(100, (foundCustomer.points_balance / (foundCustomer.points_goal || storeInfo?.levels_config?.[Math.max(0, (foundCustomer.loyalty_level || 1) - 1)]?.goal || storeInfo.points_goal)) * 100)}%`
                     }}
                   ></div>
                 </div>
                 <div className="mt-2 flex justify-between items-center">
                   <p className="text-[10px] font-bold text-slate-400 uppercase">
-                    Meta: {storeInfo?.levels_config?.[Math.max(0, (Number(foundCustomer.loyalty_level) || 1) - 1)]?.goal || storeInfo.points_goal} pts
+                    Meta: {foundCustomer.points_goal || storeInfo?.levels_config?.[Math.max(0, (Number(foundCustomer.loyalty_level) || 1) - 1)]?.goal || storeInfo.points_goal} pts
                   </p>
                   <div className="text-right">
                     {(() => {
@@ -852,7 +852,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 </div>
                 {(() => {
                   const levelIdx = Math.max(0, (Number(foundCustomer.loyalty_level) || 1) - 1);
-                  const goal = storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo.points_goal;
+                  const goal = foundCustomer.points_goal || storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo.points_goal;
                   const remaining = Math.max(0, goal - foundCustomer.points_balance);
                   if (remaining === 1) return (
                     <div className="mt-3 text-[11px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-tight text-center bg-blue-50 dark:bg-blue-900/20 py-2 rounded-lg border border-blue-100 dark:border-blue-900/30">
@@ -872,7 +872,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             <div className="flex flex-col gap-4">
               {(() => {
                 const levelIdx = Math.max(0, (Number(foundCustomer.loyalty_level) || 1) - 1);
-                const goal = storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo.points_goal;
+                const goal = foundCustomer.points_goal || storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo.points_goal;
                 const canRedeem = foundCustomer.points_balance >= goal;
 
                 if (canRedeem) {
