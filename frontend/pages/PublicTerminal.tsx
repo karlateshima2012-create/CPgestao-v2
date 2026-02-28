@@ -331,7 +331,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           customer_name: foundCustomer.name,
           points_balance: res.data.new_balance,
           loyalty_level_name: foundCustomer.loyalty_level_name,
-          points_goal: storeInfo?.levels_config?.[Math.max(0, (foundCustomer.loyalty_level || 1) - 1)]?.goal || storeInfo.points_goal,
+          points_goal: storeInfo?.levels_config?.[foundCustomer.loyalty_level || 1]?.goal || storeInfo.points_goal,
           tenant_name: storeInfo.name,
           is_redemption: true
         });
@@ -638,10 +638,10 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                         <>
                           <Button variant="secondary" onClick={() => handleAction('redeem')} isLoading={loading} className="h-20 bg-green-600 hover:bg-green-700 text-white shadow-xl shadow-green-600/20 rounded-2xl font-black uppercase tracking-widest text-sm transition-all flex flex-col items-center justify-center gap-1 group">
                             <div className="flex items-center gap-2">
-                              <Gift className="w-6 h-6 animate-bounce" />
-                              <span>Resgatar Prêmio Agora</span>
+                              <Gift className="w-6 h-6" />
+                              <span>Confirmar Presença e Resgatar Prêmio</span>
                             </div>
-                            <span className="text-[10px] opacity-80 font-bold normal-case tracking-tight">E já iniciar o próximo nível com +1 ponto</span>
+                            <span className="text-[10px] opacity-80 font-bold normal-case tracking-tight">Referente à meta batida na visita anterior</span>
                           </Button>
                           <Button variant="ghost" onClick={() => handleAction('earn')} isLoading={loading} className="text-slate-500 font-bold text-xs uppercase tracking-widest hover:bg-slate-50">
                             Apenas pontuar (acumular mais)
