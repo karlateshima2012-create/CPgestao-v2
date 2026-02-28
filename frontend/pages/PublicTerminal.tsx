@@ -432,7 +432,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           ) : (
             <div className="w-full h-full bg-gradient-to-r from-gray-700 to-gray-900" />
           )}
-          {/* Removed dark overlays to keep cover image original colors */}
+          {/* Subtle dark overlay and gradient for better contrast and modern look */}
+          <div className="absolute inset-0 bg-black/15 mix-blend-multiply"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
         </div>
 
         {/* Content over Cover Image (Absolute Overlay) */}
