@@ -504,7 +504,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         province: customerData.province,
         postal_code: customerData.postalCode,
         address: customerData.address,
-        birthday: customerData.birthday
+        birthday: customerData.birthday,
+        device_uid: deviceUid // Fallback for backend
       });
       const isAdmin = !!localStorage.getItem('auth_token');
       if (isAdmin && res.data.points_balance !== undefined) {

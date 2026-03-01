@@ -86,7 +86,7 @@ export const terminalService = {
     redeem: (slug: string, uid: string | null, phone: string, token?: string | null) => uid
         ? api.post(`/public/terminal/${slug}/${uid}/redeem`, { phone, token })
         : api.post(`/public/p/${slug}/redeem`, { phone, token }),
-    register: (slug: string, uid: string | null, data: { name: string, phone: string, email?: string, city?: string, province?: string, postal_code?: string, address?: string, birthday?: string }) => uid
+    register: (slug: string, uid: string | null, data: { name: string, phone: string, email?: string, city?: string, province?: string, postal_code?: string, address?: string, birthday?: string, device_uid?: string | null }) => uid
         ? api.post(`/public/terminal/${slug}/${uid}/register`, data)
         : api.post(`/public/p/${slug}/register`, data),
     linkVip: (slug: string, uid: string, data: { phone: string, target_uid: string }) =>

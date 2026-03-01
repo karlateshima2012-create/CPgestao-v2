@@ -658,6 +658,9 @@ class PublicTerminalController extends Controller
     }
     public function register(Request $request, $slug, $uid = null)
     {
+        // Accept UID from request body as fallback for unified public page
+        $deviceUid = $uid ?: $request->input('device_uid');
+        
         $data = $request->all();
         // Convert empty strings or whitespace strings to null for optional fields
         foreach (['email', 'city', 'province', 'postal_code', 'address', 'birthday'] as $field) {
@@ -685,10 +688,10 @@ class PublicTerminalController extends Controller
             return ApiResponse::error('Dados inválidos para cadastro.', 'VALIDATION_ERROR', 422, $e->errors());
         }
 
-        try { // Broader try-catch for register method
-            return DB::transaction(function () use ($data, $slug, $uid, $request) {
+        try {
+            return DB::transaction(function () use ($data, $slug, $deviceUid, $request) {
                 $token = $request->token;
-                [$tenant, $device] = $this->validateDevice($slug, $uid, $token);
+                [$tenant, $device] = $this->validateDevice($slug, $deviceUid, $token);
 
                 // Consumption of token if present to prevent double scoring after registration
                 if ($token) {
@@ -753,14 +756,12 @@ class PublicTerminalController extends Controller
                 $loyalty = \App\Models\LoyaltySetting::withoutGlobalScopes()->firstOrCreate(['tenant_id' => $tenant->id]);
                 $levels = $loyalty->levels_config;
                 
-                // --- NEW INTEGRATED FLOW: Link Card & Award Welcome Points ---
-                
-                // 1. Link Card if UID is a premium card
+                // Link Card if deviceUid is present
                 $linkMessage = "";
-                if ($uid && $uid !== 'null') {
+                if ($deviceUid && $deviceUid !== 'null') {
                     $card = \App\Models\LoyaltyCard::withoutGlobalScopes()
                         ->where('tenant_id', $tenant->id)
-                        ->where('uid', $uid)
+                        ->where('uid', $deviceUid)
                         ->first();
                     
                     if ($card && !$card->linked_customer_id) {
@@ -774,53 +775,31 @@ class PublicTerminalController extends Controller
                     }
                 }
 
-                    // 2. Award Points (Only Visit Points acting as Welcome Bonus)
-                    $visitPts = 0;
-                    if (is_array($levels) && count($levels) > 0 && isset($levels[0]['points_per_visit'])) {
-                        $visitPts = (int)$levels[0]['points_per_visit'];
-                    } else {
-                        $visitPts = (int)($loyalty->regular_points_per_scan ?? 1);
-                    }
+                // Award Points
+                $visitPts = (is_array($levels) && count($levels) > 0 && isset($levels[0]['points_per_visit'])) 
+                    ? (int)$levels[0]['points_per_visit'] 
+                    : (int)($loyalty->regular_points_per_scan ?? 1);
 
-                    $bonusMessage = "";
-                    if ($visitPts > 0) {
-                        $visitRequest = $this->createPointRequest([
-                            'tenant_id' => $tenant->id,
-                            'customer_id' => $customer->id,
-                            'phone' => $customer->phone,
-                            'device_id' => ($device && isset($device->id)) ? $device->id : null,
-                            'source' => $device ? ($device->mode ?? 'terminal') : 'terminal',
-                            'status' => 'pending',
-                            'requested_points' => $visitPts,
-                            'meta' => ['is_signup_bonus' => true] // Marking as welcome gift
-                        ]);
+                $bonusMessage = "";
+                if ($visitPts > 0) {
+                    $visitRequest = $this->createPointRequest([
+                        'tenant_id' => $tenant->id,
+                        'customer_id' => $customer->id,
+                        'phone' => $customer->phone,
+                        'device_id' => ($device && isset($device->id)) ? $device->id : null,
+                        'source' => $device ? ($device->mode ?? 'terminal') : 'terminal',
+                        'status' => 'pending',
+                        'requested_points' => $visitPts,
+                        'meta' => ['is_signup_bonus' => true]
+                    ]);
 
-                        $this->pointRequestService->applyPoints($visitRequest);
-                        $visitRequest->update(['status' => 'auto_approved', 'approved_at' => now()]);
-                        
-                        $bonusMessage = " (Bônus de boas-vindas: {$visitPts} pts)";
-                    }
+                    $this->pointRequestService->applyPoints($visitRequest);
+                    $visitRequest->update(['status' => 'auto_approved', 'approved_at' => now()]);
+                    $bonusMessage = " (Bônus: {$visitPts} pts)";
+                }
 
                 $successMsg = "✅ Cadastro realizado com sucesso!{$bonusMessage}{$linkMessage}";
                 
-                if ($visitPts > 0) {
-                    $totalPts = $visitPts;
-                    $summaryMsg = "🎁 *Cadastro e Pontuação Direta*\n"
-                               . "👤 *Cliente:* {$escName}\n"
-                               . "💰 *Total Creditado:* {$totalPts} pts"
-                               . ($linkMessage ? "\n💳 *Cartão VIP Vinculado\!*" : "");
-                    
-                    try {
-                        if ($device && $device->telegram_chat_id) {
-                            $this->telegramService->sendDirectMessage($device->telegram_chat_id, $summaryMsg);
-                        } else {
-                            $this->telegramService->sendMessage($tenant->id, $summaryMsg);
-                        }
-                    } catch (\Exception $te2) {
-                         \Illuminate\Support\Facades\Log::warning("Registration point Telegram alert failed: " . $te2->getMessage());
-                    }
-                }
-
                 $goal = $tenant->points_goal;
                 if (is_array($levels) && count($levels) > 0) {
                     $goal = (int)($levels[0]['goal'] ?? $goal);
@@ -840,12 +819,8 @@ class PublicTerminalController extends Controller
                 ], $successMsg);
             });
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error("Registration error in PublicTerminalController: " . $e->getMessage(), [
-                'exception' => $e,
-                'phone' => $request->phone,
-                'tenant_slug' => $slug
-            ]);
-            return ApiResponse::error('Não foi possível completar seu cadastro agora. Por favor, tente novamente.', 'REGISTRATION_ERROR', 500);
+            \Illuminate\Support\Facades\Log::error("Registration error for {$slug}: " . $e->getMessage());
+            return ApiResponse::error('Erro ao completar cadastro: ' . $e->getMessage(), 'REGISTRATION_ERROR', 500);
         }
     }
 
