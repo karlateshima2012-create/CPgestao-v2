@@ -48,7 +48,7 @@ export const ClientsTab: React.FC<ClientsTabProps> = ({ contacts, onEdit, onDele
           <Button variant="secondary" onClick={onRefresh} className="h-11 px-6 rounded-xl text-[11px] font-black uppercase tracking-widest border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-all">
             Atualizar
           </Button>
-          <Button onClick={onNew} className="h-11 px-6 rounded-xl text-[11px] font-black uppercase tracking-widest bg-primary-600 text-white shadow-lg shadow-primary-500/20 hover:bg-primary-700 transition-all">
+          <Button onClick={onNew} className="h-11 px-6 rounded-xl text-[11px] font-black uppercase tracking-widest bg-primary-600 text-white shadow-lg shadow-slate-400/20 hover:bg-primary-700 transition-all">
             + Novo Cliente
           </Button>
         </div>
@@ -164,7 +164,7 @@ export const ClientsTab: React.FC<ClientsTabProps> = ({ contacts, onEdit, onDele
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
-                    className={`w-9 h-9 rounded-xl text-[10px] font-black transition-all ${currentPage === page ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20' : 'text-gray-400 hover:bg-gray-50'}`}
+                    className={`w-9 h-9 rounded-xl text-[10px] font-black transition-all ${currentPage === page ? 'bg-primary-500 text-white shadow-lg shadow-slate-400/20' : 'text-gray-400 hover:bg-gray-50'}`}
                   >
                     {page}
                   </button>

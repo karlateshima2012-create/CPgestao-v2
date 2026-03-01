@@ -721,7 +721,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                             🚀 META ATINGIDA!
                           </span>
                         </div>
-                        <div className="bg-amber-500 rounded-[25px] p-6 shadow-lg shadow-amber-500/20 text-white animate-pulse">
+                        <div className="bg-amber-500 rounded-[25px] p-6 shadow-lg shadow-slate-400/20 text-white animate-pulse">
                           <div className="flex items-center justify-center gap-3">
                             <Gift className="w-8 h-8" />
                             <span className="text-xl font-black uppercase tracking-widest">RESGATAR PRÊMIO</span>
@@ -840,7 +840,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                   </div>
 
                   {canRedeem && (
-                    <div className="mt-4 p-5 bg-amber-500 rounded-[25px] shadow-lg shadow-amber-500/20 text-white animate-pulse">
+                    <div className="mt-4 p-5 bg-amber-500 rounded-[25px] shadow-lg shadow-slate-400/20 text-white animate-pulse">
                       <div className="flex flex-col gap-0.5">
                         <span className="text-[13px] font-black uppercase tracking-widest bg-white/20 py-1 px-3 rounded-full self-center mb-2">Resgate Disponível</span>
                         <span className="text-xl md:text-2xl font-black uppercase tracking-tighter leading-none">META ATINGIDA - PREMIAR</span>
@@ -861,7 +861,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                   <Button
                     onClick={() => handleAction('redeem')}
                     isLoading={loading}
-                    className="h-24 bg-amber-500 hover:bg-amber-600 text-white rounded-[22px] font-black uppercase tracking-widest text-lg shadow-xl shadow-amber-500/30 transition-all flex flex-col items-center justify-center gap-0 group border-none"
+                    className="h-24 bg-amber-500 hover:bg-amber-600 text-white rounded-[22px] font-black uppercase tracking-widest text-lg shadow-xl shadow-slate-400/20 transition-all flex flex-col items-center justify-center gap-0 group border-none"
                   >
                     <div className="flex items-center gap-3">
                       <Gift className="w-8 h-8 animate-bounce" />
@@ -873,7 +873,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                   <Button
                     onClick={() => handleAction('earn')}
                     isLoading={loading}
-                    className="h-20 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-black uppercase tracking-widest text-lg shadow-xl shadow-green-600/20 transition-all flex flex-col items-center justify-center gap-0 group"
+                    className="h-20 bg-primary-500 hover:bg-primary-700 text-white rounded-2xl font-black uppercase tracking-widest text-lg shadow-xl shadow-slate-400/20 transition-all flex flex-col items-center justify-center gap-0 group border-none"
                   >
                     <div className="flex items-center gap-2">
                       <Trophy className="w-6 h-6 group-hover:scale-110 transition-transform" />

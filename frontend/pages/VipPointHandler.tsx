@@ -188,7 +188,7 @@ export const VipPointHandler: React.FC = () => {
                             <Button
                                 onClick={() => setConfirmRedeemOpen(true)}
                                 isLoading={loadingRedeem}
-                                className="w-full h-20 bg-amber-500 hover:bg-amber-600 text-white font-black uppercase tracking-widest rounded-2xl text-lg shadow-xl shadow-amber-500/20 transition-all active:scale-95 flex flex-col items-center justify-center gap-0"
+                                className="w-full h-20 bg-amber-500 hover:bg-amber-600 text-white font-black uppercase tracking-widest rounded-2xl text-lg shadow-xl shadow-slate-400/20 transition-all active:scale-95 flex flex-col items-center justify-center gap-0"
                             >
                                 <div className="flex items-center gap-2">
                                     <Gift className="w-6 h-6 animate-bounce" />
@@ -261,16 +261,15 @@ export const VipPointHandler: React.FC = () => {
                                 Lojista: Entre na sua conta para vincular este cartão ao CRM.
                             </p>
                         </div>
-
                         <Button
                             onClick={() => window.location.href = `/client?tab=devices&link_uid=${data.card_uid}`}
-                            className="w-full h-16 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-blue-600/20 text-sm transition-all active:scale-95"
+                            className="w-full h-16 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-slate-400/20 text-sm transition-all active:scale-95"
                         >
                             Entrar e Vincular
                         </Button>
                     </div>
                 </div>
-            </div>
+            </div >
         );
     }
 
@@ -298,7 +297,7 @@ export const VipPointHandler: React.FC = () => {
                     <div className="pt-2 w-full">
                         <Button
                             onClick={() => window.location.href = '/client'}
-                            className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest rounded-2xl text-xs shadow-xl shadow-blue-600/20 transition-all active:scale-95"
+                            className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest rounded-2xl text-xs shadow-xl shadow-slate-400/20 transition-all active:scale-95"
                         >
                             Voltar ao Painel
                         </Button>
@@ -345,7 +344,7 @@ export const VipPointHandler: React.FC = () => {
                     <div className="pt-2 w-full">
                         <Button
                             onClick={() => window.location.href = '/client'}
-                            className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest rounded-2xl text-xs shadow-xl shadow-blue-600/20 transition-all active:scale-95"
+                            className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest rounded-2xl text-xs shadow-xl shadow-slate-400/20 transition-all active:scale-95"
                         >
                             Voltar ao Painel
                         </Button>

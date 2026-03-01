@@ -118,7 +118,7 @@ export const PointRequestsTab: React.FC = () => {
                                 </button>
                                 <button
                                     onClick={() => handleAction(request.id, 'approve')}
-                                    className="flex-1 md:flex-none h-11 px-8 rounded-xl bg-primary-600 text-white font-bold text-sm hover:bg-primary-700 shadow-lg shadow-primary-500/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                                    className="flex-1 md:flex-none h-11 px-8 rounded-xl bg-primary-600 text-white font-bold text-sm hover:bg-primary-700 shadow-lg shadow-slate-400/20 transition-all active:scale-95 flex items-center justify-center gap-2"
                                 >
                                     <Check className="w-4 h-4" /> Aprovar
                                 </button>
