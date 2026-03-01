@@ -755,7 +755,7 @@ class PublicTerminalController extends Controller
                         'customer_id' => $customer->id,
                         'phone' => $customer->phone,
                         'device_id' => $device ? $device->id : null,
-                        'source' => $device ? $device->mode : 'terminal',
+                        'source' => $device ? $device->mode : 'approval',
                         'status' => 'pending',
                         'requested_points' => $visitPts,
                     ]);
@@ -791,19 +791,20 @@ class PublicTerminalController extends Controller
                     $goal = (int)($levels[0]['goal'] ?? $goal);
                 }
 
+                $refreshed = $customer->fresh();
                 return ApiResponse::ok([
                     'customer_exists' => true,
-                    'points_balance' => $customer->fresh()->points_balance,
-                    'loyalty_level' => $customer->fresh()->loyalty_level,
-                    'loyalty_level_name' => $customer->fresh()->loyalty_level_name,
+                    'points_balance' => $refreshed->points_balance,
+                    'loyalty_level' => $refreshed->loyalty_level,
+                    'loyalty_level_name' => $refreshed->loyalty_level_name,
                     'points_goal' => $goal,
                     'id' => $customer->id,
                     'name' => $customer->name,
-                    'is_premium' => false,
+                    'is_premium' => (bool)$refreshed->is_premium,
                     'message' => $successMsg
                 ], $successMsg);
             });
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error("Registration error in PublicTerminalController: " . $e->getMessage(), [
                 'exception' => $e,
                 'phone' => $request->phone,
