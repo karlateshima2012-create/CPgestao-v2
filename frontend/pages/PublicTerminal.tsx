@@ -558,6 +558,13 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
     setBMonth('');
     setFoundCustomer(null);
     setLoading(false);
+    setDeviceUid(null);
+    setQrToken(null);
+
+    // Clear URL parameters without reloading the page
+    const url = new URL(window.location.href);
+    url.search = '';
+    window.history.replaceState({}, '', url.toString());
   };
 
   if (mode === 'LOADING') return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 font-sans"><p className="text-gray-400 font-bold animate-pulse">CARREGANDO TERMINAL...</p></div>;

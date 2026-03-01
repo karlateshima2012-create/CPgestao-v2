@@ -774,32 +774,32 @@ class PublicTerminalController extends Controller
                     }
                 }
 
-                // 2. Award Points (Only Visit Points acting as Welcome Bonus)
-                $visitPts = 0;
-                if (is_array($levels) && count($levels) > 0 && isset($levels[0]['points_per_visit'])) {
-                    $visitPts = (int)$levels[0]['points_per_visit'];
-                } else {
-                    $visitPts = (int)($loyalty->regular_points_per_scan ?? 1);
-                }
+                    // 2. Award Points (Only Visit Points acting as Welcome Bonus)
+                    $visitPts = 0;
+                    if (is_array($levels) && count($levels) > 0 && isset($levels[0]['points_per_visit'])) {
+                        $visitPts = (int)$levels[0]['points_per_visit'];
+                    } else {
+                        $visitPts = (int)($loyalty->regular_points_per_scan ?? 1);
+                    }
 
-                $bonusMessage = "";
-                if ($visitPts > 0) {
-                    $visitRequest = $this->createPointRequest([
-                        'tenant_id' => $tenant->id,
-                        'customer_id' => $customer->id,
-                        'phone' => $customer->phone,
-                        'device_id' => $device ? $device->id : null,
-                        'source' => $device ? $device->mode : 'approval',
-                        'status' => 'pending',
-                        'requested_points' => $visitPts,
-                        'meta' => ['is_signup_bonus' => true] // Marking as welcome gift
-                    ]);
+                    $bonusMessage = "";
+                    if ($visitPts > 0) {
+                        $visitRequest = $this->createPointRequest([
+                            'tenant_id' => $tenant->id,
+                            'customer_id' => $customer->id,
+                            'phone' => $customer->phone,
+                            'device_id' => ($device && isset($device->id)) ? $device->id : null,
+                            'source' => $device ? ($device->mode ?? 'terminal') : 'terminal',
+                            'status' => 'pending',
+                            'requested_points' => $visitPts,
+                            'meta' => ['is_signup_bonus' => true] // Marking as welcome gift
+                        ]);
 
-                    $this->pointRequestService->applyPoints($visitRequest);
-                    $visitRequest->update(['status' => 'auto_approved', 'approved_at' => now()]);
-                    
-                    $bonusMessage = " (Bônus de boas-vindas: {$visitPts} pts)";
-                }
+                        $this->pointRequestService->applyPoints($visitRequest);
+                        $visitRequest->update(['status' => 'auto_approved', 'approved_at' => now()]);
+                        
+                        $bonusMessage = " (Bônus de boas-vindas: {$visitPts} pts)";
+                    }
 
                 $successMsg = "✅ Cadastro realizado com sucesso!{$bonusMessage}{$linkMessage}";
                 

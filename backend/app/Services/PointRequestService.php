@@ -94,9 +94,9 @@ class PointRequestService
                     'origin' => $request->source,
                     'device_id' => $request->device_id,
                     'description' => 'Pontos creditados via solicitação: ' . $request->id,
-                    'meta' => json_encode([
+                    'meta' => [
                         'point_request_id' => $request->id,
-                    ])
+                    ]
                 ]);
             }
 
