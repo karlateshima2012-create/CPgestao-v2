@@ -84,7 +84,7 @@ export const AdminDashboard: React.FC = () => {
   };
 
   const handleCopyURL = async (uid: string) => {
-    const url = `${window.location.origin}/terminal/${editingTenant?.slug}/${uid}`;
+    const url = `${window.location.origin}/p/${editingTenant?.slug}`;
     const success = await copyToClipboard(url);
     if (success) {
       setCopiedUids(prev => new Set(prev).add(uid));
@@ -922,7 +922,7 @@ export const AdminDashboard: React.FC = () => {
                       ) : (
                         <div className="grid grid-cols-1 gap-3">
                           {storeDevices.map((device) => {
-                            const publicUrl = `${window.location.origin}/terminal/${editingTenant.slug}/${device.nfc_uid}`;
+                            const publicUrl = `${window.location.origin}/p/${editingTenant.slug}`;
                             return (
                               <div key={device.id} className="bg-white dark:bg-gray-900/40 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col gap-4 group">
                                 <div className="flex items-center justify-between">

@@ -285,8 +285,8 @@ const App: React.FC = () => {
     setContacts(prev => [contact, ...prev]);
   };
 
-  const isPublicTerminal = window.location.pathname.startsWith('/terminal') || window.location.pathname.startsWith('/p/');
-  const isVipHandler = window.location.pathname.startsWith('/vip/');
+  const isPublicTerminal = window.location.pathname.includes('/terminal') || window.location.pathname.includes('/p/');
+  const isVipHandler = window.location.pathname.includes('/vip/');
 
   if (isVipHandler) {
     return <VipPointHandler />;

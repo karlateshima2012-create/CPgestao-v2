@@ -202,16 +202,22 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
       const path = window.location.pathname;
       const parts = path.split('/').filter(p => p);
 
-      if (parts[0] === 'terminal' && parts[1] && parts[2]) {
-        setTenantSlug(parts[1]);
-        setDeviceUid(parts[2]);
-        resolveTerminal(parts[1], parts[2]);
-      } else if (parts[0] === 'p' && parts[1]) {
+      const pIdx = parts.indexOf('p');
+      const tIdx = parts.indexOf('terminal');
+
+      if (tIdx !== -1 && parts[tIdx + 1] && parts[tIdx + 2]) {
+        const s = parts[tIdx + 1];
+        const u = parts[tIdx + 2];
+        setTenantSlug(s);
+        setDeviceUid(u);
+        resolveTerminal(s, u);
+      } else if (pIdx !== -1 && parts[pIdx + 1]) {
+        const s = parts[pIdx + 1];
         const params = new URLSearchParams(window.location.search);
         const uidParam = params.get('uid');
-        setTenantSlug(parts[1]);
+        setTenantSlug(s);
         setDeviceUid(uidParam);
-        resolveTerminal(parts[1], uidParam || undefined);
+        resolveTerminal(s, uidParam || undefined);
       } else {
         // Fallback or development
         const params = new URLSearchParams(window.location.search);
@@ -291,6 +297,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         const isAdmin = !!localStorage.getItem('auth_token');
         if (isAdmin) {
           setMode('LOJISTA_ACTIONS');
+        } else if (targetToken) {
+          // Automatic earn for QR scan
+          handleEarn();
         } else {
           setMode('RESULT_CLIENT');
         }
@@ -348,6 +357,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   };
 
   const handleEarn = async () => {
+    if (!tenantSlug) return;
     const isAdmin = !!localStorage.getItem('auth_token');
     setLoading(true);
     try {
@@ -380,8 +390,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           customer_name: res.data.customer_name || foundCustomer?.name,
           points_balance: res.data.new_balance,
           loyalty_level_name: res.data.loyalty_level_name || foundCustomer?.loyalty_level_name,
-          points_goal: res.data.points_goal || storeInfo.points_goal,
-          tenant_name: storeInfo.name,
+          points_goal: res.data.points_goal || storeInfo?.points_goal,
+          tenant_name: storeInfo?.name || 'Estabelecimento',
           is_redemption: false
         });
         setMode('AUTO_SUCCESS');
@@ -514,7 +524,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           message: res.data.message || 'Seu cadastro foi concluído com sucesso.',
           type: 'success'
         });
-        handleLookup();
+        setQrToken(null);
+        await handleLookup();
       }
     } catch (error: any) {
       let msg = error.response?.data?.message || 'Não foi possível completar seu cadastro agora.';
@@ -558,7 +569,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
       <div className="w-full md:w-[85%] max-w-4xl bg-white dark:bg-slate-900 md:rounded-t-none md:rounded-b-[50px] shadow-2xl relative z-20 flex flex-col overflow-hidden animate-fade-in border-none">
         {/* 1. HERO SECTION - Occupying 100% of the top */}
         <div className="h-72 md:h-[450px] w-full bg-slate-200 dark:bg-slate-800 relative shrink-0 overflow-hidden">
-          {storeInfo.cover_url ? (
+          {storeInfo?.cover_url ? (
             <img src={storeInfo.cover_url} alt="Cover" className="w-full h-full object-cover block absolute inset-0" />
           ) : (
             <div className="w-full h-full bg-gradient-to-r from-gray-700 to-gray-900" />
@@ -573,15 +584,15 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           <div className="flex items-center gap-6 md:gap-8 w-full">
             {/* Logo - Reduced Border Radius, floating shadow */}
             <div className="w-24 h-24 md:w-36 md:h-36 bg-white dark:bg-gray-900 rounded-[22px] shadow-[0_30px_70px_rgba(0,0,0,0.4)] flex shrink-0 items-center justify-center overflow-hidden bg-center bg-cover transform -translate-y-4">
-              {storeInfo.logo_url ? (
-                <img src={storeInfo.logo_url} alt={storeInfo.tenant_name} className="w-full h-full object-cover rounded-[22px]" />
+              {storeInfo?.logo_url ? (
+                <img src={storeInfo.logo_url} alt={storeInfo?.name} className="w-full h-full object-cover rounded-[22px]" />
               ) : (
                 <DefaultLogo className="w-full h-full p-4" />
               )}
             </div>
 
             <div className="flex flex-col drop-shadow-2xl" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
-              <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white leading-tight">{storeInfo.name}</h1>
+              <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white leading-tight">{storeInfo?.name || 'Carregando...'}</h1>
             </div>
           </div>
         </div>
@@ -589,7 +600,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         {/* Description Header Inside Unified Card */}
         <div className="w-full text-center px-6 py-10 md:py-14 bg-slate-50/20 dark:bg-slate-800/10">
           <p className="text-sm md:text-lg text-slate-600 dark:text-slate-300 font-semibold leading-relaxed max-w-2xl mx-auto px-4">
-            {storeInfo.description || 'A descrição do programa de fidelidade da sua loja aparecerá aqui.'}
+            {storeInfo?.description || 'Obrigado por nos visitar!'}
           </p>
         </div>
 
@@ -678,7 +689,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             {/* Header: Name and Level */}
             <div className="text-center space-y-3 pt-4">
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Área do Cliente</h3>
-              <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{foundCustomer.name || 'Cliente'}</p>
+              <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{foundCustomer?.name || 'Cliente'}</p>
               <div className={`inline-flex items-center gap-2 px-5 py-2 rounded-xl border-2 ${(foundCustomer.loyalty_level || 1) <= 1 ? 'bg-orange-50 border-orange-100 text-orange-700' :
                 (foundCustomer.loyalty_level || 1) === 2 ? 'bg-slate-50 border-slate-100 text-slate-700' :
                   (foundCustomer.loyalty_level || 1) === 3 ? 'bg-yellow-50 border-yellow-100 text-yellow-700' :
@@ -699,17 +710,17 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               <div className="relative z-10 text-center space-y-2">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Saldo Disponível</p>
                 <div className="flex items-baseline justify-center gap-2">
-                  <span className="text-7xl font-black tracking-tighter tabular-nums text-slate-900 dark:text-white">{foundCustomer.points_balance}</span>
-                  <span className="text-2xl font-black text-slate-300 dark:text-slate-600">/ {Number(foundCustomer.points_goal || storeInfo?.levels_config?.[Math.max(0, (foundCustomer.loyalty_level || 1) - 1)]?.goal || storeInfo.points_goal)}</span>
+                  <span className="text-7xl font-black tracking-tighter tabular-nums text-slate-900 dark:text-white">{foundCustomer?.points_balance}</span>
+                  <span className="text-2xl font-black text-slate-300 dark:text-slate-600">/ {Number(foundCustomer?.points_goal || storeInfo?.levels_config?.[Math.max(0, (foundCustomer?.loyalty_level || 1) - 1)]?.goal || storeInfo?.points_goal)}</span>
                 </div>
               </div>
 
               {/* Reward Progress Integration */}
               <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700 text-center">
                 {(() => {
-                  const levelIdx = Math.max(0, (foundCustomer.loyalty_level || 1) - 1);
-                  const goal = Number(foundCustomer.points_goal || storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo.points_goal);
-                  const balance = Number(foundCustomer.points_balance);
+                  const levelIdx = Math.max(0, (foundCustomer?.loyalty_level || 1) - 1);
+                  const goal = Number(foundCustomer?.points_goal || storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo?.points_goal);
+                  const balance = Number(foundCustomer?.points_balance);
                   const pointsNeeded = Math.max(0, goal - balance);
                   const reward = storeInfo?.levels_config?.[levelIdx]?.reward || storeInfo.reward_text || 'Prêmio em definição';
 
@@ -808,8 +819,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                   <h3 className={`text-[10px] font-black uppercase tracking-[0.2em] ${canRedeem ? 'text-amber-500 animate-pulse' : 'text-slate-400'}`}>
                     {canRedeem ? 'META ATINGIDA - PREMIAR' : 'Confirmar Atendimento'}
                   </h3>
-                  <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{foundCustomer.name}</h2>
-                  <p className="text-sm font-bold text-slate-500">{foundCustomer.phone}</p>
+                  <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{foundCustomer?.name}</h2>
+                  <p className="text-sm font-bold text-slate-500">{foundCustomer?.phone}</p>
                 </div>
               </div>
 

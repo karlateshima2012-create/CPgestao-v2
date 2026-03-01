@@ -316,11 +316,11 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug, 
                                                 <p className="text-[10px] font-black uppercase text-gray-400">Página do Terminal</p>
                                                 <button
                                                     onClick={() => {
-                                                        if (tenantSlug) copyToClipboard(`${window.location.origin}/terminal/${tenantSlug}/${device.nfc_uid}`)
+                                                        if (tenantSlug) copyToClipboard(`${window.location.origin}/p/${tenantSlug}`)
                                                     }}
                                                     className="text-xs text-blue-500 hover:underline flex items-center gap-1"
                                                 >
-                                                    <Copy className="w-3.5 h-3.5" /> Copiar Link
+                                                    <Copy className="w-3.5 h-3.5" /> Copiar Link Público
                                                 </button>
                                             </div>
                                         </div>

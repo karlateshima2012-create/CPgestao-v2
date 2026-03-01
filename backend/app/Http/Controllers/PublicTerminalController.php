@@ -69,9 +69,22 @@ class PublicTerminalController extends Controller
 
         // Online Flow with token
         if ($token) {
-            $this->qrTokenService->isValid($token, $tenant->id); // Throws if invalid
-            $device = $this->deviceService->getOrCreateOnlineQrDevice($tenant->id);
-            return [$tenant, $device];
+            $isValid = $this->qrTokenService->isValid($token, $tenant->id);
+            if ($isValid) {
+                $device = $this->deviceService->getOrCreateOnlineQrDevice($tenant->id);
+                return [$tenant, $device];
+            } else {
+                // If token is invalid/used, only allow proceeding if user is an admin
+                // This prevents blocking general users from seeing the store page if they have a stale token.
+                if (auth('sanctum')->check()) {
+                   // Admin can proceed without a valid token (web flow)
+                } else {
+                    // For customers, if they have a token, it MUST be valid to use it as a device-identifier
+                    // But maybe we should just return no device?
+                    // Let's stick to 403 for now as it's the current behavior, but make it clearer.
+                    return [$tenant, null]; 
+                }
+            }
         }
 
         if (!$uid || $uid === 'null') {
@@ -316,7 +329,14 @@ class PublicTerminalController extends Controller
 
             // Consumption of token if present
             if ($token) {
-                $this->qrTokenService->consumeToken($token, $tenant->id);
+                try {
+                    $this->qrTokenService->consumeToken($token, $tenant->id);
+                } catch (\Throwable $te) {
+                    // Ignore consumption error ONLY if we are an admin and token was already used
+                    if (!auth('sanctum')->check()) {
+                        return ApiResponse::error($te->getMessage(), 'TOKEN_ERROR', 400);
+                    }
+                }
             }
 
             // AUTO-CHECKIN PROTECTION: Interval check
@@ -336,9 +356,10 @@ class PublicTerminalController extends Controller
                 }
             }
 
-            $loyalty = $tenant->loyaltySettings ?: \App\Models\LoyaltySetting::create(['tenant_id' => $tenant->id]);
+            $loyalty = \App\Models\LoyaltySetting::firstOrCreate(['tenant_id' => $tenant->id]);
             $levelsConfig = $loyalty->levels_config;
-            $currentLevel = $customer->fresh()->loyalty_level ?? 0;
+            $customer = $customer->fresh(); // Ensure we have latest points state
+            $currentLevel = $customer->loyalty_level ?? 0;
 
             // Grant signup bonus if new
             if ($isNew && $loyalty->signup_bonus_points > 0) {
@@ -409,7 +430,11 @@ class PublicTerminalController extends Controller
                 $this->pointRequestService->applyPoints($requestRecord);
                 $requestRecord->update(['status' => 'auto_approved', 'approved_at' => now()]);
                 
-                event(new \App\Events\PointRequestStatusUpdated($requestRecord));
+                try {
+                    event(new \App\Events\PointRequestStatusUpdated($requestRecord));
+                } catch (\Throwable $ee) {
+                    \Illuminate\Support\Facades\Log::warning("Broadcast failed in earn: " . $ee->getMessage());
+                }
             } elseif ($requestRecord->status === 'pending' && ($tenant->plan === 'Pro' || $tenant->plan === 'pro')) {
                 $settings = \App\Models\TenantSetting::where('tenant_id', $tenant->id)->first();
                 $targetChatId = ($device && $device->telegram_chat_id) ? $device->telegram_chat_id : ($settings ? $settings->telegram_chat_id : null);
@@ -440,9 +465,12 @@ class PublicTerminalController extends Controller
 
             $customer->update(['last_activity_at' => now()]);
 
-            $newBalance = $customer->fresh()->points_balance;
+            $customer = $customer->fresh();
+            $newBalance = $customer->points_balance;
+            $newLevel = (int)($customer->loyalty_level ?? 1);
+            
             $goal = $tenant->points_goal;
-            $lvlIdx = max(0, (int)$currentLevel - 1); // 1-indexed to 0-indexed
+            $lvlIdx = max(0, $newLevel - 1); // Use the NEW level for the NEW goal
             if (is_array($levelsConfig) && isset($levelsConfig[$lvlIdx])) {
                 $goal = (int)($levelsConfig[$lvlIdx]['goal'] ?? $goal);
             }
@@ -477,7 +505,20 @@ class PublicTerminalController extends Controller
         ]);
 
         return DB::transaction(function () use ($request, $slug, $uid) {
-            [$tenant, $device] = $this->validateDevice($slug, $uid);
+            $token = $request->token;
+            [$tenant, $device] = $this->validateDevice($slug, $uid, $token);
+
+            // Consumption of token if present
+            if ($token) {
+                try {
+                    $this->qrTokenService->consumeToken($token, $tenant->id);
+                } catch (\Throwable $te) {
+                    // Ignore consumption error ONLY if we are an admin
+                    if (!auth('sanctum')->check()) {
+                        return ApiResponse::error($te->getMessage(), 'TOKEN_ERROR', 400);
+                    }
+                }
+            }
 
             // Removed plan-based blockade to unify logic across Classic, Pro, and Elite
 
@@ -485,7 +526,7 @@ class PublicTerminalController extends Controller
             $phone = PhoneHelper::normalize($request->phone);
             $customer = Customer::where('tenant_id', $tenant->id)->where('phone', $phone)->first();
 
-            $loyalty = $tenant->loyaltySettings ?: \App\Models\LoyaltySetting::create(['tenant_id' => $tenant->id]);
+            $loyalty = \App\Models\LoyaltySetting::firstOrCreate(['tenant_id' => $tenant->id]);
             $levelsConfig = $loyalty->levels_config;
             $currentLevel = $customer ? ($customer->loyalty_level ?? 1) : 1;
             
@@ -559,6 +600,12 @@ class PublicTerminalController extends Controller
             if ($canAutoApprove) {
                 $this->pointRequestService->applyPoints($requestRecord);
                 $requestRecord->update(['status' => 'auto_approved', 'approved_at' => now()]);
+                
+                try {
+                    event(new \App\Events\PointRequestStatusUpdated($requestRecord));
+                } catch (\Throwable $ee) {
+                    \Illuminate\Support\Facades\Log::warning("Broadcast failed in redeem: " . $ee->getMessage());
+                }
             } elseif ($device && $device->telegram_chat_id && $requestRecord->status === 'pending' && ($tenant->plan === 'Pro' || $tenant->plan === 'pro')) {
                 $levelName = $customer->loyalty_level_name;
                 $locationName = $device->responsible_name ?: $device->name;
@@ -585,10 +632,10 @@ class PublicTerminalController extends Controller
 
             $customer = $customer->fresh();
             $newBalance = $customer->points_balance;
+            $newLevel = (int)($customer->loyalty_level ?? 1);
 
             $goal = $tenant->points_goal;
-            $currentLevel = (int)($customer->loyalty_level ?? 1);
-            $lvlIdx = max(0, $currentLevel - 1);
+            $lvlIdx = max(0, $newLevel - 1);
             if (is_array($levelsConfig) && isset($levelsConfig[$lvlIdx])) {
                 $goal = (int)($levelsConfig[$lvlIdx]['goal'] ?? $goal);
             }
@@ -638,9 +685,22 @@ class PublicTerminalController extends Controller
             return ApiResponse::error('Dados inválidos para cadastro.', 'VALIDATION_ERROR', 422, $e->errors());
         }
 
-        try {
-            return DB::transaction(function () use ($data, $slug, $uid) {
-                [$tenant, $device] = $this->validateDevice($slug, $uid);
+        try { // Broader try-catch for register method
+            return DB::transaction(function () use ($data, $slug, $uid, $request) {
+                $token = $request->token;
+                [$tenant, $device] = $this->validateDevice($slug, $uid, $token);
+
+                // Consumption of token if present to prevent double scoring after registration
+                if ($token) {
+                    try {
+                        $this->qrTokenService->consumeToken($token, $tenant->id);
+                    } catch (\Throwable $te) {
+                        // Ignore consumption error ONLY if we are an admin
+                        if (!auth('sanctum')->check()) {
+                            return ApiResponse::error($te->getMessage(), 'TOKEN_ERROR', 400);
+                        }
+                    }
+                }
 
                 $phone = PhoneHelper::normalize($data['phone']);
 
@@ -692,35 +752,8 @@ class PublicTerminalController extends Controller
 
                 $loyalty = \App\Models\LoyaltySetting::withoutGlobalScopes()->firstOrCreate(['tenant_id' => $tenant->id]);
                 $levels = $loyalty->levels_config;
-                $bonus = 0;
-                if (is_array($levels) && count($levels) > 0 && isset($levels[0]['points_per_signup'])) {
-                    $bonus = (int)$levels[0]['points_per_signup'];
-                } else {
-                    $bonus = (int)($loyalty->signup_bonus_points ?? 0);
-                }
-
-                $bonusMessage = "";
-                if ($bonus > 0) {
-                    // Create Point Request (New Layer)
-                    $requestRecord = $this->createPointRequest([
-                        'tenant_id' => $tenant->id,
-                        'customer_id' => $customer->id,
-                        'phone' => $customer->phone,
-                        'device_id' => $device ? $device->id : null,
-                        'source' => 'online_qr',
-                        'status' => 'pending',
-                        'requested_points' => $bonus,
-                        'meta' => ['is_signup_bonus' => true]
-                    ]);
-
-                    // Bonus is usually auto-approved
-                    $this->pointRequestService->applyPoints($requestRecord);
-                    $requestRecord->update(['status' => 'auto_approved', 'approved_at' => now()]);
-
-                    $bonusMessage = " (Bônus de boas-vindas: {$bonus} pts)";
-                }
-
-                // --- NEW INTEGRATED FLOW: Link Card & Award Visit Points ---
+                
+                // --- NEW INTEGRATED FLOW: Link Card & Award Welcome Points ---
                 
                 // 1. Link Card if UID is a premium card
                 $linkMessage = "";
@@ -741,7 +774,7 @@ class PublicTerminalController extends Controller
                     }
                 }
 
-                // 2. Award Visit Points
+                // 2. Award Points (Only Visit Points acting as Welcome Bonus)
                 $visitPts = 0;
                 if (is_array($levels) && count($levels) > 0 && isset($levels[0]['points_per_visit'])) {
                     $visitPts = (int)$levels[0]['points_per_visit'];
@@ -749,6 +782,7 @@ class PublicTerminalController extends Controller
                     $visitPts = (int)($loyalty->regular_points_per_scan ?? 1);
                 }
 
+                $bonusMessage = "";
                 if ($visitPts > 0) {
                     $visitRequest = $this->createPointRequest([
                         'tenant_id' => $tenant->id,
@@ -758,18 +792,19 @@ class PublicTerminalController extends Controller
                         'source' => $device ? $device->mode : 'approval',
                         'status' => 'pending',
                         'requested_points' => $visitPts,
+                        'meta' => ['is_signup_bonus' => true] // Marking as welcome gift
                     ]);
 
                     $this->pointRequestService->applyPoints($visitRequest);
                     $visitRequest->update(['status' => 'auto_approved', 'approved_at' => now()]);
                     
-                    $bonusMessage .= " + Pontos da Visita: {$visitPts} pts";
+                    $bonusMessage = " (Bônus de boas-vindas: {$visitPts} pts)";
                 }
 
                 $successMsg = "✅ Cadastro realizado com sucesso!{$bonusMessage}{$linkMessage}";
                 
-                if ($bonus > 0 || $visitPts > 0) {
-                    $totalPts = $bonus + $visitPts;
+                if ($visitPts > 0) {
+                    $totalPts = $visitPts;
                     $summaryMsg = "🎁 *Cadastro e Pontuação Direta*\n"
                                . "👤 *Cliente:* {$escName}\n"
                                . "💰 *Total Creditado:* {$totalPts} pts"
