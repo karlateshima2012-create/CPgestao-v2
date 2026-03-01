@@ -140,7 +140,7 @@ export const VipPointHandler: React.FC = () => {
                         <div className="space-y-3">
                             <Button
                                 onClick={() => window.location.href = `/client?tab=devices&link_uid=${data.card_uid}`}
-                                className="w-full h-16 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-slate-400/20 text-sm transition-all active:scale-95"
+                                className="w-full h-16 bg-primary-500 hover:bg-primary-700 text-white font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-slate-400/20 text-sm transition-all active:scale-95"
                             >
                                 Vincular Agora
                             </Button>
@@ -200,7 +200,7 @@ export const VipPointHandler: React.FC = () => {
                             <Button
                                 onClick={handleAddPoint}
                                 isLoading={loadingPoint}
-                                className="w-full h-16 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest rounded-2xl text-base shadow-xl shadow-slate-400/20 transition-all active:scale-95"
+                                className="w-full h-16 bg-primary-500 hover:bg-primary-700 text-white font-black uppercase tracking-widest rounded-2xl text-base shadow-xl shadow-slate-400/20 transition-all active:scale-95"
                             >
                                 Confirmar +{data.points_to_add || 1} Ponto{data.points_to_add > 1 ? 's' : ''}
                             </Button>
@@ -256,14 +256,14 @@ export const VipPointHandler: React.FC = () => {
                     </div>
 
                     <div className="space-y-6">
-                        <div className="bg-blue-600/5 p-4 rounded-2xl border border-blue-600/10">
+                        <div className="bg-primary-500/5 p-4 rounded-2xl border border-blue-600/10">
                             <p className="text-[10px] text-blue-600 dark:text-blue-400 font-black leading-tight uppercase tracking-[0.2em]">
                                 Lojista: Entre na sua conta para vincular este cartão ao CRM.
                             </p>
                         </div>
                         <Button
                             onClick={() => window.location.href = `/client?tab=devices&link_uid=${data.card_uid}`}
-                            className="w-full h-16 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-slate-400/20 text-sm transition-all active:scale-95"
+                            className="w-full h-16 bg-primary-500 hover:bg-primary-700 text-white font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-slate-400/20 text-sm transition-all active:scale-95"
                         >
                             Entrar e Vincular
                         </Button>
@@ -297,7 +297,7 @@ export const VipPointHandler: React.FC = () => {
                     <div className="pt-2 w-full">
                         <Button
                             onClick={() => window.location.href = '/client'}
-                            className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest rounded-2xl text-xs shadow-xl shadow-slate-400/20 transition-all active:scale-95"
+                            className="w-full h-14 bg-primary-500 hover:bg-primary-700 text-white font-black uppercase tracking-widest rounded-2xl text-xs shadow-xl shadow-slate-400/20 transition-all active:scale-95"
                         >
                             Voltar ao Painel
                         </Button>
@@ -344,7 +344,7 @@ export const VipPointHandler: React.FC = () => {
                     <div className="pt-2 w-full">
                         <Button
                             onClick={() => window.location.href = '/client'}
-                            className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest rounded-2xl text-xs shadow-xl shadow-slate-400/20 transition-all active:scale-95"
+                            className="w-full h-14 bg-primary-500 hover:bg-primary-700 text-white font-black uppercase tracking-widest rounded-2xl text-xs shadow-xl shadow-slate-400/20 transition-all active:scale-95"
                         >
                             Voltar ao Painel
                         </Button>
