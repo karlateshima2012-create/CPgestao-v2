@@ -9,7 +9,16 @@ use Illuminate\Support\Facades\Route;
 
 // Auth
 Route::get('/version', function() {
-    return response()->json(['version' => '2.0.0-PRO-EXPANSION', 'time' => '2026-02-25 12:48']);
+    return response()->json(['version' => '2.2.29-DEBUG', 'time' => now()->toDateTimeString()]);
+});
+Route::get('/debug-db', function() {
+    return [
+        'crm_reminders' => Schema::hasTable('crm_reminders'),
+        'customer_reminders' => Schema::hasTable('customer_reminders'),
+        'migrations' => \Illuminate\Support\Facades\DB::table('migrations')->orderBy('id', 'desc')->limit(10)->get(),
+        'connection' => config('database.default'),
+        'mysql_vars' => config('database.default') === 'mysql' ? \Illuminate\Support\Facades\DB::select('SHOW VARIABLES LIKE "sql_mode"') : [],
+    ];
 });
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
