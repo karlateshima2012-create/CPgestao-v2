@@ -92,4 +92,9 @@ class Customer extends Model
     {
         return $this->hasMany(ServiceRecord::class);
     }
+
+    public function reminders(): HasMany
+    {
+        return $this->hasMany(CustomerReminder::class);
+    }
 }

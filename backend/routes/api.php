@@ -56,6 +56,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/contacts/{id}/service-records', [\App\Http\Controllers\ServiceRecordController::class, 'index']);
         Route::post('/contacts/{id}/service-records', [\App\Http\Controllers\ServiceRecordController::class, 'store']);
         
+        Route::get('/contacts/{id}/reminders', [ClientController::class, 'getContactReminders']);
+        Route::post('/contacts/{id}/reminders', [ClientController::class, 'storeContactReminder']);
+        Route::delete('/reminders/{id}', [ClientController::class, 'deleteReminder']);
+        
         Route::get('/loyalty/settings', [ClientController::class, 'getLoyaltySettings']);
         Route::patch('/loyalty/settings', [ClientController::class, 'updateLoyaltySettings']);
         Route::get('/settings', [ClientController::class, 'getAccountSettings']);

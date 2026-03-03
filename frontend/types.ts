@@ -121,6 +121,16 @@ export interface Contact {
   averageTicket?: number;
   attendanceCount?: number;
 }
+export interface Reminder {
+  id: string;
+  tenant_id: string;
+  customer_id: string;
+  reminder_date: string;
+  reminder_time: string;
+  reminder_text: string;
+  status: 'pending' | 'sent' | 'cancelled';
+}
+
 export interface PointRequest {
   id: string;
   tenant_id: string;

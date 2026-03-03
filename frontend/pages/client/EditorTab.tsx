@@ -250,16 +250,22 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
   const [newTagForm, setNewTagForm] = useState({ name: '', category: 'Comportamento', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800' });
   const [pointsInput, setPointsInput] = useState('1');
   const [loyaltySettings, setLoyaltySettings] = useState<any>(null);
+  const [reminders, setReminders] = useState<any[]>([]);
+  const [newReminder, setNewReminder] = useState({ date: '', time: '', text: '' });
 
   useEffect(() => {
     loadTags();
     fetchLoyaltySettings();
     if (selectedContact) {
       setFormData({ ...initialData, ...selectedContact });
-      if (selectedContact.id) loadHistory(selectedContact.id);
+      if (selectedContact.id) {
+        loadHistory(selectedContact.id);
+        loadReminders(selectedContact.id);
+      }
     } else {
       setFormData(initialData);
       setServiceHistory([]);
+      setReminders([]);
     }
   }, [selectedContact, initialData]);
 
@@ -314,6 +320,38 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
     try {
       const res = await api.get('/client/tags');
       setAvailableTags(Array.isArray(res.data) ? res.data : []);
+    } catch (e) { console.error(e); }
+  };
+
+  const loadReminders = async (id: string) => {
+    try {
+      const res = await api.get(`/client/contacts/${id}/reminders`);
+      const list = res.data?.data || res.data || [];
+      setReminders(list);
+    } catch (e) {
+      console.error('Erro ao carregar lembretes:', e);
+    }
+  };
+
+  const addReminder = async () => {
+    if (!selectedContact?.id || !newReminder.date || !newReminder.time || !newReminder.text) return;
+    try {
+      await api.post(`/client/contacts/${selectedContact.id}/reminders`, {
+        reminder_date: newReminder.date,
+        reminder_time: newReminder.time,
+        reminder_text: newReminder.text
+      });
+      setNewReminder({ date: '', time: '', text: '' });
+      loadReminders(selectedContact.id);
+    } catch (err: any) {
+      setSystemModal({ isOpen: true, title: 'Erro', message: err.response?.data?.message || 'Erro ao agendar lembrete.', type: 'error' });
+    }
+  };
+
+  const deleteReminder = async (rid: string) => {
+    try {
+      await api.delete(`/client/reminders/${rid}`);
+      if (selectedContact?.id) loadReminders(selectedContact.id);
     } catch (e) { console.error(e); }
   };
 
@@ -567,27 +605,63 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
         </div>
 
         <div className="mt-8 p-6 bg-gray-50 dark:bg-gray-800/50 rounded-[20px] border border-gray-100">
-          <div className="flex items-center gap-2 text-gray-500 font-black text-[10px] uppercase tracking-widest mb-6"><Bell className="w-4 h-4" /> Lembretes</div>
-          <div className="space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-end">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">DATA</label>
-                <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 rounded-[15px] h-11 flex items-center px-4">
-                  <input type="date" value={formatDateForInput(formData.reminderDate)} onChange={e => handleDateChange('reminderDate', e.target.value)} className="w-full bg-transparent text-sm font-bold outline-none" />
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2 text-gray-500 font-black text-[10px] uppercase tracking-widest"><Bell className="w-4 h-4" /> Lembretes Ativos</div>
+            <Badge variant="outline" className="text-[10px] font-black">{reminders.length} / 3</Badge>
+          </div>
+
+          <div className="space-y-4 mb-8">
+            {reminders.length === 0 ? (
+              <div className="py-8 text-center bg-white dark:bg-gray-900 border border-dashed border-gray-200 dark:border-gray-700 rounded-[18px]">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Nenhum lembrete agendado</p>
+              </div>
+            ) : (
+              reminders.map((r: any) => (
+                <div key={r.id} className="flex items-center justify-between p-4 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-[18px] shadow-sm group">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] font-black text-amber-600 bg-amber-50 dark:bg-amber-900/30 px-2 py-0.5 rounded-md">
+                        {new Date(r.reminder_date).toLocaleDateString('pt-BR')} às {r.reminder_time.substring(0, 5)}
+                      </span>
+                    </div>
+                    <p className="text-xs font-bold text-gray-700 dark:text-gray-300">{r.reminder_text}</p>
+                  </div>
+                  <button onClick={() => deleteReminder(r.id)} className="p-2 text-gray-400 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all">✕</button>
+                </div>
+              ))
+            )}
+          </div>
+
+          {reminders.length < 3 && selectedContact && (
+            <div className="p-4 bg-white/50 dark:bg-gray-900/20 rounded-[20px] border border-gray-100 dark:border-gray-800 space-y-5">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Agendar Novo Lembrete</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-end">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">DATA</label>
+                  <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 rounded-[15px] h-11 flex items-center px-4">
+                    <input type="date" value={newReminder.date} onChange={e => setNewReminder(p => ({ ...p, date: e.target.value }))} className="w-full bg-transparent text-sm font-bold outline-none" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">HORÁRIO</label>
+                  <ComboboxTime value={newReminder.time} onChange={(t: string) => setNewReminder(p => ({ ...p, time: t }))} placeholder="00:00" />
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">HORÁRIO</label>
-                <ComboboxTime value={formData.reminderTime} onChange={(t: string) => setFormData(p => ({ ...p, reminderTime: t }))} placeholder="00:00" />
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">MOTIVO DO LEMBRETE</label>
+                <div className="flex gap-3">
+                  <div className="flex-1 bg-gray-50 dark:bg-gray-800 border border-gray-200 rounded-[15px] h-11 flex items-center px-4">
+                    <input type="text" placeholder="..." value={newReminder.text} onChange={e => setNewReminder(p => ({ ...p, text: e.target.value }))} className="w-full bg-transparent text-sm font-bold outline-none" />
+                  </div>
+                  <Button onClick={addReminder} className="h-11 px-6 bg-gray-900 text-white font-black uppercase text-[10px] rounded-[15px]">OK</Button>
+                </div>
               </div>
             </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">MOTIVO DO LEMBRETE</label>
-              <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 rounded-[15px] h-11 flex items-center px-4">
-                <input type="text" placeholder="..." value={formData.reminderText || ''} onChange={e => setFormData(p => ({ ...p, reminderText: e.target.value }))} className="w-full bg-transparent text-sm font-bold outline-none" />
-              </div>
-            </div>
-          </div>
+          )}
+
+          {!selectedContact && (
+            <p className="text-center py-4 text-[10px] font-bold text-gray-400 uppercase">Crie o cadastro primeiro para agendar lembretes.</p>
+          )}
         </div>
       </Card>
 

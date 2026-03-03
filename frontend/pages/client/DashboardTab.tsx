@@ -203,6 +203,49 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
         </div>
       </section>
 
+      {/* Seção 4: Lembretes do CRM */}
+      <section>
+        <SectionHeader title="Lembretes do CRM" subtitle="Próximas ações agendadas" icon={Activity} colorClass="bg-amber-500" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {metrics?.active_reminders && metrics.active_reminders.length > 0 ? (
+            metrics.active_reminders.map((r: any, i: number) => (
+              <Card key={i} className="p-5 border border-amber-100 dark:border-amber-900/30 bg-white/50 dark:bg-amber-950/10 backdrop-blur-xl shadow-sm hover:shadow-md transition-all group overflow-hidden">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-amber-500/10 text-amber-500 ring-1 ring-amber-500/20">
+                      <Activity className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest">
+                        {new Date(r.reminder_date).toLocaleDateString('pt-BR')} às {r.reminder_time.substring(0, 5)}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="text-[9px] border-amber-500/30 text-amber-600">PENDENTE</Badge>
+                </div>
+
+                <h4 className="text-sm font-black text-gray-900 dark:text-white mb-2 line-clamp-1">{r.customer?.name}</h4>
+                <p className="text-[11px] font-bold text-gray-500 dark:text-gray-400 leading-relaxed mb-4 line-clamp-2">
+                  {r.reminder_text}
+                </p>
+
+                <div className="flex items-center justify-between pt-4 border-t border-gray-50 dark:border-gray-800">
+                  <span className="text-[10px] font-bold text-gray-400">{r.customer?.phone}</span>
+                  <Button variant="ghost" size="sm" className="h-7 text-[9px] px-3 font-black uppercase text-amber-600 hover:text-amber-700 hover:bg-amber-50" onClick={() => onChangeTab({ type: 'edit', contact: r.customer })}>
+                    Ver Cliente
+                  </Button>
+                </div>
+              </Card>
+            ))
+          ) : (
+            <div className="col-span-full py-12 flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900/50 rounded-[32px] border-2 border-dashed border-gray-200 dark:border-gray-800">
+              <Activity className="w-12 h-12 text-gray-300 mb-4" />
+              <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Nenhum lembrete ativo para os próximos dias</p>
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* Seção 3: Performance Financeira */}
       <section>
         <SectionHeader title="Performance Financeira" subtitle="Volume transacionado no CRM" icon={TrendingUp} colorClass="bg-emerald-500" />

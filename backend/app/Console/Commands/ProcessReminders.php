@@ -25,22 +25,24 @@ class ProcessReminders extends Command
      */
     public function handle(\App\Services\TelegramService $telegramService)
     {
-        $today = now()->format('d/m/Y');
+        $todayStr = now()->toDateString(); // Y-m-d
         $nowTime = now()->format('H:i');
         
-        // Busca clientes com lembrete para hoje
-        // Se reminder_time estiver definido, deve bater com o horário atual (H:i)
-        // Se reminder_time estiver vazio, envia no processamento matinal (a critério do Schedule)
-        $customers = \App\Models\Customer::where('reminder_date', $today)
-            ->whereNotNull('reminder_text')
+        // Use the new CustomerReminder model
+        $reminders = \App\Models\CustomerReminder::where('reminder_date', $todayStr)
+            ->where('status', 'pending')
+            ->with('customer')
             ->get();
 
-        if ($customers->isEmpty()) {
+        if ($reminders->isEmpty()) {
             return;
         }
 
-        foreach ($customers as $customer) {
-            $targetTime = !empty($customer->reminder_time) ? $customer->reminder_time : '09:00';
+        foreach ($reminders as $reminder) {
+            $customer = $reminder->customer;
+            if (!$customer) continue;
+
+            $targetTime = !empty($reminder->reminder_time) ? date('H:i', strtotime($reminder->reminder_time)) : '09:00';
 
             if ($targetTime !== $nowTime) {
                 continue;
@@ -49,19 +51,15 @@ class ProcessReminders extends Command
             $message = "🔔 <b>Lembrete Estratégico</b>\n\n";
             $message .= "<b>Cliente:</b> {$customer->name}\n";
             $message .= "<b>Telefone:</b> {$customer->phone}\n";
-            $message .= "<b>Ação:</b> {$customer->reminder_text}";
+            $message .= "<b>Ação:</b> {$reminder->reminder_text}";
 
-            $telegramService->sendMessage($customer->tenant_id, $message, 'reminder');
+            $telegramService->sendMessage($reminder->tenant_id, $message, 'reminder');
             
-            // Limpa o lembrete para não enviar novamente
-            $customer->update([
-                'reminder_date' => null,
-                'reminder_time' => null,
-                'reminder_text' => null,
-            ]);
+            // Mark as sent
+            $reminder->update(['status' => 'sent']);
 
-            $this->info("Lembrete enviado e limpo para cliente {$customer->id}");
+            $this->info("Lembrete {$reminder->id} enviado para cliente {$customer->id}");
         }
-        $this->info($customers->count() . " lembrete(s) processado(s).");
+        $this->info($reminders->count() . " lembrete(s) processado(s).");
     }
 }

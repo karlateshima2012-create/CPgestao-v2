@@ -207,9 +207,58 @@ class ClientController extends Controller
 
         $customer->load(['devices' => function($q) {
             $q->where('status', 'linked')->where('type', 'premium');
+        }, 'reminders' => function($q) {
+            $q->where('reminder_date', '>=', now()->toDateString())->orderBy('reminder_date', 'asc')->limit(3);
         }]);
 
         return ApiResponse::ok($customer, 'Contato atualizado com sucesso');
+    }
+
+    public function getContactReminders(Request $request, $id)
+    {
+        $customer = Customer::findOrFail($id);
+        $reminders = $customer->reminders()
+            ->where('reminder_date', '>=', now()->toDateString())
+            ->orderBy('reminder_date', 'asc')
+            ->orderBy('reminder_time', 'asc')
+            ->limit(3)
+            ->get();
+            
+        return ApiResponse::ok($reminders);
+    }
+
+    public function storeContactReminder(Request $request, $id)
+    {
+        $customer = Customer::findOrFail($id);
+        
+        $activeCount = $customer->reminders()->where('reminder_date', '>=', now()->toDateString())->count();
+        if ($activeCount >= 3) {
+            return ApiResponse::error('Limite de 3 lembretes ativos atingido para este cliente.', 'LIMIT_REACHED', 422);
+        }
+
+        $request->validate([
+            'reminder_date' => 'required|date',
+            'reminder_time' => 'required|string',
+            'reminder_text' => 'required|string|max:200',
+        ]);
+
+        $reminder = $customer->reminders()->create([
+            'tenant_id' => $customer->tenant_id,
+            'reminder_date' => $request->reminder_date,
+            'reminder_time' => $request->reminder_time,
+            'reminder_text' => $request->reminder_text,
+            'status' => 'pending'
+        ]);
+
+        return ApiResponse::ok($reminder, 'Lembrete agendado com sucesso');
+    }
+
+    public function deleteReminder(Request $request, $id)
+    {
+        $reminder = \App\Models\CustomerReminder::where('tenant_id', $request->user()->tenant_id)->findOrFail($id);
+        $reminder->delete();
+        
+        return ApiResponse::ok(null, 'Lembrete excluído');
     }
 
     public function deleteContact(Request $request, $id)
@@ -773,6 +822,12 @@ class ClientController extends Controller
                 'total_points_generated' => $totalPointsEarned,
                 'total_premium_customers' => Customer::where('is_premium', true)->count(),
                 'total_linked_cards' => \App\Models\Device::where('status', 'linked')->count(),
+                'active_reminders' => \App\Models\CustomerReminder::with('customer:id,name,phone')
+                    ->where('reminder_date', '>=', now()->toDateString())
+                    ->orderBy('reminder_date', 'asc')
+                    ->orderBy('reminder_time', 'asc')
+                    ->limit(10)
+                    ->get(),
             ]);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Dashboard Metrics Error: ' . $e->getMessage());
