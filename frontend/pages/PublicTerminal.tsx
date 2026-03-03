@@ -609,7 +609,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         </div>
 
         {/* Description Header Inside Unified Card */}
-        <div className="w-full text-center px-6 py-8 md:py-12 bg-slate-50/20 dark:bg-slate-800/10 border-b border-gray-100 dark:border-gray-800">
+        <div className="w-full text-center px-6 py-8 md:py-12">
           <p className="text-sm md:text-lg text-slate-500 dark:text-slate-400 font-semibold leading-relaxed max-w-2xl mx-auto px-4">
             {storeInfo?.description || 'Obrigado por nos visitar!'}
           </p>
