@@ -66,10 +66,10 @@ class TenantController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string',
-            'owner_name' => 'nullable|string',
-            'phone' => 'nullable|string',
-            'email' => 'required|email',
+            'name' => 'required|string|max:100',
+            'owner_name' => 'nullable|string|max:100',
+            'phone' => 'nullable|string|max:20',
+            'email' => 'required|email|max:100|unique:users,email',
             'plan' => 'required|string',
             'plan_expires_at' => 'nullable|date',
             'custom_contact_limit' => 'nullable|integer',
@@ -77,64 +77,84 @@ class TenantController extends Controller
             'totems_count' => 'nullable|integer|min:0|max:10',
         ]);
 
-        $tenant = Tenant::create([
-            'name' => $request->name,
-            'owner_name' => $request->owner_name,
-            'phone' => $request->phone,
-            'email' => $request->email,
-            'plan' => $request->plan,
-            'plan_expires_at' => $request->plan_expires_at ?: now()->addDays(30),
-            'custom_contact_limit' => $request->custom_contact_limit,
-            'extra_contacts_quota' => $request->extra_contacts_quota ?? 0,
-            'slug' => Str::slug($request->name),
-        ]);
+        try {
+            return \Illuminate\Support\Facades\DB::transaction(function () use ($request) {
+                // Generate and ensure unique slug
+                $baseSlug = \Illuminate\Support\Str::slug($request->name);
+                if (empty($baseSlug)) {
+                    $baseSlug = 'tenant-' . \Illuminate\Support\Str::random(5);
+                }
+                
+                $slug = $baseSlug;
+                $counter = 1;
+                while (Tenant::where('slug', $slug)->exists()) {
+                    $slug = $baseSlug . '-' . $counter;
+                    $counter++;
+                }
 
-        // Provision Totems (Devices) if requested
-        $totemsCount = (int) $request->input('totems_count', 0);
-        if ($totemsCount > 0) {
-            $mode = $tenant->plan === 'elite' ? 'auto_checkin' : 'approval';
-            for ($i = 1; $i <= $totemsCount; $i++) {
-                \App\Models\Device::create([
-                    'tenant_id' => $tenant->id,
-                    'name' => "Totem {$i}",
-                    'nfc_uid' => Str::random(12),
-                    'mode' => $mode,
-                    'auto_approve' => $tenant->plan === 'elite',
-                    'active' => true,
+                $tenant = Tenant::create([
+                    'name' => $request->name,
+                    'owner_name' => $request->owner_name,
+                    'phone' => $request->phone,
+                    'email' => $request->email,
+                    'plan' => $request->plan,
+                    'plan_expires_at' => $request->plan_expires_at ?: now()->addDays(30),
+                    'custom_contact_limit' => $request->custom_contact_limit,
+                    'extra_contacts_quota' => $request->extra_contacts_quota ?? 0,
+                    'slug' => $slug,
                 ]);
-            }
+
+                // Provision Totems (Devices) if requested
+                $totemsCount = (int) $request->input('totems_count', 0);
+                if ($totemsCount > 0) {
+                    $mode = $tenant->plan === 'elite' ? 'auto_checkin' : 'approval';
+                    for ($i = 1; $i <= $totemsCount; $i++) {
+                        \App\Models\Device::create([
+                            'tenant_id' => $tenant->id,
+                            'name' => "Totem {$i}",
+                            'nfc_uid' => \Illuminate\Support\Str::random(12),
+                            'mode' => $mode,
+                            'auto_approve' => $tenant->plan === 'elite',
+                            'active' => true,
+                        ]);
+                    }
+                }
+
+                // Initial PIN: Random 4 digits
+                $pin = str_pad(mt_rand(0, 9999), 4, '0', STR_PAD_LEFT);
+                $settings = new TenantSetting();
+                $settings->tenant_id = $tenant->id;
+                $settings->pin = $pin;
+                $settings->pin_hash = Hash::make($pin);
+                $settings->save();
+
+                // Populate default tags for the new tenant
+                \App\Jobs\PopulateDefaultTagsJob::dispatch($tenant->id);
+
+                // Create initial User (Admin for this tenant)
+                $password = \Illuminate\Support\Str::random(8);
+                $user = User::create([
+                    'name' => $request->owner_name ?? $request->name,
+                    'email' => $request->email,
+                    'password' => Hash::make($password),
+                    'tenant_id' => $tenant->id,
+                    'role' => 'client',
+                    'active' => true,
+                    'must_change_password' => true,
+                ]);
+
+                return ApiResponse::ok([
+                    'tenant' => $tenant,
+                    'credentials' => [
+                        'email' => $user->email,
+                        'password' => $password
+                    ]
+                ], 'Tenant e usuário criados com sucesso');
+            });
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Tenant Creation Failed: " . $e->getMessage());
+            return ApiResponse::error('Erro ao criar novo CRM: ' . $e->getMessage(), 500);
         }
-
-        // Initial PIN: Random 4 digits
-        $pin = str_pad(mt_rand(0, 9999), 4, '0', STR_PAD_LEFT);
-        $settings = new TenantSetting();
-        $settings->tenant_id = $tenant->id;
-        $settings->pin = $pin;
-        $settings->pin_hash = Hash::make($pin);
-        $settings->save();
-
-        // Populate default tags for the new tenant
-        \App\Jobs\PopulateDefaultTagsJob::dispatch($tenant->id);
-
-        // Create initial User (Admin for this tenant)
-        $password = Str::random(8);
-        $user = User::create([
-            'name' => $request->owner_name ?? $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($password),
-            'tenant_id' => $tenant->id,
-            'role' => 'client',
-            'active' => true,
-            'must_change_password' => true,
-        ]);
-
-        return ApiResponse::ok([
-            'tenant' => $tenant,
-            'credentials' => [
-                'email' => $user->email,
-                'password' => $password
-            ]
-        ], 'Tenant e usuário criados com sucesso');
     }
 
     public function update(Request $request, $id)
