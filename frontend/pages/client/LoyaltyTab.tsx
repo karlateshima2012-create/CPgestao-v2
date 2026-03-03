@@ -121,7 +121,7 @@ export const LoyaltyTab: React.FC<LoyaltyTabProps> = ({ tenantPlan, contacts = [
                         <textarea
                            value={loyaltySettings.description || ''}
                            onChange={(e) => setLoyaltySettings({ ...loyaltySettings, description: e.target.value })}
-                           placeholder="Ex: A melhor barbearia da cidade. Cabelo e barba impecáveis."
+                           placeholder="Ex: Participe do nosso programa VIP e ganhe prêmios exclusivos a cada visita. A cada nível alcançado, novos benefícios são liberados!"
                            className="w-full h-24 p-4 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-[15px] font-medium text-sm outline-none focus:ring-2 focus:ring-primary-500/20 transition-all resize-none"
                         />
                      </div>
@@ -133,7 +133,7 @@ export const LoyaltyTab: React.FC<LoyaltyTabProps> = ({ tenantPlan, contacts = [
                         <textarea
                            value={loyaltySettings.rules_text || ''}
                            onChange={(e) => setLoyaltySettings({ ...loyaltySettings, rules_text: e.target.value })}
-                           placeholder="Ex:&#10;1 ponto a cada R$ 50 em compras.&#10;Resgate válido apenas em dias úteis.&#10;Os pontos expiram em 6 meses."
+                           placeholder="Ex:&#10;Ganhe 1 ponto a cada ¥ 5.000 em compras.&#10;Resgate seus prêmios em qualquer dia da semana.&#10;Mantenha-se ativo para não perder seu nível VIP."
                            className="w-full h-32 p-4 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-[15px] font-medium text-sm outline-none focus:ring-2 focus:ring-primary-500/20 transition-all resize-none leading-relaxed"
                         />
                      </div>
