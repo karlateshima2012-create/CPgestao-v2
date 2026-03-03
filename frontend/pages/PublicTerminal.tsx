@@ -591,24 +591,24 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         <div className="absolute top-0 left-0 right-0 h-72 md:h-[450px] flex flex-col justify-center p-6 z-10 text-white">
           <div className="flex items-center gap-6 md:gap-8 w-full">
             {/* Logo - Reduced Border Radius, floating shadow */}
-            <div className="w-24 h-24 md:w-36 md:h-36 bg-white dark:bg-gray-900 rounded-[22px] shadow-[0_30px_70px_rgba(0,0,0,0.4)] flex shrink-0 items-center justify-center overflow-hidden bg-center bg-cover transform -translate-y-4">
+            <div className="w-28 h-28 md:w-44 md:h-44 bg-white dark:bg-gray-900 rounded-[30px] shadow-[0_30px_70px_rgba(0,0,0,0.4)] flex shrink-0 items-center justify-center overflow-hidden bg-center bg-cover transform -translate-y-4 border-4 border-white dark:border-gray-800">
               {storeInfo?.logo_url ? (
-                <img src={storeInfo.logo_url} alt={storeInfo?.name} className="w-full h-full object-cover rounded-[22px]" />
+                <img src={storeInfo.logo_url} alt={storeInfo?.name} className="w-full h-full object-cover rounded-[25px]" />
               ) : (
-                <DefaultLogo className="w-full h-full p-4" />
+                <DefaultLogo className="w-full h-full p-6" />
               )}
             </div>
 
-            <div className="flex flex-col drop-shadow-2xl" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
-              <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white leading-tight">{storeInfo?.name || 'Carregando...'}</h1>
+            <div className="flex flex-col drop-shadow-2xl flex-1 transform -translate-y-4" style={{ textShadow: '0 4px 15px rgba(0,0,0,0.6)' }}>
+              <h1 className="text-4xl md:text-6xl font-black tracking-tight text-white leading-[1.1] drop-shadow-lg">{storeInfo?.name || 'Carregando...'}</h1>
             </div>
           </div>
         </div>
 
         {/* Description Header Inside Unified Card */}
-        <div className="w-full text-center px-6 py-10 md:py-14 bg-slate-50/20 dark:bg-slate-800/10">
-          <p className="text-sm md:text-lg text-slate-600 dark:text-slate-300 font-semibold leading-relaxed max-w-2xl mx-auto px-4">
-            {storeInfo?.description || 'Obrigado por nos visitar!'}
+        <div className="w-full text-center px-6 py-12 md:py-16 bg-slate-50/30 dark:bg-slate-800/20 border-b border-gray-100 dark:border-gray-800">
+          <p className="text-lg md:text-2xl text-slate-700 dark:text-slate-200 font-bold leading-relaxed max-w-3xl mx-auto px-4 italic">
+            "{storeInfo?.description || 'Obrigado por nos visitar!'}"
           </p>
         </div>
 
@@ -695,9 +695,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             </button>
 
             {/* Header: Name and Level */}
-            <div className="text-center space-y-3 pt-4">
-              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Área do Cliente</h3>
-              <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{foundCustomer?.name || 'Cliente'}</p>
+            <div className="text-center space-y-3 pt-6">
+              <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.25em]">Área do Cliente</h3>
+              <p className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter leading-tight">{foundCustomer?.name || 'Cliente'}</p>
               <div className={`inline-flex items-center gap-2 px-5 py-2 rounded-xl border-2 ${(foundCustomer.loyalty_level || 1) <= 1 ? 'bg-orange-50 border-orange-100 text-orange-700' :
                 (foundCustomer.loyalty_level || 1) === 2 ? 'bg-slate-50 border-slate-100 text-slate-700' :
                   (foundCustomer.loyalty_level || 1) === 3 ? 'bg-yellow-50 border-yellow-100 text-yellow-700' :
