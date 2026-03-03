@@ -11,6 +11,8 @@ class CustomerReminder extends Model
 {
     use HasUuids, BelongsToTenant;
 
+    protected $table = 'crm_reminders';
+
     public $incrementing = false;
     protected $keyType = 'string';
 
