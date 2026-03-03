@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\Device;
 use App\Models\DeviceBatch;
+use App\Models\CustomerReminder;
 use App\Models\TenantSetting;
 use App\Services\DeviceService;
 use Illuminate\Http\Request;
@@ -821,8 +822,8 @@ class ClientController extends Controller
                 'suggestions' => $suggestions,
                 'total_points_generated' => $totalPointsEarned,
                 'total_premium_customers' => Customer::where('is_premium', true)->count(),
-                'total_linked_cards' => \App\Models\Device::where('status', 'linked')->count(),
-                'active_reminders' => \App\Models\CustomerReminder::with('customer:id,name,phone')
+                'total_linked_cards' => \App\Models\LoyaltyCard::where('status', 'linked')->count(),
+                'active_reminders' => CustomerReminder::with('customer:id,name,phone')
                     ->where('reminder_date', '>=', now()->toDateString())
                     ->orderBy('reminder_date', 'asc')
                     ->orderBy('reminder_time', 'asc')
