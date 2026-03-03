@@ -592,7 +592,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           <div className="flex items-center gap-6 md:gap-8 w-full">
             {/* Logo - Reduced Border Radius, floating shadow */}
             {/* Logo - Modern Floating Effect */}
-            <div className="w-36 h-36 md:w-56 md:h-56 rounded-[20px] shadow-[0_25px_60px_rgba(0,0,0,0.6)] flex shrink-0 items-center justify-center overflow-hidden transform -translate-y-6 ring-2 ring-white/25 backdrop-blur-xl bg-white/10">
+            <div className="w-36 h-36 md:w-56 md:h-56 rounded-[20px] shadow-[0_25px_60px_rgba(0,0,0,0.6)] flex shrink-0 items-center justify-center overflow-hidden ring-2 ring-white/25 backdrop-blur-xl bg-white/10">
               {storeInfo?.logo_url ? (
                 <img src={storeInfo.logo_url} alt={storeInfo?.name} className="w-full h-full object-cover rounded-[20px]" />
               ) : (
@@ -602,7 +602,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               )}
             </div>
 
-            <div className="flex flex-col drop-shadow-2xl flex-1 transform -translate-y-4" style={{ textShadow: '0 4px 15px rgba(0,0,0,0.6)' }}>
+            <div className="flex flex-col drop-shadow-2xl flex-1" style={{ textShadow: '0 4px 15px rgba(0,0,0,0.6)' }}>
               <h1 className="text-4xl md:text-6xl font-black tracking-tight text-white leading-[1.1] drop-shadow-lg">{storeInfo?.name || 'Carregando...'}</h1>
             </div>
           </div>
