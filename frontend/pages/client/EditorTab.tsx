@@ -632,30 +632,50 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
             )}
           </div>
 
-          {reminders.length < 3 && selectedContact && (
-            <div className="p-4 bg-white/50 dark:bg-gray-900/20 rounded-[20px] border border-gray-100 dark:border-gray-800 space-y-5">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Agendar Novo Lembrete</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-end">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">DATA</label>
-                  <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 rounded-[15px] h-11 flex items-center px-4">
-                    <input type="date" value={newReminder.date} onChange={e => setNewReminder(p => ({ ...p, date: e.target.value }))} className="w-full bg-transparent text-sm font-bold outline-none" />
+          {selectedContact && (
+            <div className={`p-4 rounded-[20px] border transition-all duration-300 ${reminders.length >= 3 ? 'bg-amber-50/50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800' : 'bg-white/50 dark:bg-gray-900/20 border-gray-100 dark:border-gray-800'}`}>
+              <div className="flex items-center justify-between mb-5">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Agendar Novo Lembrete</p>
+                {reminders.length >= 3 && (
+                  <Badge variant="outline" className="text-[8px] border-amber-500 text-amber-600 bg-amber-50">LIMITE ATINGIDO</Badge>
+                )}
+              </div>
+
+              <div className={`space-y-5 transition-opacity duration-300 ${reminders.length >= 3 ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-end">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">DATA</label>
+                    <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 rounded-[15px] h-11 flex items-center px-4">
+                      <input type="date" value={newReminder.date} onChange={e => setNewReminder(p => ({ ...p, date: e.target.value }))} className="w-full bg-transparent text-sm font-bold outline-none" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">HORÁRIO</label>
+                    <ComboboxTime value={newReminder.time} onChange={(t: string) => setNewReminder(p => ({ ...p, time: t }))} placeholder="00:00" />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">HORÁRIO</label>
-                  <ComboboxTime value={newReminder.time} onChange={(t: string) => setNewReminder(p => ({ ...p, time: t }))} placeholder="00:00" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">MOTIVO DO LEMBRETE</label>
-                <div className="flex gap-3">
-                  <div className="flex-1 bg-gray-50 dark:bg-gray-800 border border-gray-200 rounded-[15px] h-11 flex items-center px-4">
-                    <input type="text" placeholder="..." value={newReminder.text} onChange={e => setNewReminder(p => ({ ...p, text: e.target.value }))} className="w-full bg-transparent text-sm font-bold outline-none" />
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">MOTIVO DO LEMBRETE</label>
+                  <div className="flex gap-3">
+                    <div className="flex-1 bg-gray-50 dark:bg-gray-800 border border-gray-200 rounded-[15px] h-11 flex items-center px-4">
+                      <input type="text" placeholder="..." value={newReminder.text} onChange={e => setNewReminder(p => ({ ...p, text: e.target.value }))} className="w-full bg-transparent text-sm font-bold outline-none" />
+                    </div>
+                    <Button
+                      onClick={addReminder}
+                      disabled={reminders.length >= 3}
+                      className="h-11 px-6 bg-gray-900 text-white font-black uppercase text-[10px] rounded-[15px] disabled:bg-gray-300"
+                    >
+                      OK
+                    </Button>
                   </div>
-                  <Button onClick={addReminder} className="h-11 px-6 bg-gray-900 text-white font-black uppercase text-[10px] rounded-[15px]">OK</Button>
                 </div>
               </div>
+
+              {reminders.length >= 3 && (
+                <p className="text-[9px] font-bold text-amber-600 mt-4 text-center">
+                  Máximo de 3 lembretes pendentes. Exclua um para agendar novo.
+                </p>
+              )}
             </div>
           )}
 

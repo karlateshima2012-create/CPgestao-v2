@@ -220,6 +220,7 @@ class ClientController extends Controller
         try {
             $customer = Customer::findOrFail($id);
             $reminders = $customer->reminders()
+                ->where('status', 'pending')
                 ->where('reminder_date', '>=', now()->toDateString())
                 ->orderBy('reminder_date', 'asc')
                 ->orderBy('reminder_time', 'asc')
@@ -238,9 +239,13 @@ class ClientController extends Controller
         try {
             $customer = Customer::findOrFail($id);
             
-            $activeCount = $customer->reminders()->where('reminder_date', '>=', now()->toDateString())->count();
+            $activeCount = $customer->reminders()
+                ->where('status', 'pending')
+                ->where('reminder_date', '>=', now()->toDateString())
+                ->count();
+                
             if ($activeCount >= 3) {
-                return ApiResponse::error('Limite de 3 lembretes ativos atingido para este cliente.', 'LIMIT_REACHED', 422);
+                return ApiResponse::error('Este cliente já possui 3 lembretes pendentes. Aguarde o envio ou exclua algum.', 'LIMIT_REACHED', 422);
             }
 
             $request->validate([
