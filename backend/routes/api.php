@@ -20,6 +20,32 @@ Route::get('/debug-db', function() {
         'mysql_vars' => config('database.default') === 'mysql' ? \Illuminate\Support\Facades\DB::select('SHOW VARIABLES LIKE "sql_mode"') : [],
     ];
 });
+
+Route::get('/force-migrate-crm', function() {
+    try {
+        Schema::disableForeignKeyConstraints();
+        Schema::dropIfExists('crm_reminders');
+        Schema::dropIfExists('customer_reminders');
+        
+        Schema::create('crm_reminders', function ($table) {
+            $table->uuid('id')->primary();
+            $table->string('tenant_id', 100);
+            $table->string('customer_id', 100);
+            $table->date('reminder_date');
+            $table->time('reminder_time');
+            $table->text('reminder_text');
+            $table->string('status', 50)->default('pending');
+            $table->timestamps();
+            
+            $table->index('tenant_id');
+            $table->index('customer_id');
+        });
+        Schema::enableForeignKeyConstraints();
+        return "Table crm_reminders created successfully!";
+    } catch (\Throwable $e) {
+        return "Error: " . $e->getMessage() . " at " . $e->getFile() . ":" . $e->getLine();
+    }
+});
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
