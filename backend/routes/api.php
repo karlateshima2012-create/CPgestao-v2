@@ -9,43 +9,9 @@ use Illuminate\Support\Facades\Route;
 
 // Auth
 Route::get('/version', function() {
-    return response()->json(['version' => '2.2.29-DEBUG', 'time' => now()->toDateTimeString()]);
-});
-Route::get('/debug-db', function() {
-    return [
-        'crm_reminders' => Schema::hasTable('crm_reminders'),
-        'customer_reminders' => Schema::hasTable('customer_reminders'),
-        'migrations' => \Illuminate\Support\Facades\DB::table('migrations')->orderBy('id', 'desc')->limit(10)->get(),
-        'connection' => config('database.default'),
-        'mysql_vars' => config('database.default') === 'mysql' ? \Illuminate\Support\Facades\DB::select('SHOW VARIABLES LIKE "sql_mode"') : [],
-    ];
+    return response()->json(['version' => '2.2.31', 'time' => now()->toDateTimeString()]);
 });
 
-Route::get('/force-migrate-crm', function() {
-    try {
-        Schema::disableForeignKeyConstraints();
-        Schema::dropIfExists('crm_reminders');
-        Schema::dropIfExists('customer_reminders');
-        
-        Schema::create('crm_reminders', function ($table) {
-            $table->uuid('id')->primary();
-            $table->string('tenant_id', 100);
-            $table->string('customer_id', 100);
-            $table->date('reminder_date');
-            $table->time('reminder_time');
-            $table->text('reminder_text');
-            $table->string('status', 50)->default('pending');
-            $table->timestamps();
-            
-            $table->index('tenant_id');
-            $table->index('customer_id');
-        });
-        Schema::enableForeignKeyConstraints();
-        return "Table crm_reminders created successfully!";
-    } catch (\Throwable $e) {
-        return "Error: " . $e->getMessage() . " at " . $e->getFile() . ":" . $e->getLine();
-    }
-});
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
