@@ -11,6 +11,9 @@ class CustomerReminder extends Model
 {
     use HasUuids, BelongsToTenant;
 
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     protected $fillable = [
         'tenant_id',
         'customer_id',
