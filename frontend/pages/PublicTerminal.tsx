@@ -592,7 +592,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           <div className="flex items-center gap-6 md:gap-8 w-full">
             {/* Logo - Reduced Border Radius, floating shadow */}
             {/* Logo - Modern Floating Effect */}
-            <div className="w-36 h-36 md:w-56 md:h-56 rounded-[20px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex shrink-0 items-center justify-center overflow-hidden transform -translate-y-6 ring-1 ring-white/10 backdrop-blur-sm bg-black/5">
+            <div className="w-36 h-36 md:w-56 md:h-56 rounded-[20px] shadow-[0_25px_60px_rgba(0,0,0,0.6)] flex shrink-0 items-center justify-center overflow-hidden transform -translate-y-6 ring-2 ring-white/25 backdrop-blur-xl bg-white/10">
               {storeInfo?.logo_url ? (
                 <img src={storeInfo.logo_url} alt={storeInfo?.name} className="w-full h-full object-cover rounded-[20px]" />
               ) : (
