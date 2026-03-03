@@ -152,22 +152,39 @@ export const AdminDashboard: React.FC = () => {
 
   const addMonths = (dateStr: string, months: number) => {
     let date: Date;
+
     if (dateStr) {
-      // Handles both ISO (T) and space-separated formats
-      date = new Date(dateStr);
+      // Safely parse YYYY-MM-DD to avoid timezone shifts
+      const parts = dateStr.split(/[T ]/)[0].split('-');
+      if (parts.length === 3) {
+        const year = parseInt(parts[0]);
+        const month = parseInt(parts[1]) - 1; // 0-indexed
+        const day = parseInt(parts[2]);
+        date = new Date(year, month, day);
+      } else {
+        date = new Date();
+      }
     } else {
       date = new Date();
     }
 
     if (isNaN(date.getTime())) {
-      date = new Date(); // Fallback to now if invalid
+      date = new Date();
     }
 
     date.setMonth(date.getMonth() + months);
+
     const y = date.getFullYear();
     const mm = String(date.getMonth() + 1).padStart(2, '0');
     const dd = String(date.getDate()).padStart(2, '0');
     return `${y}-${mm}-${dd}`;
+  };
+
+  const formatDateDisplay = (dateStr: string | null | undefined) => {
+    if (!dateStr) return '--';
+    const parts = dateStr.split(/[T ]/)[0].split('-');
+    if (parts.length !== 3) return dateStr;
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
   };
 
   const filteredTenants = tenants.filter(t => {
@@ -700,7 +717,7 @@ export const AdminDashboard: React.FC = () => {
                           <div className="flex items-center gap-2">
                             <Calendar className="w-3.5 h-3.5 text-gray-400" />
                             <span className={`text-xs font-bold ${isExpired ? 'text-red-600' : 'text-gray-600'}`}>
-                              {new Date(tenant.plan_expires_at).toLocaleDateString('pt-BR')}
+                              {formatDateDisplay(tenant.plan_expires_at)}
                             </span>
                           </div>
                         ) : (
