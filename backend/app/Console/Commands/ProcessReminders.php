@@ -48,18 +48,18 @@ class ProcessReminders extends Command
             $customer = $reminder->customer;
             if (!$customer) continue;
 
-            // Escapar dados para o MarkdownV2 do Telegram
+            // Escapar dados para o HTML do Telegram
             $escName = \App\Services\TelegramService::escapeMarkdownV2($customer->name);
             $escPhone = \App\Services\TelegramService::escapeMarkdownV2($customer->phone ?? 'Não informado');
             $escText = \App\Services\TelegramService::escapeMarkdownV2($reminder->reminder_text);
             $escDate = \App\Services\TelegramService::escapeMarkdownV2(date('d/m/Y', strtotime($reminder->reminder_date)));
             $escTime = \App\Services\TelegramService::escapeMarkdownV2(date('H:i', strtotime($reminder->reminder_time)));
 
-            $message = "🔔 *Lembrete Estratégico*\n\n";
-            $message .= "*Cliente:* {$escName}\n";
-            $message .= "*Telefone:* {$escPhone}\n";
-            $message .= "*Data/Hora:* {$escDate} às {$escTime}\n\n";
-            $message .= "*Ação:* {$escText}";
+            $message = "🔔 <b>Lembrete Estratégico</b>\n\n";
+            $message .= "<b>Cliente:</b> {$escName}\n";
+            $message .= "<b>Telefone:</b> {$escPhone}\n";
+            $message .= "<b>Data/Hora:</b> {$escDate} às {$escTime}\n\n";
+            $message .= "<b>Ação:</b> {$escText}";
 
             $telegramService->sendMessage($reminder->tenant_id, $message, 'reminder');
             

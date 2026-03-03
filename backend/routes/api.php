@@ -9,7 +9,16 @@ use Illuminate\Support\Facades\Route;
 
 // Auth
 Route::get('/version', function() {
-    return response()->json(['version' => '2.2.31', 'time' => now()->toDateTimeString()]);
+    return response()->json(['version' => '2.2.33', 'time' => now()->toDateTimeString()]);
+});
+
+Route::get('/force-process-reminders', function() {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('app:process-reminders');
+        return "Reminders processed: " . \Illuminate\Support\Facades\Artisan::output();
+    } catch (\Throwable $e) {
+        return "Error: " . $e->getMessage();
+    }
 });
 
 Route::post('/auth/login', [AuthController::class, 'login']);

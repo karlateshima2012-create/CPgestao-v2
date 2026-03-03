@@ -27,6 +27,7 @@ interface DashboardTabProps {
   onTerminalMode?: () => void;
   onRefresh?: () => void;
   tenantSlug?: string | null;
+  setSelectedContact: (contact: Contact | null) => void;
 }
 
 export const DashboardTab: React.FC<DashboardTabProps> = ({
@@ -35,6 +36,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
   onCopyLink,
   copiedLink,
   tenantSlug,
+  setSelectedContact,
 }) => {
   const suggestions = metrics?.suggestions || [];
 
@@ -231,7 +233,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
 
                 <div className="flex items-center justify-between pt-4 border-t border-gray-50 dark:border-gray-800">
                   <span className="text-[10px] font-bold text-gray-400">{r.customer?.phone}</span>
-                  <Button variant="ghost" size="sm" className="h-7 text-[9px] px-3 font-black uppercase text-amber-600 hover:text-amber-700 hover:bg-amber-50" onClick={() => onChangeTab({ type: 'edit', contact: r.customer })}>
+                  <Button variant="ghost" size="sm" className="h-7 text-[9px] px-3 font-black uppercase text-amber-600 hover:text-amber-700 hover:bg-amber-50" onClick={() => { setSelectedContact(r.customer); onChangeTab('new'); }}>
                     Ver Cliente
                   </Button>
                 </div>

@@ -35,7 +35,7 @@ class TelegramService
             $response = Http::post($url, [
                 'chat_id' => $settings->telegram_chat_id,
                 'text' => $message,
-                'parse_mode' => 'MarkdownV2',
+                'parse_mode' => 'HTML',
                 'disable_notification' => $disableNotification,
             ]);
 
@@ -65,7 +65,7 @@ class TelegramService
             $payload = [
                 'chat_id' => $chatId,
                 'text' => $message,
-                'parse_mode' => 'MarkdownV2',
+                'parse_mode' => 'HTML',
                 'disable_notification' => $disableNotification,
             ];
 
@@ -100,7 +100,7 @@ class TelegramService
                 'message_id' => $messageId,
                 'text' => $text,
                 'send_sound' => false,
-                'parse_mode' => 'MarkdownV2',
+                'parse_mode' => 'HTML',
             ];
 
             if ($replyMarkup) {
@@ -139,11 +139,6 @@ class TelegramService
 
     public static function escapeMarkdownV2(string $text): string
     {
-        $specialChars = ['\\', '_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!'];
-        $escapedChars = [];
-        foreach ($specialChars as $char) {
-            $escapedChars[] = '\\' . $char;
-        }
-        return str_replace($specialChars, $escapedChars, $text);
+        return htmlspecialchars($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
 }

@@ -192,6 +192,7 @@ export const ClientCRM: React.FC<ClientCRMProps> = ({ tenantPlan, contacts, setC
           onRefresh={onRefresh}
           tenantSlug={tenantSlug}
           tenantPlan={tenantPlan}
+          setSelectedContact={setSelectedContact}
         />
       )}
       {activeTab === 'loyalty' && <LoyaltyTab contacts={contacts} tenantPlan={tenantPlan} />}
