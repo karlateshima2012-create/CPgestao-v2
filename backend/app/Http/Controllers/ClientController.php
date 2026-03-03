@@ -217,41 +217,51 @@ class ClientController extends Controller
 
     public function getContactReminders(Request $request, $id)
     {
-        $customer = Customer::findOrFail($id);
-        $reminders = $customer->reminders()
-            ->where('reminder_date', '>=', now()->toDateString())
-            ->orderBy('reminder_date', 'asc')
-            ->orderBy('reminder_time', 'asc')
-            ->limit(3)
-            ->get();
-            
-        return ApiResponse::ok($reminders);
+        try {
+            $customer = Customer::findOrFail($id);
+            $reminders = $customer->reminders()
+                ->where('reminder_date', '>=', now()->toDateString())
+                ->orderBy('reminder_date', 'asc')
+                ->orderBy('reminder_time', 'asc')
+                ->limit(3)
+                ->get();
+                
+            return ApiResponse::ok($reminders);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Get Reminders Error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+            return ApiResponse::error('Erro ao buscar lembretes: ' . $e->getMessage(), 'REMINDERS_ERROR', 500);
+        }
     }
 
     public function storeContactReminder(Request $request, $id)
     {
-        $customer = Customer::findOrFail($id);
-        
-        $activeCount = $customer->reminders()->where('reminder_date', '>=', now()->toDateString())->count();
-        if ($activeCount >= 3) {
-            return ApiResponse::error('Limite de 3 lembretes ativos atingido para este cliente.', 'LIMIT_REACHED', 422);
+        try {
+            $customer = Customer::findOrFail($id);
+            
+            $activeCount = $customer->reminders()->where('reminder_date', '>=', now()->toDateString())->count();
+            if ($activeCount >= 3) {
+                return ApiResponse::error('Limite de 3 lembretes ativos atingido para este cliente.', 'LIMIT_REACHED', 422);
+            }
+
+            $request->validate([
+                'reminder_date' => 'required|date',
+                'reminder_time' => 'required|string',
+                'reminder_text' => 'required|string|max:200',
+            ]);
+
+            $reminder = $customer->reminders()->create([
+                'tenant_id' => $customer->tenant_id,
+                'reminder_date' => $request->reminder_date,
+                'reminder_time' => $request->reminder_time,
+                'reminder_text' => $request->reminder_text,
+                'status' => 'pending'
+            ]);
+
+            return ApiResponse::ok($reminder, 'Lembrete agendado com sucesso');
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Store Reminder Error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+            return ApiResponse::error('Erro ao salvar lembrete: ' . $e->getMessage(), 'REMINDERS_ERROR', 500);
         }
-
-        $request->validate([
-            'reminder_date' => 'required|date',
-            'reminder_time' => 'required|string',
-            'reminder_text' => 'required|string|max:200',
-        ]);
-
-        $reminder = $customer->reminders()->create([
-            'tenant_id' => $customer->tenant_id,
-            'reminder_date' => $request->reminder_date,
-            'reminder_time' => $request->reminder_time,
-            'reminder_text' => $request->reminder_text,
-            'status' => 'pending'
-        ]);
-
-        return ApiResponse::ok($reminder, 'Lembrete agendado com sucesso');
     }
 
     public function deleteReminder(Request $request, $id)
@@ -830,8 +840,8 @@ class ClientController extends Controller
                     ->limit(10)
                     ->get(),
             ]);
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Dashboard Metrics Error: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Dashboard Metrics Error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
             return ApiResponse::error('Erro ao carregar métricas: ' . $e->getMessage());
         }
     }
