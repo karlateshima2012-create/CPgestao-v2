@@ -28,10 +28,16 @@ class ProcessReminders extends Command
         $todayStr = now()->toDateString(); // Y-m-d
         $nowTime = now()->format('H:i');
         
-        // Use the new CustomerReminder model
-        $reminders = \App\Models\CustomerReminder::where('reminder_date', $todayStr)
-            ->where('status', 'pending')
-            ->with('customer')
+        // Buscar todos os lembretes pendentes para hoje ou datas passadas que ainda NÃO foram enviados
+        $reminders = \App\Models\CustomerReminder::where('status', 'pending')
+            ->where(function($query) use ($todayStr, $nowTime) {
+                $query->where('reminder_date', '<', $todayStr)
+                      ->orWhere(function($q) use ($todayStr, $nowTime) {
+                          $q->where('reminder_date', $todayStr)
+                            ->where('reminder_time', '<=', $nowTime . ':59');
+                      });
+            })
+            ->with(['customer', 'tenant'])
             ->get();
 
         if ($reminders->isEmpty()) {
@@ -42,16 +48,18 @@ class ProcessReminders extends Command
             $customer = $reminder->customer;
             if (!$customer) continue;
 
-            $targetTime = !empty($reminder->reminder_time) ? date('H:i', strtotime($reminder->reminder_time)) : '09:00';
+            // Escapar dados para o MarkdownV2 do Telegram
+            $escName = \App\Services\TelegramService::escapeMarkdownV2($customer->name);
+            $escPhone = \App\Services\TelegramService::escapeMarkdownV2($customer->phone ?? 'Não informado');
+            $escText = \App\Services\TelegramService::escapeMarkdownV2($reminder->reminder_text);
+            $escDate = \App\Services\TelegramService::escapeMarkdownV2(date('d/m/Y', strtotime($reminder->reminder_date)));
+            $escTime = \App\Services\TelegramService::escapeMarkdownV2(date('H:i', strtotime($reminder->reminder_time)));
 
-            if ($targetTime !== $nowTime) {
-                continue;
-            }
-
-            $message = "🔔 <b>Lembrete Estratégico</b>\n\n";
-            $message .= "<b>Cliente:</b> {$customer->name}\n";
-            $message .= "<b>Telefone:</b> {$customer->phone}\n";
-            $message .= "<b>Ação:</b> {$reminder->reminder_text}";
+            $message = "🔔 *Lembrete Estratégico*\n\n";
+            $message .= "*Cliente:* {$escName}\n";
+            $message .= "*Telefone:* {$escPhone}\n";
+            $message .= "*Data/Hora:* {$escDate} às {$escTime}\n\n";
+            $message .= "*Ação:* {$escText}";
 
             $telegramService->sendMessage($reminder->tenant_id, $message, 'reminder');
             
