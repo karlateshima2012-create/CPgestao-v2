@@ -219,7 +219,7 @@ const BirthdayInput = ({ value, onChange }: { value: string, onChange: (v: strin
   }
 
   return (
-    <div className="space-y-2 relative z-20">
+    <div className="flex flex-col gap-[6px] relative z-20">
       <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">DATA DE ANIVERSÁRIO</label>
       <div className="flex gap-2">
         <ComboboxDate value={d} onChange={handleDay} options={dayOptions} placeholder="Dia" isDay={true} />
@@ -475,8 +475,8 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
           <Input label="E-MAIL" type="email" value={formData.email || ''} onChange={e => setFormData(p => ({ ...p, email: e.target.value }))} />
           <BirthdayInput value={formData.birthday || ''} onChange={v => setFormData(p => ({ ...p, birthday: v }))} />
           <Input label="CÓDIGO POSTAL" value={formData.postalCode || ''} onChange={e => setFormData(p => ({ ...p, postalCode: e.target.value }))} />
-          <Input label="PROVÍNCIA" value={formData.province || ''} onChange={e => handleCapitalize('province', e.target.value)} />
-          <Input label="CIDADE" value={formData.city || ''} onChange={e => handleCapitalize('city', e.target.value)} />
+          <Input label="PROVÍNCIA *" value={formData.province || ''} onChange={e => handleCapitalize('province', e.target.value)} />
+          <Input label="CIDADE *" value={formData.city || ''} onChange={e => handleCapitalize('city', e.target.value)} />
           <div className="md:col-span-3"><Input label="ENDEREÇO" value={formData.address || ''} onChange={e => handleCapitalize('address', e.target.value)} /></div>
 
           <div className="md:col-span-1 space-y-2">
