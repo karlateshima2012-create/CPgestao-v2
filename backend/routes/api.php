@@ -9,11 +9,11 @@ use Illuminate\Support\Facades\Route;
 
 // Auth
 Route::get('/version', function() {
-    return response()->json(['version' => '2.2.36', 'time' => now()->toDateTimeString()]);
+    return response()->json(['version' => '2.2.37', 'time' => now()->toDateTimeString()]);
 });
 
 Route::get('/test-telegram', function() {
-    $token = request('token', '8679011580:AAGYmZRTeLJTkekfHcJzM-4KriplY_g_6Rk');
+    $token = request('token', '8703394325:AAEZTczYtHMHx_POwTfFGUezU5EVXTZYyP4');
     $chatId = request('chat_id');
     if (!$chatId) return "Pass ?chat_id=";
     

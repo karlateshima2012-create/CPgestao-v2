@@ -190,7 +190,8 @@ const ComboboxTime = ({ value, onChange, placeholder }: any) => {
 
 const BirthdayInput = ({ value, onChange }: { value: string, onChange: (v: string) => void }) => {
   const y = '2000';
-  const valStr = value || '';
+  const valStrInitial = value || '';
+  const valStr = valStrInitial.split('T')[0]; // Prevenir problemas com datas ISO (YYYY-MM-DDTHH:MM...)
   const m = valStr.includes('-') ? valStr.split('-')[1] : (valStr.includes('/') ? valStr.split('/')[1] : '');
   const d = valStr.includes('-') ? valStr.split('-')[2] : (valStr.includes('/') ? valStr.split('/')[0] : '');
 
