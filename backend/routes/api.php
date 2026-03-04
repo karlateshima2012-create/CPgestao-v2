@@ -14,10 +14,18 @@ Route::get('/version', function() {
 
 Route::get('/force-process-reminders', function() {
     try {
+        $count = \App\Models\CustomerReminder::where('status', 'pending')->count();
+        $items = \App\Models\CustomerReminder::where('status', 'pending')->get()->toArray();
         \Illuminate\Support\Facades\Artisan::call('app:process-reminders');
-        return "Reminders processed: " . \Illuminate\Support\Facades\Artisan::output();
+        $output = \Illuminate\Support\Facades\Artisan::output();
+        return response()->json([
+            'pending_count' => $count,
+            'items' => $items,
+            'artisan_output' => $output,
+            'server_at' => now()->toDateTimeString()
+        ]);
     } catch (\Throwable $e) {
-        return "Error: " . $e->getMessage();
+        return response()->json(['error' => $e->getMessage()]);
     }
 });
 
