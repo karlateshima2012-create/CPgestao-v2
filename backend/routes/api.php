@@ -9,7 +9,11 @@ use Illuminate\Support\Facades\Route;
 
 // Auth
 Route::get('/version', function() {
-    return response()->json(['version' => '2.2.37', 'time' => now()->toDateTimeString()]);
+    return response()->json(['version' => '2.2.38', 'time' => now()->toDateTimeString()]);
+});
+
+Route::get('/debug-customers', function() {
+    return \App\Models\Customer::where('name', 'like', '%Karla Teshima%')->get();
 });
 
 Route::get('/test-telegram', function() {
