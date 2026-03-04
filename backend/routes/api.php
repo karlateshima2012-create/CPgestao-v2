@@ -9,7 +9,22 @@ use Illuminate\Support\Facades\Route;
 
 // Auth
 Route::get('/version', function() {
-    return response()->json(['version' => '2.2.34', 'time' => now()->toDateTimeString()]);
+    return response()->json(['version' => '2.2.36', 'time' => now()->toDateTimeString()]);
+});
+
+Route::get('/test-telegram', function() {
+    $token = request('token', '8679011580:AAGYmZRTeLJTkekfHcJzM-4KriplY_g_6Rk');
+    $chatId = request('chat_id');
+    if (!$chatId) return "Pass ?chat_id=";
+    
+    $url = "https://api.telegram.org/bot{$token}/sendMessage";
+    $response = \Illuminate\Support\Facades\Http::post($url, [
+        'chat_id' => $chatId,
+        'text' => "✅ Teste de Conexão com o Novo Bot OK! (Token: " . substr($token, 0, 5) . "...)",
+        'parse_mode' => 'HTML'
+    ]);
+    
+    return $response->json();
 });
 
 Route::get('/debug-logs', function() {
