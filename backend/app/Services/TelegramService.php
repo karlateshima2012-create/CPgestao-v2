@@ -36,7 +36,7 @@ class TelegramService
                 'chat_id' => $settings->telegram_chat_id,
                 'text' => $message,
                 'parse_mode' => 'HTML',
-                'disable_notification' => $disableNotification,
+                'disable_notification' => (bool)$disableNotification,
             ]);
 
             if ($response->failed()) {
