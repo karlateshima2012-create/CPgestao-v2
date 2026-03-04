@@ -27,11 +27,12 @@ Route::get('/test-telegram', function() {
     return $response->json();
 });
 
-Route::get('/debug-logs', function() {
-    $logFile = storage_path('logs/laravel.log');
-    if (!file_exists($logFile)) return "No log file found.";
-    $lines = file($logFile);
-    return response()->json(array_slice($lines, -100)); // Last 100 lines
+Route::get('/debug-reminders', function() {
+    return [
+        'reminders' => \App\Models\CustomerReminder::all()->toArray(),
+        'tenant_settings' => \App\Models\TenantSetting::all()->toArray(),
+        'server_time' => now()->toDateTimeString()
+    ];
 });
 
 Route::get('/force-process-reminders', function() {
