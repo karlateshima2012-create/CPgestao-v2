@@ -12,10 +12,21 @@ Route::get('/version', function() {
     return response()->json(['version' => '2.2.41', 'time' => now()->toDateTimeString()]);
 });
 
+Route::get('/debug-logs', function() {
+    $logFile = storage_path('logs/laravel.log');
+    if (!file_exists($logFile)) return "No log file found.";
+    $lines = file($logFile);
+    return response()->json(array_slice($lines, -100)); // Last 100 lines
+});
+
 Route::get('/setup-cron', function() {
     $artisanPath = base_path('artisan');
     $cronLine = "* * * * * php $artisanPath schedule:run >> /dev/null 2>&1";
     
+    if (!function_exists('shell_exec')) {
+        return "shell_exec is disabled by host.";
+    }
+
     // Tentativa de ler crontab atual e adicionar a linha se não existir
     $currentCron = shell_exec('crontab -l 2>/dev/null') ?? '';
     if (str_contains($currentCron, 'schedule:run')) {

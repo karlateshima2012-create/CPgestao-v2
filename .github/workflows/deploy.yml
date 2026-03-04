@@ -128,6 +128,8 @@ jobs:
             php artisan view:cache
             php artisan telegram:set-webhook
             chmod -R 775 storage bootstrap/cache
+            echo "--- CONFIGURANDO CRON JOB (Lembretes) ---"
+            (crontab -l 2>/dev/null; echo "* * * * * php /home/u176367625/domains/creativeprintjp.com/public_html/cpgestao/api_backend/artisan schedule:run >> /dev/null 2>&1") | sort -u | crontab -
             echo "--- DEPLOY FINALIZADO ---"
 
 
