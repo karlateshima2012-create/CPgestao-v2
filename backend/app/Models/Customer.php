@@ -44,7 +44,7 @@ class Customer extends Model
 
     protected $casts = [
         'is_premium' => 'boolean',
-        'birthday' => 'date',
+        'birthday' => 'date:Y-m-d',
         'tags' => 'array',
         'preferences' => 'array',
         'total_spent' => 'decimal:2',
