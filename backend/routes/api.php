@@ -9,97 +9,13 @@ use Illuminate\Support\Facades\Route;
 
 // Auth
 Route::get('/version', function() {
-    return response()->json(['version' => '2.2.42', 'time' => now()->toDateTimeString()]);
-});
-
-Route::get('/setup-cron', function() {
-    $artisanPath = base_path('artisan');
-    $cronLine = "* * * * * php $artisanPath schedule:run >> /dev/null 2>&1";
-    
-    $diagnostics = [
-        'shell_exec_exists' => function_exists('shell_exec'),
-        'exec_exists' => function_exists('exec'),
-        'system_exists' => function_exists('system'),
-        'passthru_exists' => function_exists('passthru'),
-        'artisan_path' => $artisanPath,
-        'php_version' => PHP_VERSION,
-        'os' => PHP_OS,
-    ];
-
-    if (!function_exists('shell_exec')) {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'shell_exec is disabled. Please configure Cron manually in Hostinger Panel.',
-            'diagnostics' => $diagnostics,
-            'expected_command' => $cronLine
-        ]);
-    }
-
-    try {
-        $currentCron = shell_exec('crontab -l 2>/dev/null') ?: '';
-        if (str_contains($currentCron, 'schedule:run')) {
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Cron already configured.',
-                'current_cron' => $currentCron
-            ]);
-        }
-
-        return response()->json([
-            'status' => 'manual_needed',
-            'message' => 'Automatic setup failed or not permitted. Use this command in Hostinger Panel:',
-            'command' => "php $artisanPath schedule:run",
-            'full_cron_line' => $cronLine,
-            'diagnostics' => $diagnostics
-        ]);
-    } catch (\Throwable $e) {
-        return response()->json([
-            'status' => 'error',
-            'message' => $e->getMessage(),
-            'diagnostics' => $diagnostics
-        ]);
-    }
-});
-
-Route::get('/debug-customers', function() {
-    return \App\Models\Customer::where('name', 'like', '%Karla Teshima%')->get();
-});
-
-Route::get('/test-telegram', function() {
-    $token = request('token', '8703394325:AAEZTczYtHMHx_POwTfFGUezU5EVXTZYyP4');
-    $chatId = request('chat_id');
-    if (!$chatId) return "Pass ?chat_id=";
-    
-    $url = "https://api.telegram.org/bot{$token}/sendMessage";
-    $response = \Illuminate\Support\Facades\Http::post($url, [
-        'chat_id' => $chatId,
-        'text' => "✅ Teste de Conexão com o Novo Bot OK! (Token: " . substr($token, 0, 5) . "...)",
-        'parse_mode' => 'HTML'
-    ]);
-    
-    return $response->json();
-});
-
-Route::get('/debug-reminders', function() {
-    return [
-        'reminders' => \App\Models\CustomerReminder::withoutGlobalScopes()->get()->toArray(),
-        'tenant_settings' => \App\Models\TenantSetting::withoutGlobalScopes()->get()->toArray(),
-        'server_time' => now()->toDateTimeString()
-    ];
+    return response()->json(['version' => '2.2.43', 'time' => now()->toDateTimeString()]);
 });
 
 Route::get('/force-process-reminders', function() {
     try {
-        $count = \App\Models\CustomerReminder::withoutGlobalScopes()->where('status', 'pending')->count();
-        $items = \App\Models\CustomerReminder::withoutGlobalScopes()->where('status', 'pending')->get()->toArray();
         \Illuminate\Support\Facades\Artisan::call('app:process-reminders');
-        $output = \Illuminate\Support\Facades\Artisan::output();
-        return response()->json([
-            'pending_count' => $count,
-            'items' => $items,
-            'artisan_output' => $output,
-            'server_at' => now()->toDateTimeString()
-        ]);
+        return response()->json(['status' => 'success', 'output' => \Illuminate\Support\Facades\Artisan::output()]);
     } catch (\Throwable $e) {
         return response()->json(['error' => $e->getMessage()]);
     }
