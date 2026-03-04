@@ -41,8 +41,8 @@ Route::get('/debug-reminders', function() {
 
 Route::get('/force-process-reminders', function() {
     try {
-        $count = \App\Models\CustomerReminder::where('status', 'pending')->count();
-        $items = \App\Models\CustomerReminder::where('status', 'pending')->get()->toArray();
+        $count = \App\Models\CustomerReminder::withoutGlobalScopes()->where('status', 'pending')->count();
+        $items = \App\Models\CustomerReminder::withoutGlobalScopes()->where('status', 'pending')->get()->toArray();
         \Illuminate\Support\Facades\Artisan::call('app:process-reminders');
         $output = \Illuminate\Support\Facades\Artisan::output();
         return response()->json([

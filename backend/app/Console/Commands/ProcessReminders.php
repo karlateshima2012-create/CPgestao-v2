@@ -29,7 +29,9 @@ class ProcessReminders extends Command
         $nowTime = now()->format('H:i');
         
         // Buscar todos os lembretes pendentes para hoje ou datas passadas que ainda NÃO foram enviados
-        $reminders = \App\Models\CustomerReminder::where('status', 'pending')
+        // Usamos withoutGlobalScopes para garantir que o comando pegue todos de todos os tenants
+        $reminders = \App\Models\CustomerReminder::withoutGlobalScopes()
+            ->where('status', 'pending')
             ->where(function($query) use ($todayStr, $nowTime) {
                 $query->where('reminder_date', '<', $todayStr)
                       ->orWhere(function($q) use ($todayStr, $nowTime) {
