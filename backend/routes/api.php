@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 
 // Auth
 Route::get('/version', function() {
-    return response()->json(['version' => '2.2.39', 'time' => now()->toDateTimeString()]);
+    return response()->json(['version' => '2.2.40', 'time' => now()->toDateTimeString()]);
 });
 
 Route::get('/debug-customers', function() {

@@ -13,7 +13,7 @@ class TelegramService
      */
     public function sendMessage(string $tenantId, string $message, string $type = 'registration'): void
     {
-        $settings = TenantSetting::where('tenant_id', $tenantId)->first();
+        $settings = TenantSetting::withoutGlobalScopes()->where('tenant_id', $tenantId)->first();
         $botToken = config('services.telegram.bot_token');
 
         if (!$settings || !$botToken || !$settings->telegram_chat_id) {
