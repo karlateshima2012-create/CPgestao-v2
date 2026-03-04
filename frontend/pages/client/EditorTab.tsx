@@ -608,7 +608,7 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
         <div className="mt-8 p-6 bg-gray-50 dark:bg-gray-800/50 rounded-[20px] border border-gray-100">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2 text-gray-500 font-black text-[10px] uppercase tracking-widest"><Bell className="w-4 h-4" /> Lembretes Ativos</div>
-            <Badge variant="outline" className="text-[10px] font-black">{reminders.length} / 3</Badge>
+            <Badge color="gray" className="text-[10px] font-black">{reminders.length} / 3</Badge>
           </div>
 
           <div className="space-y-4 mb-8">
@@ -638,7 +638,7 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
               <div className="flex items-center justify-between mb-5">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Agendar Novo Lembrete</p>
                 {reminders.length >= 3 && (
-                  <Badge variant="outline" className="text-[8px] border-amber-500 text-amber-600 bg-amber-50">LIMITE ATINGIDO</Badge>
+                  <Badge color="yellow" className="text-[8px] border-amber-500 text-amber-600 bg-amber-50">LIMITE ATINGIDO</Badge>
                 )}
               </div>
 

@@ -20,6 +20,7 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug, 
         isOpen: boolean; title: string; message: string;
         type: 'success' | 'error' | 'info' | 'warning';
         onConfirm?: () => void; confirmLabel?: string;
+        theme?: 'neutral' | 'accent';
     }>({ isOpen: false, title: '', message: '', type: 'info' });
 
     // Totem State

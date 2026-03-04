@@ -35,7 +35,8 @@ export const AccountTab: React.FC = () => {
     isOpen: boolean;
     title: string;
     message: string;
-    type: 'success' | 'error' | 'info';
+    type: 'success' | 'error' | 'info' | 'warning';
+    theme?: 'neutral' | 'accent';
   }>({
     isOpen: false,
     title: '',
@@ -435,7 +436,7 @@ export const AccountTab: React.FC = () => {
                     <p className="text-[10px] text-white/70 font-bold uppercase tracking-widest">Resumo de utilização e validade</p>
                   </div>
                 </div>
-                <Badge variant="secondary" className="bg-white/20 text-white border-none px-4 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase">
+                <Badge color="blue" className="bg-white/20 text-white border-none px-4 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase">
                   Plano {tenantInfo.plan}
                 </Badge>
               </div>

@@ -25,23 +25,42 @@ class VipCardController extends Controller
     {
         $uid = trim($uid);
         // Ignorar escopo global pois usuários públicos/deslogados podem acessar
-        $card = LoyaltyCard::withoutGlobalScopes()->where('uid', $uid)->where('type', 'premium')->first();
+        // Clean UID to use only digits as requested: 12 numeric digits
+        $uidClean = preg_replace('/\D/', '', $uid);
+        
+        $card = LoyaltyCard::withoutGlobalScopes()
+            ->where('uid', $uidClean)
+            ->where('type', 'premium')
+            ->first();
 
         if (!$card) {
-            return ApiResponse::error('Cartão não encontrado.', 'CARD_NOT_FOUND', 404);
+            \Illuminate\Support\Facades\Log::warning("NFC Resolve: Card not found", ['uid' => $uid]);
+            return ApiResponse::error('Cartão não encontrado no sistema.', 'CARD_NOT_FOUND', 404);
         }
 
         $tenant = $card->tenant;
-        if (!$tenant || $tenant->status !== "active") {
-            return ApiResponse::error('Loja indisponível.', 'TENANT_INACTIVE', 403);
+        if (!$tenant) {
+             \Illuminate\Support\Facades\Log::warning("NFC Resolve: Card has no tenant", ['uid' => $uid, 'card_id' => $card->id]);
+             return ApiResponse::error('Este cartão não está associado a nenhuma loja.', 'TENANT_NOT_FOUND', 404);
+        }
+
+        if ($tenant->status !== "active") {
+            return ApiResponse::error('A loja associada a este cartão está inativa.', 'TENANT_INACTIVE', 403);
         }
 
         $isOwner = false;
-        if (auth('sanctum')->check()) {
-            $user = auth('sanctum')->user();
-            if ($user && $user->role === 'client' && $user->tenant_id === $tenant->id) {
-                $isOwner = true;
+        try {
+            if (auth('sanctum')->check()) {
+                $user = auth('sanctum')->user();
+                if ($user && $user->role === 'client') {
+                    // Check if IDs match (cast to string to be safe with UUIDs/BigInts)
+                    if (strval($user->tenant_id) === strval($tenant->id)) {
+                        $isOwner = true;
+                    }
+                }
             }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("NFC Resolve: Auth check error: " . $e->getMessage());
         }
 
         if (!$card->linked_customer_id) {
@@ -50,13 +69,28 @@ class VipCardController extends Controller
                 'is_unlinked' => true,
                 'card_uid' => $card->uid,
                 'tenant' => [
-                    'name' => $tenant->name
+                    'name' => $tenant->name,
+                    'slug' => $tenant->slug,
+                    'logo_url' => $tenant->logo_url,
                 ]
             ]);
         }
 
         $card->load('customer', 'tenant');
         $customer = $card->customer;
+
+        if (!$customer) {
+            return ApiResponse::ok([
+                'is_owner' => $isOwner,
+                'is_unlinked' => true,
+                'card_uid' => $card->uid,
+                'tenant' => [
+                    'name' => $tenant->name,
+                    'slug' => $tenant->slug,
+                    'logo_url' => $tenant->logo_url,
+                ]
+            ]);
+        }
 
         $loyalty = $tenant->loyaltySettings;
         $levelsConfig = $loyalty ? $loyalty->levels_config : null;
@@ -107,8 +141,10 @@ class VipCardController extends Controller
     public function addPoint(Request $request, $uid)
     {
         $uid = trim($uid);
+        $uidClean = preg_replace('/\D/', '', $uid);
+        
         // Rota protegida auth:sanctum & role:client. BelongsToTenant ativo automaticamente.
-        $card = LoyaltyCard::where('uid', $uid)->where('type', 'premium')->first();
+        $card = LoyaltyCard::where('uid', $uidClean)->where('type', 'premium')->first();
 
         if (!$card) {
             return ApiResponse::error('Cartão não encontrado ou não pertence a esta loja.', 'CARD_NOT_FOUND', 404);
@@ -210,7 +246,8 @@ class VipCardController extends Controller
     public function redeem(Request $request, $uid)
     {
         $uid = trim($uid);
-        $card = LoyaltyCard::where('uid', $uid)->where('type', 'premium')->first();
+        $uidClean = preg_replace('/\D/', '', $uid);
+        $card = LoyaltyCard::where('uid', $uidClean)->where('type', 'premium')->first();
 
         if (!$card || !$card->linked_customer_id) {
             return ApiResponse::error('Cartão não encontrado ou não vinculado.', 'NOT_LINKED', 404);

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 
 // Auth
 Route::get('/version', function() {
-    return response()->json(['version' => '2.2.46', 'time' => now()->toDateTimeString()]);
+    return response()->json(['version' => '2.2.47', 'time' => now()->toDateTimeString()]);
 });
 
 Route::get('/force-process-reminders', function() {

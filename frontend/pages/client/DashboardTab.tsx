@@ -251,7 +251,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
                       </p>
                     </div>
                   </div>
-                  <Badge variant="outline" className="text-[9px] border-amber-500/30 text-amber-600">PENDENTE</Badge>
+                  <Badge color="yellow" className="text-[9px] border-amber-500/30 text-amber-600">PENDENTE</Badge>
                 </div>
 
                 <h4 className="text-sm font-black text-gray-900 dark:text-white mb-2 line-clamp-1">{r.customer?.name}</h4>

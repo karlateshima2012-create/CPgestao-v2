@@ -91,7 +91,8 @@ class PublicTerminalController extends Controller
             return [$tenant, null];
         }
 
-        // Luhn validation removed as UIDs can be alphanumeric for totems/devices
+        // Clean UID (Same logic as VipCardController to support numeric UIDs with separators)
+        $uid = preg_replace('/\D/', '', $uid);
 
         // New Device structure: uid is now nfc_uid
         $device = Device::withoutGlobalScopes()->where('nfc_uid', $uid)

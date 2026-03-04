@@ -457,8 +457,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           customer_name: res.data.customer_name || foundCustomer?.name,
           points_balance: res.data.new_balance,
           loyalty_level_name: res.data.loyalty_level_name || foundCustomer?.loyalty_level_name,
-          points_goal: res.data.points_goal || storeInfo.points_goal,
-          tenant_name: storeInfo.name,
+          points_goal: res.data.points_goal || storeInfo?.points_goal,
+          tenant_name: storeInfo?.name,
           is_redemption: true
         });
         setMode('AUTO_SUCCESS');
@@ -578,7 +578,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         {/* 1. HERO SECTION - Occupying 100% of the top */}
         <div className="h-72 md:h-[450px] w-full bg-slate-200 dark:bg-slate-800 relative shrink-0 overflow-hidden">
           {storeInfo?.cover_url ? (
-            <img src={storeInfo.cover_url} alt="Cover" className="w-full h-full object-cover block absolute inset-0" />
+            <img src={storeInfo?.cover_url} alt="Cover" className="w-full h-full object-cover block absolute inset-0" />
           ) : (
             <div className="w-full h-full bg-gradient-to-r from-gray-700 to-gray-900" />
           )}
@@ -594,7 +594,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             {/* Logo - Modern Floating Effect */}
             <div className="w-36 h-36 md:w-56 md:h-56 rounded-[20px] shadow-[0_25px_60px_rgba(0,0,0,0.6)] flex shrink-0 items-center justify-center overflow-hidden ring-2 ring-white/25 backdrop-blur-xl bg-white/10">
               {storeInfo?.logo_url ? (
-                <img src={storeInfo.logo_url} alt={storeInfo?.name} className="w-full h-full object-cover rounded-[20px]" />
+                <img src={storeInfo?.logo_url} alt={storeInfo?.name} className="w-full h-full object-cover rounded-[20px]" />
               ) : (
                 <div className="w-full h-full bg-white/10 flex items-center justify-center">
                   <DefaultLogo className="w-full h-full p-8" />
@@ -733,7 +733,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                   const goal = Number(foundCustomer?.points_goal || storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo?.points_goal);
                   const balance = Number(foundCustomer?.points_balance);
                   const pointsNeeded = Math.max(0, goal - balance);
-                  const reward = storeInfo?.levels_config?.[levelIdx]?.reward || storeInfo.reward_text || 'Prêmio em definição';
+                  const reward = storeInfo?.levels_config?.[levelIdx]?.reward || storeInfo?.reward_text || 'Prêmio em definição';
 
                   if (balance >= goal) {
                     return (
@@ -815,8 +815,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         {/* LOJISTA - CONFIRMAR PONTUAÇÃO */}
         {mode === 'LOJISTA_ACTIONS' && foundCustomer && (() => {
           const levelIdx = Math.max(0, (Number(foundCustomer.loyalty_level) || 1) - 1);
-          const goal = Number(foundCustomer.points_goal || storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo.points_goal);
-          const balance = Number(foundCustomer.points_balance);
+          const goal = Number(foundCustomer.points_goal || storeInfo?.levels_config?.[levelIdx]?.goal || storeInfo?.points_goal || 10);
+          const balance = Number(foundCustomer.points_balance || 0);
           const remaining = Math.max(0, goal - balance);
           const canRedeem = balance >= goal;
 
@@ -1457,7 +1457,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           <h3 className="text-sm font-semibold text-slate-700 dark:text-white uppercase tracking-wide">Regras do Programa</h3>
           <ul className="text-sm text-slate-500 dark:text-slate-400 font-normal space-y-2 list-inside list-disc marker:text-slate-300">
             {storeInfo?.rules_text ? (
-              storeInfo.rules_text.split('\n').map((rule: string, i: number) => rule.trim() && (
+              (storeInfo?.rules_text || "").split('\n').map((rule: string, i: number) => rule.trim() && (
                 <li key={i}>{rule}</li>
               ))
             ) : (

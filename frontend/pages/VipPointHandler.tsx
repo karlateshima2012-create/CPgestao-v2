@@ -108,15 +108,10 @@ export const VipPointHandler: React.FC = () => {
     }
 
     if (mode === 'owner_prompt' && data) {
-        const balance = Number(data.customer.points_balance);
-        const goal = Number(data.goal);
-        const canRedeem = balance >= goal;
-
         if (data.is_unlinked) {
             return (
                 <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 font-sans">
                     <div className="bg-white dark:bg-slate-900 rounded-[30px] p-8 max-w-sm w-full shadow-2xl space-y-8 animate-fade-in text-center border border-slate-100 dark:border-slate-800 overflow-hidden relative">
-
                         <div className="text-center space-y-3 pt-4">
                             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Configuração</h3>
                             <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">Cartão Novo!</p>
@@ -156,24 +151,27 @@ export const VipPointHandler: React.FC = () => {
             );
         }
 
+        const customerObj = data && data.customer ? data.customer : null;
+        const balance = customerObj && typeof customerObj.points_balance !== 'undefined' ? Number(customerObj.points_balance) : 0;
+        const goal = data && typeof data.goal !== 'undefined' ? Number(data.goal) : 10;
+        const canRedeem = balance >= goal;
+
         return (
             <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 font-sans">
                 <div className="bg-white dark:bg-slate-900 rounded-[30px] p-8 max-w-sm w-full shadow-2xl space-y-8 animate-fade-in text-center relative overflow-hidden border border-slate-100 dark:border-slate-800">
-
-
                     <div className="text-center space-y-3 pt-4">
                         <h3 className={`text-[10px] font-black uppercase tracking-[0.2em] ${canRedeem ? 'text-amber-500 animate-pulse' : 'text-slate-400'}`}>
                             {canRedeem ? 'META ATINGIDA - PREMIAR' : 'Cartão vinculado!'}
                         </h3>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{data.customer.name}</p>
+                        <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{(customerObj && customerObj.name) || 'Cliente'}</p>
                     </div>
 
                     <div className="bg-white dark:bg-slate-800 rounded-[30px] p-8 text-slate-900 dark:text-white border border-slate-100 dark:border-slate-800 shadow-xl relative overflow-hidden group">
                         <div className="relative z-10 text-center space-y-2">
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Saldo Atual</p>
                             <p className="text-5xl font-black tracking-tighter tabular-nums text-slate-900 dark:text-white">
-                                {data.customer.points_balance}
-                                <span className="text-xl text-slate-300 dark:text-slate-600 ml-2">/ {data.goal}</span>
+                                {balance}
+                                <span className="text-xl text-slate-300 dark:text-slate-600 ml-2">/ {goal}</span>
                             </p>
                             {canRedeem && (
                                 <div className="mt-4 p-3 bg-amber-500 rounded-2xl text-white animate-pulse">
@@ -233,8 +231,6 @@ export const VipPointHandler: React.FC = () => {
         return (
             <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 font-sans">
                 <div className="bg-white dark:bg-slate-900 rounded-[30px] p-8 max-w-sm w-full shadow-2xl space-y-8 animate-fade-in text-center border border-slate-100 dark:border-slate-800 overflow-hidden relative">
-
-
                     <div className="text-center space-y-3 pt-4">
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Configuração</h3>
                         <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">Cartão Novo!</p>
@@ -277,8 +273,6 @@ export const VipPointHandler: React.FC = () => {
         return (
             <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 font-sans">
                 <div className="bg-white dark:bg-slate-900 rounded-[30px] p-8 max-w-sm w-full shadow-2xl space-y-8 animate-fade-in text-center border border-slate-100 dark:border-slate-800 relative overflow-hidden">
-
-
                     <div className="text-center space-y-3 pt-4">
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Fluxo de Aprovação</h3>
                         <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">Aguardando...</p>
@@ -311,8 +305,6 @@ export const VipPointHandler: React.FC = () => {
         return (
             <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 font-sans">
                 <div className="bg-white dark:bg-slate-900 rounded-[30px] p-8 max-w-sm w-full shadow-2xl space-y-8 animate-fade-in text-center border border-slate-100 dark:border-slate-800 relative overflow-hidden">
-
-
                     <div className="text-center space-y-3 pt-4">
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Operação Finalizada</h3>
                         <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">Tudo Certo!</p>
@@ -358,8 +350,6 @@ export const VipPointHandler: React.FC = () => {
         return (
             <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 font-sans">
                 <div className="bg-white dark:bg-slate-900 rounded-[30px] p-8 max-w-sm w-full shadow-2xl space-y-8 animate-fade-in text-center border border-slate-100 dark:border-slate-800 relative overflow-hidden">
-
-
                     <div className="text-center space-y-3 pt-4">
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Ops!</h3>
                         <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">Houve um erro.</p>
