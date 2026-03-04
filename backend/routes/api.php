@@ -82,8 +82,8 @@ Route::get('/test-telegram', function() {
 
 Route::get('/debug-reminders', function() {
     return [
-        'reminders' => \App\Models\CustomerReminder::all()->toArray(),
-        'tenant_settings' => \App\Models\TenantSetting::all()->toArray(),
+        'reminders' => \App\Models\CustomerReminder::withoutGlobalScopes()->get()->toArray(),
+        'tenant_settings' => \App\Models\TenantSetting::withoutGlobalScopes()->get()->toArray(),
         'server_time' => now()->toDateTimeString()
     ];
 });
