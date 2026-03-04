@@ -22,7 +22,7 @@ interface ClientCRMProps {
   selectedContact: Contact | null;
   setSelectedContact: (contact: Contact | null) => void;
   metrics: any;
-  onRefresh: () => void;
+  onRefresh: (params?: any) => void;
   activeTab: ClientTab;
   onChangeTab: (tab: ClientTab) => void;
   onTerminalMode: () => void;

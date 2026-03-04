@@ -177,9 +177,9 @@ const App: React.FC = () => {
     }
   };
 
-  const fetchDashboardMetrics = async () => {
+  const fetchDashboardMetrics = async (params = {}) => {
     try {
-      const res = await api.get('/client/dashboard/metrics');
+      const res = await api.get('/client/dashboard/metrics', { params });
       setDashboardMetrics(res.data);
     } catch (error) {
       console.error('Error fetching dashboard metrics:', error);
@@ -195,10 +195,10 @@ const App: React.FC = () => {
     }
   };
 
-  const refreshAllData = () => {
+  const refreshAllData = (params = {}) => {
     if (authRole === 'client') {
       fetchContacts();
-      fetchDashboardMetrics();
+      fetchDashboardMetrics(params);
       fetchPendingRequestsCount();
     }
   };

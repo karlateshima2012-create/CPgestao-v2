@@ -842,8 +842,7 @@ class ClientController extends Controller
                     ->where('reminder_date', '<=', now()->addDays(7)->toDateString())
                     ->orderBy('reminder_date', 'asc')
                     ->orderBy('reminder_time', 'asc')
-                    ->limit(10)
-                    ->get(),
+                    ->paginate(6, ['*'], 'reminders_page'),
             ]);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Dashboard Metrics Error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());

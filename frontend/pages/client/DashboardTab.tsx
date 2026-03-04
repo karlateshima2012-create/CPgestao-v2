@@ -12,7 +12,8 @@ import {
   RefreshCw,
   Crown,
   Smartphone,
-  MousePointerClick
+  MousePointerClick,
+  ChevronLeft
 } from 'lucide-react';
 import { Contact, PlanType } from '../../types';
 
@@ -25,7 +26,7 @@ interface DashboardTabProps {
   onCopyLink: () => void;
   copiedLink: boolean;
   onTerminalMode?: () => void;
-  onRefresh?: () => void;
+  onRefresh: (params?: any) => void;
   tenantSlug?: string | null;
   setSelectedContact: (contact: Contact | null) => void;
 }
@@ -35,6 +36,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
   onChangeTab,
   onCopyLink,
   copiedLink,
+  onRefresh,
   tenantSlug,
   setSelectedContact,
   contacts,
@@ -208,10 +210,35 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
 
       {/* Seção 4: Lembretes do CRM */}
       <section>
-        <SectionHeader title="Lembretes do CRM" subtitle="Próximas ações agendadas" icon={Activity} colorClass="bg-amber-500" />
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
+          <SectionHeader title="Lembretes do CRM" subtitle="Próximas ações agendadas" icon={Activity} colorClass="bg-amber-500" />
+
+          {metrics?.active_reminders?.last_page > 1 && (
+            <div className="flex items-center gap-2 bg-white dark:bg-gray-800 p-1 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm self-start md:self-auto">
+              <button
+                disabled={metrics.active_reminders.current_page === 1}
+                onClick={() => onRefresh({ reminders_page: metrics.active_reminders.current_page - 1 })}
+                className="p-1.5 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg disabled:opacity-30 transition-all text-gray-500"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="text-[10px] font-black text-gray-400 px-2 min-w-[60px] text-center">
+                {metrics.active_reminders.current_page} / {metrics.active_reminders.last_page}
+              </span>
+              <button
+                disabled={metrics.active_reminders.current_page === metrics.active_reminders.last_page}
+                onClick={() => onRefresh({ reminders_page: metrics.active_reminders.current_page + 1 })}
+                className="p-1.5 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg disabled:opacity-30 transition-all text-gray-500"
+              >
+                <ChevronLeft className="w-4 h-4 rotate-180" />
+              </button>
+            </div>
+          )}
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {metrics?.active_reminders && metrics.active_reminders.length > 0 ? (
-            metrics.active_reminders.map((r: any, i: number) => (
+          {metrics?.active_reminders?.data && metrics.active_reminders.data.length > 0 ? (
+            metrics.active_reminders.data.map((r: any, i: number) => (
               <Card key={i} className="p-5 border border-amber-100 dark:border-amber-900/30 bg-white/50 dark:bg-amber-950/10 backdrop-blur-xl shadow-sm hover:shadow-md transition-all group overflow-hidden">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
