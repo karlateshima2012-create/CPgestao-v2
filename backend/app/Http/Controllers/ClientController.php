@@ -209,7 +209,7 @@ class ClientController extends Controller
         $customer->load(['devices' => function($q) {
             $q->where('status', 'linked')->where('type', 'premium');
         }, 'reminders' => function($q) {
-            $q->where('reminder_date', '>=', now()->toDateString())->orderBy('reminder_date', 'asc')->limit(3);
+            $q->orderBy('reminder_date', 'desc')->orderBy('reminder_time', 'desc')->limit(3);
         }]);
 
         return ApiResponse::ok($customer, 'Contato atualizado com sucesso');
@@ -220,10 +220,8 @@ class ClientController extends Controller
         try {
             $customer = Customer::findOrFail($id);
             $reminders = $customer->reminders()
-                ->where('status', 'pending')
-                ->where('reminder_date', '>=', now()->toDateString())
-                ->orderBy('reminder_date', 'asc')
-                ->orderBy('reminder_time', 'asc')
+                ->orderBy('reminder_date', 'desc')
+                ->orderBy('reminder_time', 'desc')
                 ->limit(3)
                 ->get();
                 
@@ -839,7 +837,9 @@ class ClientController extends Controller
                 'total_premium_customers' => Customer::where('is_premium', true)->count(),
                 'total_linked_cards' => \App\Models\LoyaltyCard::where('status', 'linked')->count(),
                 'active_reminders' => CustomerReminder::with('customer:id,name,phone')
+                    ->where('status', 'pending')
                     ->where('reminder_date', '>=', now()->toDateString())
+                    ->where('reminder_date', '<=', now()->addDays(7)->toDateString())
                     ->orderBy('reminder_date', 'asc')
                     ->orderBy('reminder_time', 'asc')
                     ->limit(10)
