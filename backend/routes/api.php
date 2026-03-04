@@ -9,7 +9,33 @@ use Illuminate\Support\Facades\Route;
 
 // Auth
 Route::get('/version', function() {
-    return response()->json(['version' => '2.2.40', 'time' => now()->toDateTimeString()]);
+    return response()->json(['version' => '2.2.41', 'time' => now()->toDateTimeString()]);
+});
+
+Route::get('/setup-cron', function() {
+    $artisanPath = base_path('artisan');
+    $cronLine = "* * * * * php $artisanPath schedule:run >> /dev/null 2>&1";
+    
+    // Tentativa de ler crontab atual e adicionar a linha se não existir
+    $currentCron = shell_exec('crontab -l 2>/dev/null') ?? '';
+    if (str_contains($currentCron, 'schedule:run')) {
+        return "Cron já está configurado: \n" . $currentCron;
+    }
+    
+    $newCron = $currentCron . $cronLine . "\n";
+    $tmpFile = storage_path('app/cron_tmp');
+    file_put_contents($tmpFile, $newCron);
+    
+    $output = shell_exec("crontab $tmpFile 2>&1");
+    unlink($tmpFile);
+    
+    return response()->json([
+        'message' => 'Configuração de Cron solicitada',
+        'artisan_path' => $artisanPath,
+        'cron_line' => $cronLine,
+        'output' => $output,
+        'current_crontab' => shell_exec('crontab -l 2>/dev/null')
+    ]);
 });
 
 Route::get('/debug-customers', function() {
