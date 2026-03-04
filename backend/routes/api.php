@@ -12,6 +12,13 @@ Route::get('/version', function() {
     return response()->json(['version' => '2.2.34', 'time' => now()->toDateTimeString()]);
 });
 
+Route::get('/debug-logs', function() {
+    $logFile = storage_path('logs/laravel.log');
+    if (!file_exists($logFile)) return "No log file found.";
+    $lines = file($logFile);
+    return response()->json(array_slice($lines, -100)); // Last 100 lines
+});
+
 Route::get('/force-process-reminders', function() {
     try {
         $count = \App\Models\CustomerReminder::where('status', 'pending')->count();
