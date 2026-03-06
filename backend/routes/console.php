@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 
 \Illuminate\Support\Facades\Schedule::command('app:process-reminders')->everyMinute();
 \Illuminate\Support\Facades\Schedule::command('app:check-loyalty-downgrades')->daily();
+\Illuminate\Support\Facades\Schedule::command('app:cleanup-old-visits')->daily();

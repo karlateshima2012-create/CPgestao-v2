@@ -374,59 +374,56 @@ class PublicTerminalController extends Controller
                 }
             }
 
-            // Create Point Request
-            $requestRecord = $this->createPointRequest([
+            // DETERMINAR SE PODE AUTO-APROVAR (ELITE já nasce aprovado, PRO pendente)
+            $isElite = strtolower($tenant->plan) === 'elite';
+            $isPro = strtolower($tenant->plan) === 'pro';
+            
+            $status = $isElite ? 'aprovado' : 'pendente';
+            $approvedAt = $isElite ? now() : null;
+
+            // CRIAR REGISTRO DE VISITA
+            $visit = \App\Models\Visit::create([
                 'tenant_id' => $tenant->id,
                 'customer_id' => $customer->id,
-                'phone' => $customer->phone,
-                'device_id' => $device ? $device->id : null,
-                'source' => $device ? $device->mode : 'approval',
-                'status' => 'pending',
-                'requested_points' => $pointsToAdd,
-                'meta' => $token ? ['qr_token' => $token] : null,
+                'customer_name' => $customer->name,
+                'customer_phone' => $customer->phone,
+                'customer_company' => $customer->company_name,
+                'customer_photo_url' => $customer->photo_url,
+                'visit_at' => now(),
+                'origin' => $token ? 'nfc' : 'qr',
+                'plan_type' => $tenant->plan,
+                'status' => $status,
+                'points_granted' => $pointsToAdd,
+                'approved_at' => $approvedAt,
             ]);
 
-            // Flow 3: PLAN-BASED APPROVAL LOCK (Locked per requirement)
-            $isElite = (strtolower($tenant->plan) === 'elite');
-            $isPro = (strtolower($tenant->plan) === 'pro');
-            $isClassic = (strtolower($tenant->plan) === 'classic');
-            
-            $canAutoApprove = false;
-            // If merchant is logged in, auto-approve
-            if (auth('sanctum')->check()) {
-                $canAutoApprove = true;
-            } elseif ($isElite) {
-                // Elite: 100% automatic (Requirement: "pontuação continua sendo automática")
-                $canAutoApprove = true;
-            } elseif ($isPro) {
-                // Pro: Mandatory Telegram approval (Requirement: "solicita aprovação via Telegram")
-                $canAutoApprove = false;
-            } elseif ($isClassic) {
-                // Classic: Approval via the loyalty card (Requirement: "se dá por meio do cartão de ponto")
-                // Scanning a card generates a token; manual phone entry does not.
-                $canAutoApprove = !empty($token);
-            } else {
-                // Follow device settings for other plans/trials
-                $canAutoApprove = ($device && $device->auto_approve && $this->planService->canAutoApprove($tenant));
-            }
-
-            if ($canAutoApprove) {
-                $this->pointRequestService->applyPoints($requestRecord);
-                $requestRecord->update(['status' => 'auto_approved', 'approved_at' => now()]);
+            if ($isElite) {
+                // Apply points immediately for Elite
+                $customer->increment('points_balance', $visit->points_granted);
+                $customer->increment('attendance_count');
                 
+                \App\Models\PointMovement::create([
+                    'tenant_id' => $tenant->id,
+                    'customer_id' => $customer->id,
+                    'type' => 'earn',
+                    'points' => $visit->points_granted,
+                    'origin' => $visit->origin,
+                    'description' => 'Pontos creditados automaticamente (Plano Elite)',
+                    'meta' => ['visit_id' => $visit->id]
+                ]);
+
                 try {
-                    event(new \App\Events\PointRequestStatusUpdated($requestRecord));
+                    // Force broadcast for real-time UI updates
+                    event(new \App\Events\PointRequestStatusUpdated((object)['id' => $visit->id, 'status' => 'approved', 'tenant_id' => $tenant->id]));
                 } catch (\Throwable $ee) {
                     \Illuminate\Support\Facades\Log::warning("Broadcast failed in earn: " . $ee->getMessage());
                 }
-            } elseif ($requestRecord->status === 'pending' && ($tenant->plan === 'Pro' || $tenant->plan === 'pro')) {
+            } elseif ($isPro) {
                 $settings = \App\Models\TenantSetting::where('tenant_id', $tenant->id)->first();
                 $targetChatId = ($device && $device->telegram_chat_id) ? $device->telegram_chat_id : ($settings ? $settings->telegram_chat_id : null);
 
                 if ($targetChatId) {
-                    // Not auto-approved: Send Telegram notification with interactive photo/caption
                     $locationName = $device ? ($device->responsible_name ?: $device->name) : 'Terminal Público';
-                    
                     $caption = "⭐ <b>Solicitação de ponto</b>\n\n"
                              . "<b>Cliente:</b> {$customer->name}\n"
                              . "<b>Telefone:</b> {$customer->phone}\n"
@@ -438,8 +435,8 @@ class PublicTerminalController extends Controller
                     $replyMarkup = [
                         'inline_keyboard' => [
                             [
-                                ['text' => '✅ Aprovar +1 ponto', 'callback_data' => "approve_request:{$requestRecord->id}"],
-                                ['text' => '❌ Negar', 'callback_data' => "reject_request:{$requestRecord->id}"]
+                                ['text' => '✅ Aprovar +1 ponto', 'callback_data' => "approve_visit:{$visit->id}"],
+                                ['text' => '❌ Negar', 'callback_data' => "reject_visit:{$visit->id}"]
                             ]
                         ]
                     ];

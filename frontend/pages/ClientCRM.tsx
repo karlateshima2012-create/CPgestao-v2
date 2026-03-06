@@ -9,11 +9,11 @@ import { ExportTab } from './client/ExportTab';
 import { AccountTab } from './client/AccountTab';
 import { LoyaltyTab } from './client/LoyaltyTab';
 import { DevicesTab } from './client/DevicesTab';
-import { PointRequestsTab } from './client/PointRequestsTab';
+import { VisitRecordsTab } from './client/VisitRecordsTab';
 import { StatusModal } from '../components/ui';
 import { copyToClipboard } from '../utils/clipboard';
 
-type ClientTab = 'dashboard' | 'clients' | 'loyalty' | 'devices' | 'requests' | 'new' | 'export' | 'account';
+type ClientTab = 'dashboard' | 'clients' | 'loyalty' | 'devices' | 'visits' | 'new' | 'export' | 'account';
 
 interface ClientCRMProps {
   tenantPlan?: PlanType;
@@ -207,7 +207,7 @@ export const ClientCRM: React.FC<ClientCRMProps> = ({ tenantPlan, contacts, setC
       )}
       {activeTab === 'loyalty' && <LoyaltyTab contacts={contacts} tenantPlan={tenantPlan} />}
       {activeTab === 'devices' && <DevicesTab tenantPlan={tenantPlan} tenantSlug={tenantSlug} contacts={contacts} />}
-      {activeTab === 'requests' && <PointRequestsTab />}
+      {activeTab === 'visits' && <VisitRecordsTab />}
       {activeTab === 'clients' && (
         <ClientsTab contacts={contacts} onEdit={(c) => { setSelectedContact(c); onChangeTab('new'); }} onDelete={handleDelete} onNew={() => { setSelectedContact(null); onChangeTab('new'); }} onRefresh={onRefresh} />
       )}

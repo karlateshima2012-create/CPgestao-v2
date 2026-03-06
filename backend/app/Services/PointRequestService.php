@@ -10,19 +10,20 @@ use Illuminate\Support\Facades\DB;
 class PointRequestService
 {
     /**
-     * Apply points/redemption from a PointRequest to a Customer.
+     * Apply points/redemption from a PointRequest or Visit to a Customer.
      */
-    public function applyPoints(PointRequest $request)
+    public function applyPoints($request)
     {
         return DB::transaction(function () use ($request) {
             $customer = Customer::withoutGlobalScopes()->findOrFail($request->customer_id);
             $meta = $request->meta ?? [];
+            $pointsToAddRaw = (get_class($request) === 'App\Models\Visit') ? $request->points_granted : $request->requested_points;
             $isRedemption = $meta['is_redemption'] ?? false;
-            
+
             if ($isRedemption) {
                 $goal = $meta['goal'] ?? 0;
                 $bonus = $meta['bonus'] ?? 0;
-                $pointsToAdd = $request->requested_points - $bonus;
+                $pointsToAdd = $pointsToAddRaw - $bonus;
                 $vipInitial = $meta['vip_initial'] ?? 0;
                 $wasPremium = $customer->is_premium;
 
@@ -46,11 +47,13 @@ class PointRequestService
                 
                 $appliedVipInitial = (!$wasPremium) ? $vipInitial : 0;
                 // New Balance = (Remaining from previous level) + visit points + vip reward bonus + new level initial bonus
-                $customer->points_balance = ($customer->points_balance - $goal) + $request->requested_points + $appliedVipInitial + $initialLevelPoints;
+                $customer->points_balance = ($customer->points_balance - $goal) + $pointsToAddRaw + $appliedVipInitial + $initialLevelPoints;
                 $customer->loyalty_level = $nextLevel;
                 $customer->attendance_count = ($customer->attendance_count ?? 0) + 1;
                 $customer->last_activity_at = now();
                 $customer->save();
+
+                $source = (get_class($request) === 'App\Models\Visit') ? $request->origin : $request->source;
 
                 // Log Redemption Movement
                 PointMovement::create([
@@ -58,11 +61,11 @@ class PointRequestService
                     'customer_id' => $customer->id,
                     'type' => 'redeem',
                     'points' => -$goal,
-                    'origin' => $request->source,
-                    'device_id' => $request->device_id,
-                    'description' => 'Resgate de prêmio via solicitação: ' . $request->id,
+                    'origin' => $source,
+                    'device_id' => (get_class($request) === 'App\Models\PointRequest') ? $request->device_id : null,
+                    'description' => 'Resgate de prêmio via: ' . $request->id,
                     'meta' => [
-                        'point_request_id' => $request->id,
+                        'request_id' => $request->id,
                         'goal' => $goal,
                         'new_level' => $customer->loyalty_level,
                     ]
@@ -73,31 +76,33 @@ class PointRequestService
                     'tenant_id' => $request->tenant_id,
                     'customer_id' => $customer->id,
                     'type' => 'earn',
-                    'points' => $request->requested_points,
-                    'origin' => $request->source,
-                    'device_id' => $request->device_id,
-                    'description' => 'Pontos da visita (Resgate) via solicitação: ' . $request->id,
+                    'points' => $pointsToAddRaw,
+                    'origin' => $source,
+                    'device_id' => (get_class($request) === 'App\Models\PointRequest') ? $request->device_id : null,
+                    'description' => 'Pontos da visita (Resgate) via: ' . $request->id,
                     'meta' => [
-                        'point_request_id' => $request->id,
+                        'request_id' => $request->id,
                         'bonus_applied' => $bonus,
                     ]
                 ]);
             } else {
                 // Simple Credit
-                $customer->increment('points_balance', $request->requested_points);
+                $customer->increment('points_balance', $pointsToAddRaw);
                 $customer->increment('attendance_count');
                 $customer->update(['last_activity_at' => now()]);
+
+                $source = (get_class($request) === 'App\Models\Visit') ? $request->origin : $request->source;
 
                 PointMovement::create([
                     'tenant_id' => $request->tenant_id,
                     'customer_id' => $customer->id,
                     'type' => 'earn',
-                    'points' => $request->requested_points,
-                    'origin' => $request->source,
-                    'device_id' => $request->device_id,
-                    'description' => 'Pontos creditados via solicitação: ' . $request->id,
+                    'points' => $pointsToAddRaw,
+                    'origin' => $source,
+                    'device_id' => (get_class($request) === 'App\Models\PointRequest') ? $request->device_id : null,
+                    'description' => 'Pontos creditados via: ' . $request->id,
                     'meta' => [
-                        'point_request_id' => $request->id,
+                        'request_id' => $request->id,
                     ]
                 ]);
             }

@@ -85,11 +85,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/loyalty/history', [ClientController::class, 'getLoyaltyHistory']);
         Route::get('/dashboard/metrics', [ClientController::class, 'getDashboardMetrics']);
 
-        // Point Requests
-        Route::get('/point-requests', [\App\Http\Controllers\PointRequestController::class, 'index']);
-        Route::get('/point-requests/count', [\App\Http\Controllers\PointRequestController::class, 'count']);
-        Route::post('/point-requests/{id}/approve', [\App\Http\Controllers\PointRequestController::class, 'approve']);
-        Route::post('/point-requests/{id}/deny', [\App\Http\Controllers\PointRequestController::class, 'deny']);
+        // Visit Records (New Registros de Visitas)
+        Route::get('/visits', [\App\Http\Controllers\VisitController::class, 'index']);
+        Route::post('/visits/{id}/approve', [\App\Http\Controllers\VisitController::class, 'approve']);
+        Route::post('/visits/{id}/deny', [\App\Http\Controllers\VisitController::class, 'deny']);
+        Route::post('/visits/approve-all', [\App\Http\Controllers\VisitController::class, 'approveAll']);
     });
 
     Route::post('/auth/logout', [AuthController::class, 'logout']);

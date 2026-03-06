@@ -28,7 +28,7 @@ import { Contact, PlanType } from './types';
 import api from './services/api';
 
 type Role = 'admin' | 'client' | 'terminal' | null;
-type ClientTab = 'dashboard' | 'clients' | 'loyalty' | 'devices' | 'requests' | 'new' | 'export' | 'account';
+type ClientTab = 'dashboard' | 'clients' | 'loyalty' | 'devices' | 'visits' | 'new' | 'export' | 'account';
 
 const CPLogo: React.FC<{ className?: string }> = ({ className = "w-12 h-12" }) => (
   <div className={`grid grid-cols-4 grid-rows-4 gap-[8%] ${className}`}>
@@ -211,8 +211,8 @@ const App: React.FC = () => {
 
   const fetchPendingRequestsCount = async (shouldNotify = false) => {
     try {
-      const res = await api.get('/client/point-requests/count');
-      const newCount = res.data.count;
+      const res = await api.get('/client/visits');
+      const newCount = res.data.pending_count;
 
       if (shouldNotify && newCount > pendingRequestsCount && accountSettings?.telegram_sound_points) {
         playNotificationSound();
@@ -243,7 +243,7 @@ const App: React.FC = () => {
 
   // Re-fetch when switching to dashboard or clients tab to ensure fresh data
   useEffect(() => {
-    if (authRole === 'client' && (clientTab === 'dashboard' || clientTab === 'clients' || clientTab === 'requests')) {
+    if (authRole === 'client' && (clientTab === 'dashboard' || clientTab === 'clients' || clientTab === 'visits')) {
       refreshAllData();
     }
   }, [clientTab, authRole]);
@@ -498,7 +498,7 @@ const App: React.FC = () => {
               <SidebarItem id="side-tab-dashboard" icon={LayoutDashboard} label="Dashboard" onboardingActive={showOnboarding && clientTab === 'dashboard'} active={clientTab === 'dashboard'} onClick={() => { setClientTab('dashboard'); setIsMobileMenuOpen(false); }} collapsed={sidebarCollapsed} />
 
               <div className="relative">
-                <SidebarItem id="side-tab-requests" icon={Calendar} label="Solicitações" active={clientTab === 'requests'} onClick={() => { setClientTab('requests'); setIsMobileMenuOpen(false); }} collapsed={sidebarCollapsed} />
+                <SidebarItem id="side-tab-visits" icon={Calendar} label="Registros de Visitas" active={clientTab === 'visits'} onClick={() => { setClientTab('visits'); setIsMobileMenuOpen(false); }} collapsed={sidebarCollapsed} />
                 {pendingRequestsCount > 0 && (
                   <div className={`absolute ${sidebarCollapsed ? 'top-1 right-3' : 'top-3 right-4'} bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-gray-900 pointer-events-none`}>
                     {pendingRequestsCount}

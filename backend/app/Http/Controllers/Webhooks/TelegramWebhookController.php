@@ -75,6 +75,16 @@ class TelegramWebhookController extends Controller
         $messageId = $callbackQuery['message']['message_id'];
         $originalText = $callbackQuery['message']['text'];
 
+        if (strpos($data, 'approve_visit:') === 0) {
+            $visitId = str_replace('approve_visit:', '', $data);
+            return $this->processVisit($visitId, 'approved', $chatId, $messageId, $originalText, $callbackQueryId, $callbackQuery);
+        }
+
+        if (strpos($data, 'reject_visit:') === 0) {
+            $visitId = str_replace('reject_visit:', '', $data);
+            return $this->processVisit($visitId, 'denied', $chatId, $messageId, $originalText, $callbackQueryId, $callbackQuery);
+        }
+
         if (strpos($data, 'approve_request:') === 0) {
             $requestId = str_replace('approve_request:', '', $data);
             return $this->processRequest($requestId, 'approved', $chatId, $messageId, $originalText, $callbackQueryId);
@@ -86,6 +96,76 @@ class TelegramWebhookController extends Controller
         }
 
         return response()->json(['status' => 'data_ignored']);
+    }
+
+    /**
+     * Process the visit approval or rejection.
+     */
+    private function processVisit($visitId, $action, $chatId, $messageId, $originalText, $callbackQueryId, $callbackQuery)
+    {
+        $visit = \App\Models\Visit::find($visitId);
+
+        if (!$visit) {
+            $this->telegramService->answerCallbackQuery($callbackQueryId, "❌ Erro: Visita não encontrada.", true);
+            return response()->json(['status' => 'not_found']);
+        }
+
+        if ($visit->status !== 'pendente') {
+            $statusLabel = $visit->status === 'aprovado' ? 'Aprovada' : 'Recusada';
+            $this->telegramService->answerCallbackQuery($callbackQueryId, "ℹ️ Já processada: {$statusLabel}");
+            return response()->json(['status' => 'already_processed']);
+        }
+
+        // Security check: Validate if the Chat ID is authorized
+        $settings = \App\Models\TenantSetting::where('tenant_id', $visit->tenant_id)->first();
+        $authorizedId = $settings ? $settings->telegram_chat_id : null;
+
+        if ($authorizedId && (string)$chatId !== (string)$authorizedId) {
+            $this->telegramService->answerCallbackQuery($callbackQueryId, "⚠️ Acesso negado.", true);
+            return response()->json(['status' => 'unauthorized'], 403);
+        }
+
+        $this->telegramService->answerCallbackQuery($callbackQueryId);
+
+        if ($action === 'approved') {
+            DB::transaction(function() use ($visit) {
+                $customer = $visit->customer;
+                $customer->increment('points_balance', $visit->points_granted);
+                $customer->increment('attendance_count');
+
+                \App\Models\PointMovement::create([
+                    'tenant_id' => $visit->tenant_id,
+                    'customer_id' => $visit->customer_id,
+                    'type' => 'earn',
+                    'points' => $visit->points_granted,
+                    'origin' => $visit->origin,
+                    'description' => 'Visita aprovada via Telegram',
+                    'meta' => ['visit_id' => $visit->id]
+                ]);
+
+                $visit->update([
+                    'status' => 'aprovado',
+                    'approved_at' => now()
+                ]);
+            });
+
+            $customer = $visit->customer->fresh();
+            $newText = "Ponto aprovado ✅\n"
+                     . "Cliente agora possui *{$customer->points_balance}* pontos\n"
+                     . "Total de visitas: *{$customer->attendance_count}*";
+
+            $this->telegramService->editMessageCaption($chatId, $messageId, $newText);
+        } else {
+            $visit->update([
+                'status' => 'negado',
+                'approved_at' => now()
+            ]);
+
+            $newText = "❌ *SOLICITAÇÃO RECUSADA*";
+            $this->telegramService->editMessageCaption($chatId, $messageId, $newText);
+        }
+
+        return response()->json(['status' => 'success']);
     }
 
     /**

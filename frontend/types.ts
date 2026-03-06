@@ -121,3 +121,20 @@ export interface PointRequest {
   approved_at?: string;
   meta?: any;
 }
+export interface Visit {
+  id: string;
+  tenant_id: string;
+  customer_id: string;
+  customer_name: string;
+  customer_phone: string;
+  customer_company?: string;
+  customer_photo_url?: string;
+  visit_at: string;
+  origin: 'nfc' | 'qr' | 'manual' | 'sistema';
+  plan_type: string;
+  status: 'pendente' | 'aprovado' | 'negado';
+  points_granted: number;
+  approved_by?: string;
+  approved_at?: string;
+  created_at: string;
+}
