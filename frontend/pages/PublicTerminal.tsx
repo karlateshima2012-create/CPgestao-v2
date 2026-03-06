@@ -12,7 +12,8 @@ import {
   UserCheck,
   Trophy,
   X,
-  AlertCircle
+  AlertCircle,
+  Star
 } from 'lucide-react';
 import { terminalService, contactsService } from '../services/api';
 
@@ -28,6 +29,8 @@ type TerminalMode =
   | 'LOADING'
   | 'INVALID_DEVICE'
   | 'REGISTER'
+  | 'PONTUAR'
+  | 'VISIT_NOT_FOUND'
   | 'WAITING_APPROVAL';
 
 interface PublicTerminalProps {
@@ -203,6 +206,19 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
       }
 
       setMode('START');
+
+      // Auto-trigger actions from URL
+      const acao = urlParams.get('acao');
+      if (acao === 'pontuar') {
+        setTimeout(() => {
+          const element = document.getElementById('card-pontuar');
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Optionally auto-open the mode
+            setMode('PONTUAR');
+          }
+        }, 500);
+      }
     } catch (error: any) {
       const msg = error.response?.data?.error || error.response?.data?.message;
       setErrorMsg(msg);
@@ -250,6 +266,33 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           message: error.response?.data?.message || 'Erro ao buscar cliente',
           type: 'error'
         });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePontuarVisita = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!phone || phone.replace(/\D/g, '').length < 8) {
+      setModal({ isOpen: true, title: 'Atenção', message: 'Informe seu telefone corretamente.', type: 'info' });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await terminalService.lookup(tenantSlug, deviceUid, phone, qrToken);
+      if (res.data && res.data.customer_exists === false) {
+        setMode('VISIT_NOT_FOUND');
+      } else {
+        setFoundCustomer(res.data);
+        handleEarn();
+      }
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        setMode('VISIT_NOT_FOUND');
+      } else {
+        setModal({ isOpen: true, title: 'Erro', message: 'Erro ao processar visita.', type: 'error' });
       }
     } finally {
       setLoading(false);
@@ -509,33 +552,105 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         </div>
 
         {mode === 'START' && (
-          <div className="p-6 md:p-12 animate-fade-in w-full">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+          <div className="p-6 md:p-12 animate-fade-in w-full space-y-6">
+            {/* Card Grande (Destaque) - Cadastrar no Programa */}
+            <div
+              onClick={() => setMode('REGISTER')}
+              className="group cursor-pointer bg-slate-900 dark:bg-white rounded-[28px] p-8 md:p-12 shadow-[0_25px_60px_rgba(0,0,0,0.15)] border-none transition-all hover:scale-[1.01] hover:shadow-[0_35px_70px_rgba(0,0,0,0.2)] flex flex-col items-center justify-center text-center space-y-5 relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 dark:bg-slate-900/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+              <div className="w-16 h-16 bg-white/10 dark:bg-slate-900/10 rounded-2xl flex items-center justify-center backdrop-blur-sm group-hover:scale-110 transition-transform">
+                <UserPlus className="w-9 h-9 text-white dark:text-slate-900" />
+              </div>
+              <div className="space-y-2 relative z-10">
+                <h3 className="text-2xl md:text-3xl font-black text-white dark:text-slate-900 tracking-tight">Cadastrar no Programa</h3>
+                <p className="text-slate-400 dark:text-slate-500 text-[10px] md:text-xs font-black uppercase tracking-widest">Ainda não tem cadastro? Clique aqui.</p>
+              </div>
+            </div>
+
+            {/* 2 Cards de tamanho igual um ao lado do outro */}
+            <div className="grid grid-cols-2 gap-4 md:gap-8">
+              {/* Card Pontuar Visita */}
+              <div
+                id="card-pontuar"
+                onClick={() => setMode('PONTUAR')}
+                className="group cursor-pointer bg-white dark:bg-slate-800/80 rounded-[28px] p-6 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.1)] border-2 border-transparent transition-all hover:-translate-y-1 hover:border-primary-500 hover:shadow-[0_40px_80px_rgba(0,0,0,0.2)] flex flex-col items-center justify-center text-center space-y-4"
+              >
+                <div className="w-14 h-14 bg-primary-100 dark:bg-primary-500/10 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+                  <Star className="w-7 h-7 text-primary-500 group-hover:fill-current" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Pontuar Visita</h3>
+                  <p className="text-[10px] md:text-xs font-bold text-slate-500 dark:text-slate-400 leading-tight">Já é cliente?<br />Ganhe um ponto pela sua visita.</p>
+                </div>
+              </div>
+
+              {/* Card Consultar Saldo */}
               <div
                 onClick={() => setMode('CONSULT')}
-                className="group cursor-pointer bg-white dark:bg-slate-800/80 rounded-[22px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.12)] border-none transition-all hover:-translate-y-1 hover:shadow-[0_30px_60px_rgba(0,0,0,0.18)] flex flex-col items-center justify-center text-center space-y-4 min-h-[160px]"
+                className="group cursor-pointer bg-white dark:bg-slate-800/80 rounded-[28px] p-6 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.1)] border-2 border-transparent transition-all hover:-translate-y-1 hover:border-slate-300 hover:shadow-[0_40px_80px_rgba(0,0,0,0.2)] flex flex-col items-center justify-center text-center space-y-4"
               >
                 <div className="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
                   <Search className="w-7 h-7 text-slate-900 dark:text-white" />
                 </div>
-                <div className="space-y-1">
-                  <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Ver meu Saldo</h3>
-                  <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Consultar</p>
+                <div className="space-y-2">
+                  <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Consultar Saldo</h3>
+                  <p className="text-[10px] md:text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Ver Pontuação</p>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
 
-              <div
-                onClick={() => setMode('REGISTER')}
-                className="group cursor-pointer bg-white dark:bg-slate-800/80 rounded-[22px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.12)] border-none transition-all hover:-translate-y-1 hover:shadow-[0_30px_60px_rgba(0,0,0,0.18)] flex flex-col items-center justify-center text-center space-y-4 min-h-[160px]"
-              >
-                <div className="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
-                  <UserPlus className="w-7 h-7 text-slate-900 dark:text-white" />
-                </div>
-                <div className="space-y-1">
-                  <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Criar Cadastro</h3>
-                  <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Começar Agora</p>
-                </div>
+        {mode === 'PONTUAR' && (
+          <div className="p-6 md:p-12 text-center relative overflow-hidden animate-fade-in space-y-10 w-full min-h-[400px] flex flex-col justify-center">
+            <div className="flex items-center justify-start absolute top-8 left-8">
+              <button type="button" onClick={() => setMode('START')} className="p-3 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="space-y-3 pt-6">
+              <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">Pontuar visita ⭐</h2>
+              <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Digite seu telefone para registrar sua visita.</p>
+            </div>
+            <form onSubmit={handlePontuarVisita} className="space-y-8 max-w-sm mx-auto w-full">
+              <div className="relative group">
+                <Smartphone className="absolute left-6 top-1/2 -translate-y-1/2 w-7 h-7 text-slate-300 group-focus-within:text-slate-900 dark:group-focus-within:text-white transition-colors" />
+                <input
+                  type="tel"
+                  placeholder="090-0000-0000"
+                  className="w-full pl-16 pr-8 py-6 bg-slate-50 dark:bg-slate-800/50 border-2 border-slate-100 dark:border-slate-800 focus:border-slate-900 dark:focus:border-white rounded-3xl text-3xl font-black tracking-widest text-slate-900 dark:text-white outline-none transition-all placeholder:text-slate-200 dark:placeholder:text-slate-700"
+                  value={phone}
+                  onChange={e => setPhone(formatJapanesePhone(e.target.value))}
+                  autoFocus
+                />
               </div>
+              <Button type="submit" isLoading={loading} className="w-full h-20 text-xl font-black uppercase tracking-widest bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.2)] transition-all active:scale-95">
+                Registrar visita
+              </Button>
+            </form>
+          </div>
+        )}
+
+        {mode === 'VISIT_NOT_FOUND' && (
+          <div className="p-6 md:p-12 text-center animate-fade-in space-y-8 w-full min-h-[400px] flex flex-col justify-center items-center">
+            <div className="w-24 h-24 bg-rose-50 dark:bg-rose-500/10 rounded-full flex items-center justify-center text-rose-500 animate-pulse">
+              <AlertCircle className="w-12 h-12" />
+            </div>
+            <div className="space-y-4 max-w-md">
+              <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">Telefone não encontrado.</h2>
+              <p className="text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
+                Parece que você ainda não tem um cadastro no nosso sistema.<br />
+                Cadastre-se primeiro para participar do programa de pontos.
+              </p>
+            </div>
+            <div className="flex flex-col gap-4 w-full max-w-xs">
+              <Button onClick={() => setMode('REGISTER')} className="w-full h-16 bg-primary-500 text-white rounded-2xl font-black uppercase tracking-widest shadow-lg">
+                Cadastrar agora
+              </Button>
+              <Button variant="ghost" onClick={() => setMode('START')} className="w-full text-slate-400 font-bold uppercase text-[10px] tracking-widest">
+                Tentar outro número
+              </Button>
             </div>
           </div>
         )}
@@ -660,9 +775,16 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             <div className="relative mx-auto w-24 h-24 flex items-center justify-center bg-blue-50 rounded-full border-4 border-blue-100">
               <Smartphone className="w-10 h-10 text-blue-500 animate-bounce" />
             </div>
-            <div className="space-y-3">
-              <h2 className="text-2xl font-black uppercase tracking-tighter">Aguardando Aprovação</h2>
-              <p className="text-sm text-slate-600 font-medium max-w-[280px] mx-auto leading-relaxed">Sua solicitação foi enviada para o gerente. Confirme no balcão para ganhar seu ponto!</p>
+            <div className="space-y-4">
+              <h2 className="text-4xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">Visita registrada ✅</h2>
+              <p className="text-base text-slate-600 dark:text-slate-400 font-bold max-w-[320px] mx-auto leading-relaxed italic">
+                Sua pontuação será confirmada pelo lojista em instantes.
+              </p>
+            </div>
+            <div className="pt-8 w-full max-w-xs mx-auto">
+              <Button onClick={reset} className="w-full h-16 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg">
+                Ok, entendi
+              </Button>
             </div>
           </div>
         )}
@@ -672,10 +794,11 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 bg-green-50 border-4 border-green-100">
               <CheckCircle2 className="w-12 h-12 text-green-500" />
             </div>
-            <h2 className="text-3xl font-black tracking-tighter uppercase text-slate-800">PONTO ADICIONADO!</h2>
-            <div className="bg-slate-50 rounded-3xl p-8 mb-8 border border-slate-100">
-              <p className="text-[10px] font-black uppercase text-slate-400">Novo Saldo</p>
-              <p className="text-7xl font-black text-slate-900">{approvedData.points_balance} <span className="text-2xl text-slate-300">/ {approvedData.points_goal}</span></p>
+            <h2 className="text-4xl font-black tracking-tighter uppercase text-slate-900 dark:text-white leading-tight">PONTO ADICIONADO COM SUCESSO ⭐</h2>
+            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-8 mb-8 border-2 border-slate-100 dark:border-slate-800 shadow-inner">
+              <p className="text-[11px] font-black uppercase text-slate-400 dark:text-slate-500 mb-2 tracking-widest">Obrigado pela visita!</p>
+              <p className="text-[10px] font-black uppercase text-slate-300 dark:text-slate-600 mb-1">Novo Saldo</p>
+              <p className="text-8xl font-black text-slate-900 dark:text-white tracking-tighter">{approvedData.points_balance} <span className="text-3xl text-slate-300 dark:text-slate-700">/ {approvedData.points_goal}</span></p>
             </div>
             <Button onClick={reset} className="w-full h-16 font-black uppercase bg-slate-900 text-white rounded-2xl">Voltar ao Início</Button>
           </div>
