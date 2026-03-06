@@ -68,19 +68,19 @@ export const terminalService = {
     getInfo: (slug: string, uid?: string | null, token?: string | null) => uid
         ? api.get(`/public/terminal/${slug}/${uid}`, { params: { token } })
         : api.get(`/public/p/${slug}`, { params: { token } }),
-    lookup: (slug: string, uid: string | null, phone: string, token?: string | null) => uid
-        ? api.post(`/public/terminal/${slug}/${uid}/lookup`, { phone, token })
-        : api.post(`/public/p/${slug}/lookup`, { phone, token }),
+    lookup: (slug: string, uid: string | null, phone: string, token?: string | null, session_token?: string | null) => uid
+        ? api.post(`/public/terminal/${slug}/${uid}/lookup`, { phone, token, session_token })
+        : api.post(`/public/p/${slug}/lookup`, { phone, token, session_token }),
     validatePin: (slug: string, uid: string) =>
         api.post(`/public/terminal/${slug}/${uid}/validate-pin`),
-    earn: (slug: string, uid: string | null, phone: string, token?: string | null) => uid
-        ? api.post(`/public/terminal/${slug}/${uid}/earn`, { phone, token })
-        : api.post(`/public/p/${slug}/earn`, { phone, token }),
+    earn: (slug: string, uid: string | null, phone: string, token?: string | null, session_token?: string | null) => uid
+        ? api.post(`/public/terminal/${slug}/${uid}/earn`, { phone, token, session_token })
+        : api.post(`/public/p/${slug}/earn`, { phone, token, session_token }),
     autoEarn: (slug: string, uid: string) =>
         api.post(`/public/terminal/${slug}/${uid}/auto-earn`),
-    redeem: (slug: string, uid: string | null, phone: string, token?: string | null) => uid
-        ? api.post(`/public/terminal/${slug}/${uid}/redeem`, { phone, token })
-        : api.post(`/public/p/${slug}/redeem`, { phone, token }),
+    redeem: (slug: string, uid: string | null, phone: string, token?: string | null, session_token?: string | null) => uid
+        ? api.post(`/public/terminal/${slug}/${uid}/redeem`, { phone, token, session_token })
+        : api.post(`/public/p/${slug}/redeem`, { phone, token, session_token }),
     register: (slug: string, uid: string | null, data: any) => uid
         ? api.post(`/public/terminal/${slug}/${uid}/register`, data)
         : api.post(`/public/p/${slug}/register`, data),

@@ -174,7 +174,39 @@ class PublicTerminalController extends Controller
             'tenant_plan' => $tenant->plan,
             'is_limit_reached' => $tenant->isLimitReached(),
             'levels_config' => $tenant->loyaltySettings ? $tenant->loyaltySettings->levels_config : null,
+            'session_token' => $this->generateSessionToken($request, $tenant->id, $device ? $device->id : null)
         ]);
+    }
+
+    private function generateSessionToken(Request $request, $tenantId, $deviceId)
+    {
+        $ip = $request->ip();
+        $ua = $request->header('User-Agent');
+        $token = bin2hex(random_bytes(16));
+        $expiresAt = now()->addMinutes(30);
+
+        \Illuminate\Support\Facades\Cache::put("terminal_session:{$token}", [
+            'tenant_id' => $tenantId,
+            'device_id' => $deviceId,
+            'ip' => $ip,
+            'ua' => $ua
+        ], $expiresAt);
+
+        return $token;
+    }
+
+    private function validateSessionToken(Request $request, $token, $tenantId)
+    {
+        if (!$token) return false;
+        
+        $session = \Illuminate\Support\Facades\Cache::get("terminal_session:{$token}");
+        if (!$session) return false;
+
+        if ($session['tenant_id'] != $tenantId) return false;
+        if ($session['ip'] != $request->ip()) return false;
+        if ($session['ua'] != $request->header('User-Agent')) return false;
+
+        return true;
     }
 
     public function getStoreInfo(Request $request, $slug)
@@ -190,6 +222,11 @@ class PublicTerminalController extends Controller
         ]);
 
         [$tenant, $device] = $this->validateDevice($slug, $uid, $request->token);
+        
+        // MEASURE B: Digital Session Binding for Lookup
+        if (!$this->validateSessionToken($request, $request->session_token, $tenant->id)) {
+            return ApiResponse::error('Sessão inválida para consulta. Por favor, reinicie o processo no totem.', 'SESSION_REQUIRED', 403);
+        }
         
         $phone = PhoneHelper::normalize($request->phone);
         $customer = Customer::withoutGlobalScopes()->where('tenant_id', $tenant->id)
@@ -317,6 +354,11 @@ class PublicTerminalController extends Controller
             $token = $request->token;
             [$tenant, $device] = $this->validateDevice($slug, $uid, $token);
             
+            // MEASURE B: Digital Session Binding (IP + User Agent)
+            if (!$this->validateSessionToken($request, $request->session_token, $tenant->id)) {
+                return ApiResponse::error('Sessão inválida ou expirada. Você deve estar fisicamente na loja para pontuar.', 'SESSION_REQUIRED', 403);
+            }
+
             // MEASURE B: Presence detection
             if (!$device && !$token) {
                 return ApiResponse::error('Esta ação exige presença física na loja (NFC ou QRCode do Totem).', 'DEVICE_REQUIRED', 403);
@@ -553,6 +595,11 @@ class PublicTerminalController extends Controller
         return DB::transaction(function () use ($request, $slug, $uid) {
             $token = $request->token;
             [$tenant, $device] = $this->validateDevice($slug, $uid, $token);
+
+            // MEASURE B: Digital Session Binding for Redeem
+            if (!$this->validateSessionToken($request, $request->session_token, $tenant->id)) {
+                return ApiResponse::error('Sessão inválida para resgate. O resgate deve ser feito presencialmente.', 'SESSION_REQUIRED', 403);
+            }
 
             // MEASURE B: Presence detection for Redeem
             if (!$device && !$token) {

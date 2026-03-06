@@ -178,25 +178,54 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug }
                             {devices.map((device) => (
                                 <div key={device.id} className="bg-gray-50 dark:bg-gray-800/30 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between group gap-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-xl bg-blue-100 text-blue-600">
+                                        <div className="p-2 rounded-xl bg-blue-100 text-blue-600 relative">
                                             <Monitor className="w-5 h-5" />
+                                            {!device.active && (
+                                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white" />
+                                            )}
                                         </div>
                                         <div>
-                                            <p className="font-bold text-gray-700 dark:text-gray-200">{device.name}</p>
+                                            <div className="flex items-center gap-2">
+                                                <p className="font-bold text-gray-700 dark:text-gray-200">{device.name}</p>
+                                                <Badge color={device.active ? 'green' : 'red'} className="text-[8px] px-1.5 py-0">
+                                                    {device.active ? 'ATIVO' : 'PAUSADO'}
+                                                </Badge>
+                                            </div>
                                             <p className="text-[10px] text-gray-400 font-mono select-all uppercase">UID: {device.nfc_uid}</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-4 justify-between md:justify-end">
-                                        <div className="text-right">
-                                            <p className="text-[10px] font-black uppercase text-gray-400">Página do Terminal</p>
-                                            <button
-                                                onClick={() => {
-                                                    if (tenantSlug) copyToClipboard(`${window.location.origin}/p/${tenantSlug}`)
+                                        <div className="flex flex-col items-end gap-2">
+                                            <div className="text-right">
+                                                <p className="text-[10px] font-black uppercase text-gray-400">Página do Terminal</p>
+                                                <button
+                                                    onClick={() => {
+                                                        if (tenantSlug) copyToClipboard(`${window.location.origin}/terminal/${tenantSlug}/${device.nfc_uid}`)
+                                                    }}
+                                                    className="text-xs text-blue-500 hover:underline flex items-center gap-1"
+                                                >
+                                                    <Copy className="w-3.5 h-3.5" /> Copiar Link do Totem
+                                                </button>
+                                            </div>
+                                            <Button
+                                                size="sm"
+                                                variant="secondary"
+                                                className={`h-7 px-3 text-[9px] font-black uppercase tracking-widest ${device.active ? 'text-red-500 hover:bg-red-50' : 'text-green-600 hover:bg-green-50'}`}
+                                                onClick={async () => {
+                                                    try {
+                                                        setIsLoading(true);
+                                                        await api.put(`/client/devices/${device.id}`, { active: !device.active });
+                                                        fetchDevices();
+                                                    } catch (e) {
+                                                        setModal({ isOpen: true, title: 'Erro', message: 'Falha ao alterar status do totem.', type: 'error' });
+                                                    } finally {
+                                                        setIsLoading(false);
+                                                    }
                                                 }}
-                                                className="text-xs text-blue-500 hover:underline flex items-center gap-1"
+                                                disabled={isLoading}
                                             >
-                                                <Copy className="w-3.5 h-3.5" /> Copiar Link Público
-                                            </button>
+                                                {device.active ? 'Pausar Link' : 'Reativar Link'}
+                                            </Button>
                                         </div>
                                     </div>
 

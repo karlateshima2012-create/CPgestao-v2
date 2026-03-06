@@ -131,6 +131,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   const [deviceUid, setDeviceUid] = useState<string | null>(null);
   const [qrToken, setQrToken] = useState<string | null>(null);
   const [tenantSlug, setTenantSlug] = useState('');
+  const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [requestId, setRequestId] = useState<string | null>(null);
   const [approvedData, setApprovedData] = useState<any>(null);
@@ -227,6 +228,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
       const res = await terminalService.getInfo(slug, uid, token);
       setStoreInfo(res.data);
+      if (res.data.session_token) setSessionToken(res.data.session_token);
 
       if (token && res.data.token_valid === false) {
         setModal({
@@ -269,7 +271,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
     if (overridePhone) setPhone(overridePhone);
     setLoading(true);
     try {
-      const res = await terminalService.lookup(targetSlug, targetUid, targetPhone, targetToken);
+      const res = await terminalService.lookup(targetSlug, targetUid, targetPhone, targetToken, sessionToken);
       if (res.data && res.data.customer_exists === false) {
         const isAdmin = !!localStorage.getItem('auth_token');
         if (isAdmin) {
@@ -367,7 +369,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
     setLoading(true);
     try {
-      const res = await terminalService.earn(tenantSlug, deviceUid, phone, qrToken);
+      const res = await terminalService.earn(tenantSlug, deviceUid, phone, qrToken, sessionToken);
       const isAuto = res.data.auto_approved;
       setRequestId(res.data.request_id);
 
@@ -432,7 +434,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
     setLoading(true);
     try {
-      const res = await terminalService.redeem(tenantSlug, deviceUid, phone, qrToken);
+      const res = await terminalService.redeem(tenantSlug, deviceUid, phone, qrToken, sessionToken);
       const isAuto = res.data.auto_approved;
       setRequestId(res.data.request_id);
 
