@@ -84,6 +84,30 @@ const App: React.FC = () => {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [dashboardMetrics, setDashboardMetrics] = useState<any>(null);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
+  const [accountSettings, setAccountSettings] = useState<any>(null);
+
+  const playNotificationSound = () => {
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+      oscillator.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.5); // A4
+
+      gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + 0.5);
+    } catch (e) {
+      console.warn('Audio alert failed:', e);
+    }
+  };
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -114,6 +138,7 @@ const App: React.FC = () => {
           if (!res.data.onboarding_completed) {
             setShowOnboarding(true);
           }
+          fetchAccountSettings();
         }
       }).catch((err) => {
         if (err.response?.status === 403) {
@@ -184,12 +209,27 @@ const App: React.FC = () => {
     }
   };
 
-  const fetchPendingRequestsCount = async () => {
+  const fetchPendingRequestsCount = async (shouldNotify = false) => {
     try {
       const res = await api.get('/client/point-requests/count');
-      setPendingRequestsCount(res.data.count);
+      const newCount = res.data.count;
+
+      if (shouldNotify && newCount > pendingRequestsCount && accountSettings?.telegram_sound_points) {
+        playNotificationSound();
+      }
+
+      setPendingRequestsCount(newCount);
     } catch (error) {
       console.error('Error fetching requests count:', error);
+    }
+  };
+
+  const fetchAccountSettings = async () => {
+    try {
+      const res = await api.get('/client/settings');
+      setAccountSettings(res.data.settings);
+    } catch (error) {
+      console.error('Error fetching account settings:', error);
     }
   };
 
@@ -203,10 +243,21 @@ const App: React.FC = () => {
 
   // Re-fetch when switching to dashboard or clients tab to ensure fresh data
   useEffect(() => {
-    if (authRole === 'client' && (clientTab === 'dashboard' || clientTab === 'clients')) {
+    if (authRole === 'client' && (clientTab === 'dashboard' || clientTab === 'clients' || clientTab === 'requests')) {
       refreshAllData();
     }
   }, [clientTab, authRole]);
+
+  // Periodic polling for pending requests
+  useEffect(() => {
+    let interval: any;
+    if (authRole === 'client') {
+      interval = setInterval(() => {
+        fetchPendingRequestsCount(true);
+      }, 20000); // Polling every 20 seconds
+    }
+    return () => clearInterval(interval);
+  }, [authRole, pendingRequestsCount, accountSettings]);
 
   const handleLogin = async (email?: string, password?: string) => {
     setIsLoading(true);
@@ -244,6 +295,7 @@ const App: React.FC = () => {
         if (!user.onboarding_completed) {
           setShowOnboarding(true);
         }
+        fetchAccountSettings();
       }
     } catch (error) {
       alert('Falha no login. Verifique suas credenciais.');

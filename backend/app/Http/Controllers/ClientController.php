@@ -346,7 +346,7 @@ class ClientController extends Controller
     public function getAccountSettings(Request $request)
     {
         $tenant = $request->user()->tenant;
-        $settings = TenantSetting::first();
+        $settings = \App\Models\TenantSetting::where('tenant_id', $tenant->id)->first();
         
         $customersCount = Customer::count();
         $planLimit = \App\Models\Tenant::PLAN_LIMITS[$tenant->plan] ?? 2000;

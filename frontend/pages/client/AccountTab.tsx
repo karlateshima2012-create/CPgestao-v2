@@ -386,23 +386,21 @@ export const AccountTab: React.FC = () => {
                   </label>
                 </div>
 
-                {tenantInfo.plan.toLowerCase() !== 'classic' && (
-                  <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm animate-fade-in">
-                    <div>
-                      <h5 className="text-sm font-semibold text-slate-800 dark:text-slate-200">Pedidos de Ponto (Totem)</h5>
-                      <p className="text-[10px] text-slate-500 mt-0.5">Tocar som quando um cliente pede ponto no modo aprovação</p>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        className="sr-only peer"
-                        checked={telegramSettings.sound_points}
-                        onChange={(e) => setTelegramSettings({ ...telegramSettings, sound_points: e.target.checked })}
-                      />
-                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-primary-500"></div>
-                    </label>
+                <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm">
+                  <div>
+                    <h5 className="text-sm font-semibold text-slate-800 dark:text-slate-200">Solicitações de pontos</h5>
+                    <p className="text-[10px] text-slate-500 mt-0.5">Notificar quando um cliente solicita ponto por visita</p>
                   </div>
-                )}
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={telegramSettings.sound_points}
+                      onChange={(e) => setTelegramSettings({ ...telegramSettings, sound_points: e.target.checked })}
+                    />
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-primary-500"></div>
+                  </label>
+                </div>
 
                 <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm">
                   <div>
