@@ -209,6 +209,13 @@ class PublicTerminalController extends Controller
         return true;
     }
 
+    private function invalidateSessionToken($token)
+    {
+        if ($token) {
+            \Illuminate\Support\Facades\Cache::forget("terminal_session:{$token}");
+        }
+    }
+
     public function getStoreInfo(Request $request, $slug)
     {
         return $this->getInfo($request, $slug, null);
@@ -570,7 +577,7 @@ class PublicTerminalController extends Controller
                 $msg .= " 🎉 META ATINGIDA!";
             }
 
-            return ApiResponse::ok([
+            $response = ApiResponse::ok([
                 'request_id' => $visit->id,
                 'customer_name' => $customer->name,
                 'points_earned' => $pointsToAdd, 
@@ -581,6 +588,11 @@ class PublicTerminalController extends Controller
                 'message' => $msg,
                 'auto_approved' => $canAutoApprove
             ]);
+
+            // MEASURE D: Session Auto-Destruction (One-Time Use)
+            $this->invalidateSessionToken($request->session_token);
+
+            return $response;
         });
     }
 
@@ -748,15 +760,20 @@ class PublicTerminalController extends Controller
                 $msg = "Prêmio entregue com sucesso! O cliente reiniciou no nível {$customer->loyalty_level_name} com +{$pointsToAdd} ponto(s).";
             }
 
-            return ApiResponse::ok([
+            $response = ApiResponse::ok([
                 'request_id' => $requestRecord->id,
                 'customer_name' => $customer->name,
                 'new_balance' => $newBalance,
                 'loyalty_level_name' => $customer->loyalty_level_name,
                 'points_goal' => $goal,
                 'message' => $msg,
-                'auto_approved' => $canAutoApprove
+                'auto_approved' => $isElite
             ]);
+
+            // MEASURE D: Session Auto-Destruction (One-Time Use)
+            $this->invalidateSessionToken($request->session_token);
+
+            return $response;
         });
     }
     public function register(Request $request, $slug, $uid = null)

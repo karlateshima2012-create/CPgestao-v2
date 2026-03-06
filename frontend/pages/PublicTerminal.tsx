@@ -174,6 +174,16 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
     return () => clearInterval(interval);
   }, [mode, requestId, tenantSlug, deviceUid]);
 
+  // Auto-Reset after success
+  useEffect(() => {
+    if (mode === 'SUCCESS' || mode === 'AUTO_SUCCESS') {
+      const timer = setTimeout(() => {
+        reset();
+      }, 20000); // 20 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [mode]);
+
   const formatJapanesePhone = (val: string) => {
     const digits = val.replace(/\D/g, '').slice(0, 11);
     if (digits.length <= 3) return digits;
@@ -583,6 +593,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
     setFoundCustomer(null);
     setLoading(false);
     setQrToken(null);
+    setSessionToken(null);
 
     const url = new URL(window.location.href);
     url.search = '';
