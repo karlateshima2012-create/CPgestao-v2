@@ -135,4 +135,47 @@ class VisitController extends Controller
             return ApiResponse::ok(['message' => count($pendingVisits) . ' visitas aprovadas com sucesso.']);
         });
     }
+
+    /**
+     * Create a manual visit / point adjustment from the CRM.
+     */
+    public function storeManual(Request $request)
+    {
+        $request->validate([
+            'customer_id' => 'required|exists:customers,id',
+            'points' => 'required|integer',
+            'origin' => 'required|string',
+            'reason' => 'nullable|string'
+        ]);
+
+        $tenantId = auth()->user()->tenant_id;
+        $customer = Customer::where('tenant_id', $tenantId)->findOrFail($request->customer_id);
+
+        return DB::transaction(function () use ($request, $tenantId, $customer) {
+            $service = new PointRequestService();
+            
+            // Create the visit record
+            $visit = Visit::create([
+                'tenant_id' => $tenantId,
+                'customer_id' => $customer->id,
+                'customer_name' => $customer->name,
+                'customer_phone' => $customer->phone,
+                'customer_company' => $customer->company_name,
+                'customer_photo_url' => $customer->photo_url,
+                'visit_at' => now(),
+                'origin' => $request->origin,
+                'plan_type' => auth()->user()->tenant->plan,
+                'status' => 'aprovado',
+                'points_granted' => $request->points,
+                'meta' => ['reason' => $request->reason],
+                'approved_by' => auth()->id(),
+                'approved_at' => now(),
+            ]);
+
+            // Apply points to customer
+            $service->applyPoints($visit);
+
+            return ApiResponse::ok($visit);
+        });
+    }
 }

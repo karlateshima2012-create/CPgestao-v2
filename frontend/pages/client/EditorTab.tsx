@@ -4,7 +4,7 @@ import {
   Camera, Save, ArrowLeft, RefreshCw, Smartphone, Star,
   Calendar, Copy, Check, Clock, Edit2, Shield,
   AlertTriangle, MonitorPlay, BarChart3, ChevronDown,
-  User, Crown, FileText, Bell, Trash2
+  User, Crown, FileText, Bell, Trash2, Plus, Minus
 } from 'lucide-react';
 import { Contact, TenantTag } from '../../types';
 import api from '../../services/api';
@@ -13,6 +13,7 @@ interface EditorTabProps {
   selectedContact: Contact | null;
   onSave: (data: Partial<Contact>) => void;
   onCancel: () => void;
+  onRefresh: () => void;
 }
 
 const ComboboxDate = ({ value, onChange, options = [], placeholder, isDay }: any) => {
@@ -230,7 +231,7 @@ const BirthdayInput = ({ value, onChange }: { value: string, onChange: (v: strin
   );
 };
 
-export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, onCancel }) => {
+export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, onCancel, onRefresh }) => {
   const initialData: Partial<Contact> = useMemo(() => ({
     name: '', phone: '', email: '', birthday: '', postalCode: '', province: '', city: '', address: '', notes: '',
     pointsBalance: 0, loyaltyLevel: 1, source: '', tags: [], preferences: [],
@@ -253,6 +254,9 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
   const [loyaltySettings, setLoyaltySettings] = useState<any>(null);
   const [reminders, setReminders] = useState<any[]>([]);
   const [newReminder, setNewReminder] = useState({ date: '', time: '', text: '' });
+  const [actionModal, setActionModal] = useState<'add' | 'remove' | 'visit' | null>(null);
+  const [actionData, setActionData] = useState({ points: 1, reason: '' });
+  const [showConfirmLarge, setShowConfirmLarge] = useState(false);
 
   useEffect(() => {
     loadTags();
@@ -457,11 +461,35 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
     return dStr;
   };
 
-  const handleDateChange = (field: keyof Contact, val: string) => {
-    if (val && val.includes('-')) {
-      const [y, m, d] = val.split('-');
-      setFormData(prev => ({ ...prev, [field]: `${d}/${m}/${y}` }));
-    } else setFormData(prev => ({ ...prev, [field]: val || '' }));
+  const handleManualAction = async () => {
+    if (!selectedContact?.id || !actionModal) return;
+
+    const points = actionModal === 'remove' ? -Math.abs(actionData.points) : actionData.points;
+    const origin = actionModal === 'remove' ? 'ajuste_manual' : 'manual';
+
+    try {
+      const res = await api.post('/client/visits/manual', {
+        customer_id: selectedContact.id,
+        points: points,
+        origin: origin,
+        reason: actionData.reason
+      });
+
+      setSystemModal({ isOpen: true, title: 'Sucesso', message: 'Ação registrada com sucesso!', type: 'success' });
+      setActionModal(null);
+      setActionData({ points: 1, reason: '' });
+
+      // Refresh data
+      onRefresh(); // Assuming onRefresh is passed or we need to update locally
+      // Update local state for immediate feedback
+      setFormData(prev => ({
+        ...prev,
+        pointsBalance: (prev.pointsBalance || 0) + points,
+        attendanceCount: actionModal === 'visit' ? (prev.attendanceCount || 0) + 1 : (prev.attendanceCount || 0)
+      }));
+    } catch (err: any) {
+      setSystemModal({ isOpen: true, title: 'Erro', message: err.response?.data?.message || 'Erro ao processar ação.', type: 'error' });
+    }
   };
 
   const { time: displayTime, period } = getTimeDisplay(formData.reminderTime);
@@ -558,40 +586,6 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
           <Input label="PROVÍNCIA *" value={formData.province || ''} onChange={e => handleCapitalize('province', e.target.value)} />
           <Input label="CIDADE *" value={formData.city || ''} onChange={e => handleCapitalize('city', e.target.value)} />
           <div className="md:col-span-3"><Input label="ENDEREÇO" value={formData.address || ''} onChange={e => handleCapitalize('address', e.target.value)} /></div>
-
-          <div className="md:col-span-1 space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">ORIGEM</label>
-            <select className="w-full h-11 px-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-[15px] font-bold text-sm" value={formData.source || ''} onChange={e => setFormData(p => ({ ...p, source: e.target.value }))}>
-              <option value="">Selecione...</option><option value="Indicação">Indicação</option><option value="Instagram">Instagram</option><option value="Facebook">Facebook</option><option value="Google">Google</option><option value="Outro">Outro</option>
-            </select>
-          </div>
-
-          <div className="md:col-span-2 space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">PONTUAR CLIENTE</label>
-            <div className="flex gap-2">
-              <div className="flex-1 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-[15px] h-11 flex items-center px-4 focus-within:ring-2 focus-within:ring-primary-500/20 transition-all">
-                <input
-                  type="number"
-                  placeholder="Quantidade..."
-                  value={pointsInput}
-                  onChange={e => setPointsInput(e.target.value)}
-                  className="w-full bg-transparent text-sm font-bold outline-none text-gray-700 dark:text-gray-300"
-                />
-              </div>
-              <Button
-                onClick={() => addManualPoints(parseInt(pointsInput) || 0)}
-                className="px-4 bg-gray-900 dark:bg-gray-800 text-white font-black text-[10px] uppercase rounded-[12px] hover:scale-105 active:scale-95 transition-all shadow-lg shadow-gray-900/10"
-              >
-                PONTUAR
-              </Button>
-              <Button
-                onClick={addDefaultPoints}
-                className="px-4 bg-primary-500 text-white font-black text-[10px] uppercase rounded-[12px] flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary-500/20"
-              >
-                <Star className="w-3 h-3 fill-white" /> + PONTO
-              </Button>
-            </div>
-          </div>
         </div>
       </Card>
 
@@ -618,6 +612,32 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
         </div>
       </Card>
 
+      {selectedContact && (
+        <Card className="p-8 border border-gray-200 dark:border-gray-800 w-full rounded-[24px]">
+          <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2 mb-8"><Shield className="w-5 h-5 text-gray-400" /> Ações do Lojista</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Button
+              onClick={() => { setActionModal('add'); setActionData({ points: 1, reason: '' }); }}
+              className="h-16 flex items-center justify-center gap-3 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-2 border-gray-100 dark:border-gray-700 hover:border-gray-900 dark:hover:border-white transition-all rounded-[18px] font-black uppercase text-[10px] tracking-widest shadow-sm"
+            >
+              <Plus className="w-4 h-4 text-emerald-500" /> Adicionar Pontos
+            </Button>
+            <Button
+              onClick={() => { setActionModal('remove'); setActionData({ points: 1, reason: '' }); }}
+              className="h-16 flex items-center justify-center gap-3 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-2 border-gray-100 dark:border-gray-700 hover:border-gray-900 dark:hover:border-white transition-all rounded-[18px] font-black uppercase text-[10px] tracking-widest shadow-sm"
+            >
+              <Minus className="w-4 h-4 text-rose-500" /> Remover Pontos
+            </Button>
+            <Button
+              onClick={() => { setActionModal('visit'); setActionData({ points: 1, reason: '' }); }}
+              className="h-16 flex items-center justify-center gap-3 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-2 border-gray-100 dark:border-gray-700 hover:border-gray-900 dark:hover:border-white transition-all rounded-[18px] font-black uppercase text-[10px] tracking-widest shadow-sm"
+            >
+              <Star className="w-4 h-4 text-amber-500 fill-amber-500" /> Registrar Visita Manual
+            </Button>
+          </div>
+        </Card>
+      )}
+
       <Card className="p-8 border border-gray-200 dark:border-gray-800 w-full rounded-[24px]">
         <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2 mb-8"><BarChart3 className="w-5 h-5 text-gray-400" /> Perfil Estratégico</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -640,9 +660,17 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
               </div>}
             </div>
           </div>
-          <div className="p-6 bg-gray-50 dark:bg-gray-800/50 rounded-[20px] border border-gray-100 flex flex-col">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Notas</label>
-            <textarea placeholder="..." value={formData.notes || ''} onChange={e => setFormData(p => ({ ...p, notes: e.target.value }))} className="w-full flex-grow h-32 p-4 bg-white dark:bg-gray-900 border border-gray-200 rounded-[15px] text-sm outline-none resize-none" />
+          <div className="p-6 bg-gray-50 dark:bg-gray-800/50 rounded-[20px] border border-gray-100 flex flex-col space-y-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">ORIGEM DO CLIENTE</label>
+              <select className="w-full h-11 px-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-[15px] font-bold text-sm text-gray-700 dark:text-gray-300 outline-none focus:ring-2 focus:ring-gray-300 transition-all shadow-sm" value={formData.source || ''} onChange={e => setFormData(p => ({ ...p, source: e.target.value }))}>
+                <option value="">Selecione...</option><option value="Indicação">Indicação</option><option value="Instagram">Instagram</option><option value="Facebook">Facebook</option><option value="Google">Google</option><option value="Outro">Outro</option>
+              </select>
+            </div>
+            <div className="flex flex-col flex-1">
+              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 ml-1">Notas</label>
+              <textarea placeholder="..." value={formData.notes || ''} onChange={e => setFormData(p => ({ ...p, notes: e.target.value }))} className="w-full h-24 p-4 bg-white dark:bg-gray-900 border border-gray-200 rounded-[15px] text-sm outline-none resize-none" />
+            </div>
           </div>
         </div>
 
@@ -800,6 +828,80 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
       </div>
 
       {systemModal.isOpen && <StatusModal isOpen={systemModal.isOpen} title={systemModal.title} message={systemModal.message} type={systemModal.type} onClose={() => setSystemModal(p => ({ ...p, isOpen: false }))} theme="accent" />}
+
+      {/* Modais de Ação do Lojista */}
+      {(actionModal || showConfirmLarge) && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <Card className="w-full max-w-sm p-8 space-y-6 shadow-2xl border-none animate-in zoom-in-95 duration-200">
+            {showConfirmLarge ? (
+              <>
+                <div className="w-20 h-20 bg-amber-50 dark:bg-amber-900/30 rounded-full flex items-center justify-center mx-auto text-amber-500">
+                  <AlertTriangle className="w-10 h-10" />
+                </div>
+                <div className="text-center space-y-2">
+                  <h3 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">Confirmação Adicional</h3>
+                  <p className="text-sm font-bold text-gray-500 dark:text-gray-400">Você está realizando um ajuste grande de pontuação ({actionData.points} pontos). Deseja continuar?</p>
+                </div>
+                <div className="flex flex-col gap-3 pt-2">
+                  <Button onClick={() => { setShowConfirmLarge(false); handleManualAction(); }} className="h-12 bg-gray-900 text-white font-black uppercase text-xs rounded-xl">Confirmar ajuste</Button>
+                  <Button variant="ghost" onClick={() => setShowConfirmLarge(false)} className="h-12 text-gray-400 font-bold uppercase text-[10px]">Cancelar</Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-4 border-b border-gray-100 dark:border-gray-800 pb-4">
+                  <div className={`p-3 rounded-2xl ${actionModal === 'add' ? 'bg-emerald-50 text-emerald-500' : actionModal === 'remove' ? 'bg-rose-50 text-rose-500' : 'bg-amber-50 text-amber-500'}`}>
+                    {actionModal === 'add' ? <Plus className="w-6 h-6" /> : actionModal === 'remove' ? <Minus className="w-6 h-6" /> : <Star className="w-6 h-6 fill-current" />}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-gray-900 dark:text-white tracking-tight uppercase">
+                      {actionModal === 'add' ? 'Adicionar Pontos' : actionModal === 'remove' ? 'Remover Pontos' : 'Registrar Visita'}
+                    </h3>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{formData.name}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-5">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+                      {actionModal === 'visit' ? 'Pontos da Visita' : 'Quantidade de Pontos'}
+                    </label>
+                    <input
+                      type="number"
+                      value={actionData.points}
+                      onChange={e => setActionData(p => ({ ...p, points: parseInt(e.target.value) || 0 }))}
+                      className="w-full h-14 px-6 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl text-2xl font-black text-gray-900 dark:text-white outline-none focus:ring-4 focus:ring-primary-500/10 transition-all"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Motivo (Opcional)</label>
+                    <input
+                      type="text"
+                      placeholder="..."
+                      value={actionData.reason}
+                      onChange={e => setActionData(p => ({ ...p, reason: e.target.value }))}
+                      className="w-full h-11 px-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-bold text-gray-700 dark:text-gray-300 outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3 pt-4">
+                  <Button
+                    onClick={() => {
+                      if (actionData.points > 20) setShowConfirmLarge(true);
+                      else handleManualAction();
+                    }}
+                    className={`h-14 font-black uppercase text-xs rounded-2xl shadow-xl transition-all active:scale-95 ${actionModal === 'add' ? 'bg-emerald-500 text-white' : actionModal === 'remove' ? 'bg-rose-500 text-white' : 'bg-amber-500 text-white'}`}
+                  >
+                    {actionModal === 'visit' ? 'Registrar Visita' : 'Confirmar Ajuste'}
+                  </Button>
+                  <Button variant="ghost" onClick={() => setActionModal(null)} className="h-10 text-gray-400 font-bold uppercase text-[10px]">Cancelar</Button>
+                </div>
+              </>
+            )}
+          </Card>
+        </div>
+      )}
       {tagModal && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"><Card className="w-full max-w-sm p-8 bg-white dark:bg-gray-900 rounded-[24px] relative"><button onClick={() => setTagModal(false)} className="absolute top-5 right-5 p-2 text-gray-400">✕</button><h2 className="text-xl font-black mb-6">Nova Tag</h2><div className="space-y-5"><Input label="Nome" value={newTagForm.name} onChange={e => setNewTagForm(p => ({ ...p, name: e.target.value.replace(/(?:^|\s)\S/g, a => a.toUpperCase()) }))} /><Button onClick={createTag} className="w-full bg-gray-900 text-white font-black uppercase text-[12px]">Criar Tag</Button></div></Card></div>}
       {serviceModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
