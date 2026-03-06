@@ -564,8 +564,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 <Star className="w-10 h-10 text-primary-500 group-hover:fill-current" />
               </div>
               <div className="space-y-3 relative z-10">
-                <h3 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">Pontuar Visita</h3>
-                <p className="text-slate-500 dark:text-slate-400 text-sm md:text-base font-bold leading-tight">Já é cliente? Ganhe um ponto pela sua visita.</p>
+                <h3 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">Registrar Visita</h3>
+                <p className="text-slate-500 dark:text-slate-400 text-sm md:text-base font-bold leading-tight">Confirme sua visita para pontuar.</p>
               </div>
             </div>
 
@@ -581,7 +581,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 </div>
                 <div className="space-y-2">
                   <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Cadastrar</h3>
-                  <p className="text-[10px] md:text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Ainda não tem cadastro?</p>
+                  <p className="text-[10px] md:text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Para novos clientes</p>
                 </div>
               </div>
 
@@ -594,8 +594,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                   <Search className="w-7 h-7 text-slate-900 dark:text-white" />
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Saldo</h3>
-                  <p className="text-[10px] md:text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Ver Pontuação</p>
+                  <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Consultar Saldo</h3>
+                  <p className="text-[10px] md:text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Ver seus pontos</p>
                 </div>
               </div>
             </div>
