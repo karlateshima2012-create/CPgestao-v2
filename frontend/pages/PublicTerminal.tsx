@@ -553,48 +553,48 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
         {mode === 'START' && (
           <div className="p-6 md:p-12 animate-fade-in w-full space-y-6">
-            {/* Card Grande (Destaque) - Cadastrar no Programa */}
+            {/* Card Grande (Destaque) - Pontuar Visita */}
             <div
-              onClick={() => setMode('REGISTER')}
-              className="group cursor-pointer bg-slate-900 dark:bg-white rounded-[28px] p-8 md:p-12 shadow-[0_25px_60px_rgba(0,0,0,0.15)] border-none transition-all hover:scale-[1.01] hover:shadow-[0_35px_70px_rgba(0,0,0,0.2)] flex flex-col items-center justify-center text-center space-y-5 relative overflow-hidden"
+              id="card-pontuar"
+              onClick={() => setMode('PONTUAR')}
+              className="group cursor-pointer bg-white dark:bg-slate-800/90 rounded-[32px] p-8 md:p-14 shadow-[0_25px_60px_rgba(0,0,0,0.1)] border-2 border-transparent transition-all hover:scale-[1.01] hover:border-primary-500 hover:shadow-[0_35px_70px_rgba(0,0,0,0.15)] flex flex-col items-center justify-center text-center space-y-6 relative overflow-hidden"
             >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 dark:bg-slate-900/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-              <div className="w-16 h-16 bg-white/10 dark:bg-slate-900/10 rounded-2xl flex items-center justify-center backdrop-blur-sm group-hover:scale-110 transition-transform">
-                <UserPlus className="w-9 h-9 text-white dark:text-slate-900" />
+              <div className="absolute top-0 right-0 w-40 h-40 bg-primary-50 dark:bg-primary-900/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+              <div className="w-20 h-20 bg-primary-100 dark:bg-primary-500/10 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+                <Star className="w-10 h-10 text-primary-500 group-hover:fill-current" />
               </div>
-              <div className="space-y-2 relative z-10">
-                <h3 className="text-2xl md:text-3xl font-black text-white dark:text-slate-900 tracking-tight">Cadastrar no Programa</h3>
-                <p className="text-slate-400 dark:text-slate-500 text-[10px] md:text-xs font-black uppercase tracking-widest">Ainda não tem cadastro? Clique aqui.</p>
+              <div className="space-y-3 relative z-10">
+                <h3 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">Pontuar Visita</h3>
+                <p className="text-slate-500 dark:text-slate-400 text-sm md:text-base font-bold leading-tight">Já é cliente? Ganhe um ponto pela sua visita.</p>
               </div>
             </div>
 
             {/* 2 Cards de tamanho igual um ao lado do outro */}
             <div className="grid grid-cols-2 gap-4 md:gap-8">
-              {/* Card Pontuar Visita */}
+              {/* Card Cadastrar no Programa */}
               <div
-                id="card-pontuar"
-                onClick={() => setMode('PONTUAR')}
-                className="group cursor-pointer bg-white dark:bg-slate-800/80 rounded-[28px] p-6 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.1)] border-2 border-transparent transition-all hover:-translate-y-1 hover:border-primary-500 hover:shadow-[0_40px_80px_rgba(0,0,0,0.2)] flex flex-col items-center justify-center text-center space-y-4"
+                onClick={() => setMode('REGISTER')}
+                className="group cursor-pointer bg-white dark:bg-slate-800/80 rounded-[28px] p-6 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.08)] border-2 border-transparent transition-all hover:-translate-y-1 hover:border-slate-300 hover:shadow-[0_40px_80px_rgba(0,0,0,0.15)] flex flex-col items-center justify-center text-center space-y-4"
               >
-                <div className="w-14 h-14 bg-primary-100 dark:bg-primary-500/10 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
-                  <Star className="w-7 h-7 text-primary-500 group-hover:fill-current" />
+                <div className="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+                  <UserPlus className="w-7 h-7 text-slate-900 dark:text-white" />
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Pontuar Visita</h3>
-                  <p className="text-[10px] md:text-xs font-bold text-slate-500 dark:text-slate-400 leading-tight">Já é cliente?<br />Ganhe um ponto pela sua visita.</p>
+                  <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Cadastrar</h3>
+                  <p className="text-[10px] md:text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Ainda não tem cadastro?</p>
                 </div>
               </div>
 
               {/* Card Consultar Saldo */}
               <div
                 onClick={() => setMode('CONSULT')}
-                className="group cursor-pointer bg-white dark:bg-slate-800/80 rounded-[28px] p-6 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.1)] border-2 border-transparent transition-all hover:-translate-y-1 hover:border-slate-300 hover:shadow-[0_40px_80px_rgba(0,0,0,0.2)] flex flex-col items-center justify-center text-center space-y-4"
+                className="group cursor-pointer bg-white dark:bg-slate-800/80 rounded-[28px] p-6 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.08)] border-2 border-transparent transition-all hover:-translate-y-1 hover:border-slate-300 hover:shadow-[0_40px_80px_rgba(0,0,0,0.15)] flex flex-col items-center justify-center text-center space-y-4"
               >
                 <div className="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
                   <Search className="w-7 h-7 text-slate-900 dark:text-white" />
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Consultar Saldo</h3>
+                  <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Saldo</h3>
                   <p className="text-[10px] md:text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Ver Pontuação</p>
                 </div>
               </div>
