@@ -557,15 +557,15 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             <div
               id="card-pontuar"
               onClick={() => setMode('PONTUAR')}
-              className="group cursor-pointer bg-white dark:bg-slate-800/90 rounded-[32px] p-8 md:p-14 shadow-[0_25px_60px_rgba(0,0,0,0.1)] border-2 border-transparent transition-all hover:scale-[1.01] hover:border-primary-500 hover:shadow-[0_35px_70px_rgba(0,0,0,0.15)] flex flex-col items-center justify-center text-center space-y-6 relative overflow-hidden"
+              className="group cursor-pointer bg-white dark:bg-slate-800/90 rounded-[32px] p-8 md:p-14 shadow-[0_25px_60px_rgba(0,0,0,0.1)] border-2 border-transparent transition-all hover:scale-[1.01] hover:border-slate-900 dark:hover:border-white hover:shadow-[0_35px_70px_rgba(0,0,0,0.15)] flex flex-col items-center justify-center text-center space-y-6 relative overflow-hidden"
             >
-              <div className="absolute top-0 right-0 w-40 h-40 bg-primary-50 dark:bg-primary-900/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-              <div className="w-20 h-20 bg-primary-100 dark:bg-primary-500/10 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
-                <Star className="w-10 h-10 text-primary-500 group-hover:fill-current" />
+              <div className="absolute top-0 right-0 w-40 h-40 bg-slate-50 dark:bg-slate-900/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+              <div className="w-20 h-20 bg-slate-100 dark:bg-slate-500/10 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+                <Star className="w-10 h-10 text-slate-900 dark:text-white group-hover:fill-current" />
               </div>
               <div className="space-y-3 relative z-10">
                 <h3 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">Registrar Visita</h3>
-                <p className="text-slate-500 dark:text-slate-400 text-sm md:text-base font-bold leading-tight">Confirme sua visita para pontuar.</p>
+                <p className="text-[11px] md:text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Confirme sua visita para pontuar.</p>
               </div>
             </div>
 
@@ -645,7 +645,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               </p>
             </div>
             <div className="flex flex-col gap-4 w-full max-w-xs">
-              <Button onClick={() => setMode('REGISTER')} className="w-full h-16 bg-primary-500 text-white rounded-2xl font-black uppercase tracking-widest shadow-lg">
+              <Button onClick={() => setMode('REGISTER')} className="w-full h-16 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest shadow-lg">
                 Cadastrar agora
               </Button>
               <Button variant="ghost" onClick={() => setMode('START')} className="w-full text-slate-400 font-bold uppercase text-[10px] tracking-widest">
@@ -727,7 +727,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 <p className="text-5xl font-black tracking-tighter text-slate-900 dark:text-white">{balance} <span className="text-xl text-slate-300">/ {goal}</span></p>
               </div>
               <div className="flex flex-col gap-4">
-                <Button onClick={() => handleAction(canRedeem ? 'redeem' : 'earn')} isLoading={loading} className={`h-20 ${canRedeem ? 'bg-amber-500' : 'bg-primary-500'} text-white rounded-2xl font-black uppercase text-lg shadow-xl`}>
+                <Button onClick={() => handleAction(canRedeem ? 'redeem' : 'earn')} isLoading={loading} className={`h-20 ${canRedeem ? 'bg-amber-500' : 'bg-slate-900'} text-white rounded-2xl font-black uppercase text-lg shadow-xl`}>
                   {canRedeem ? 'RESGATAR PRÊMIO' : 'DANÇAR PONTO'}
                 </Button>
                 <Button variant="ghost" onClick={reset} className="h-12 text-slate-400 font-bold uppercase text-xs">CANCELAR</Button>
@@ -746,7 +746,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 <Input label="Província *" value={customerData.province} onChange={e => setCustomerData({ ...customerData, province: normalizeText(e.target.value) })} required />
                 <Input label="Cidade *" value={customerData.city} onChange={e => setCustomerData({ ...customerData, city: normalizeText(e.target.value) })} required />
               </div>
-              <Button type="submit" isLoading={loading} className="w-full h-16 bg-primary-500 text-white rounded-2xl font-black uppercase">CADASTRAR E PONTUAR</Button>
+              <Button type="submit" isLoading={loading} className="w-full h-16 bg-slate-900 text-white rounded-2xl font-black uppercase">CADASTRAR E PONTUAR</Button>
               <Button variant="ghost" onClick={reset} className="w-full h-12 text-slate-400 font-bold uppercase text-xs">CANCELAR</Button>
             </form>
           </div>
@@ -772,8 +772,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
         {mode === 'WAITING_APPROVAL' && (
           <div className="p-6 md:p-8 text-center py-12 animate-fade-in space-y-8 w-full">
-            <div className="relative mx-auto w-24 h-24 flex items-center justify-center bg-blue-50 rounded-full border-4 border-blue-100">
-              <Smartphone className="w-10 h-10 text-blue-500 animate-bounce" />
+            <div className="relative mx-auto w-24 h-24 flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded-full border-4 border-slate-100 dark:border-slate-700">
+              <Smartphone className="w-10 h-10 text-slate-500 animate-bounce" />
             </div>
             <div className="space-y-4">
               <h2 className="text-4xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">Visita registrada ✅</h2>
