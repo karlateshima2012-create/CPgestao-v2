@@ -161,7 +161,7 @@ class VisitController extends Controller
                 'customer_name' => $customer->name,
                 'customer_phone' => $customer->phone,
                 'customer_company' => $customer->company_name,
-                'customer_photo_url' => $customer->photo_url,
+                'foto_perfil_url' => $customer->foto_perfil_url,
                 'visit_at' => now(),
                 'origin' => $request->origin,
                 'plan_type' => auth()->user()->tenant->plan,

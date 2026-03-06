@@ -1,5 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Input, Badge, StatusModal } from '../components/ui';
+
+// Custom Star Animation Styles
+const animationStyles = `
+@keyframes starBurst {
+  0% {
+    transform: rotate(var(--star-angle)) translateY(0) scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(var(--star-angle)) translateY(calc(-1 * var(--star-dist))) scale(1.2);
+    opacity: 0;
+  }
+}
+.animate-star-burst {
+  animation: starBurst 0.8s ease-out forwards;
+  animation-delay: var(--star-delay);
+}
+`;
 import {
   Smartphone,
   CheckCircle2,
@@ -13,7 +31,9 @@ import {
   Trophy,
   X,
   AlertCircle,
-  Star
+  Star,
+  Camera,
+  Upload
 } from 'lucide-react';
 import { terminalService, contactsService } from '../services/api';
 
@@ -57,6 +77,15 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   slug: propSlug,
   uid: propUid
 }) => {
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.innerHTML = animationStyles;
+    document.head.appendChild(style);
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   const [mode, setMode] = useState<TerminalMode>('LOADING');
   const [phone, setPhone] = useState('');
   const [customerData, setCustomerData] = useState({
@@ -66,7 +95,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
     province: '',
     postalCode: '',
     address: '',
-    birthday: ''
+    birthday: '',
+    photo: undefined as string | undefined
   });
   const [bDay, setBDay] = useState('');
   const [bMonth, setBMonth] = useState('');
@@ -104,6 +134,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [requestId, setRequestId] = useState<string | null>(null);
   const [approvedData, setApprovedData] = useState<any>(null);
+  const [uploading, setUploading] = useState(false);
+  const [showStars, setShowStars] = useState(false);
 
   useEffect(() => {
     console.log("CP Gestao Version: 2.3.0 - Digital First");
@@ -325,6 +357,14 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   const handleEarn = async () => {
     if (!tenantSlug) return;
     const isAdmin = !!localStorage.getItem('auth_token');
+
+    // Feedback Tátil e Micro-Animação
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(40);
+    }
+    setShowStars(true);
+    setTimeout(() => setShowStars(false), 1000);
+
     setLoading(true);
     try {
       const res = await terminalService.earn(tenantSlug, deviceUid, phone, qrToken);
@@ -444,6 +484,41 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
     if (action === 'redeem') handleRedeem(false);
   };
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !foundCustomer) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      setModal({ isOpen: true, title: 'Arquivo muito grande', message: 'A foto deve ter no máximo 10MB.', type: 'error' });
+      return;
+    }
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('photo', file);
+    formData.append('phone', phone);
+    if (qrToken) formData.append('token', qrToken);
+
+    try {
+      const res = await terminalService.updatePhoto(tenantSlug, deviceUid, formData);
+      setFoundCustomer((prev: any) => ({
+        ...prev,
+        foto_perfil_url: res.data.foto_perfil_url,
+        foto_perfil_thumb_url: res.data.foto_perfil_thumb_url
+      }));
+      setModal({ isOpen: true, title: 'Sucesso', message: 'Foto de perfil atualizada!', type: 'success' });
+    } catch (error: any) {
+      setModal({
+        isOpen: true,
+        title: 'Erro no Upload',
+        message: error.response?.data?.message || 'Não foi possível atualizar a foto agora.',
+        type: 'error'
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customerData.name) {
@@ -466,7 +541,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         province: customerData.province,
         postal_code: customerData.postalCode,
         address: customerData.address,
-        birthday: customerData.birthday
+        birthday: customerData.birthday,
+        photo: customerData.photo
       });
       const isAdmin = !!localStorage.getItem('auth_token');
       if (isAdmin && res.data.points_balance !== undefined) {
@@ -499,7 +575,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   const reset = () => {
     setMode('START');
     setPhone('');
-    setCustomerData({ name: '', email: '', city: '', province: '', postalCode: '', address: '', birthday: '' });
+    setCustomerData({ name: '', email: '', city: '', province: '', postalCode: '', address: '', birthday: '', photo: undefined });
     setBDay('');
     setBMonth('');
     setFoundCustomer(null);
@@ -553,49 +629,62 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
         {mode === 'START' && (
           <div className="p-6 md:p-12 animate-fade-in w-full space-y-6">
-            {/* Card Grande (Destaque) - Pontuar Visita */}
-            <div
-              id="card-pontuar"
-              onClick={() => setMode('PONTUAR')}
-              className="group cursor-pointer bg-white dark:bg-slate-800/90 rounded-[32px] p-8 md:p-14 shadow-[0_25px_60px_rgba(0,0,0,0.1)] border-2 border-transparent transition-all hover:scale-[1.01] hover:border-slate-900 dark:hover:border-white hover:shadow-[0_35px_70px_rgba(0,0,0,0.15)] flex flex-col items-center justify-center text-center space-y-6 relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 w-40 h-40 bg-slate-50 dark:bg-slate-900/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-              <div className="w-20 h-20 bg-slate-100 dark:bg-slate-500/10 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
-                <Star className="w-10 h-10 text-slate-900 dark:text-white group-hover:fill-current" />
+            {/* Card Grande (Destaque) - Pontuar Visita (Apenas Físico) */}
+            {(deviceUid || qrToken) && (
+              <div
+                id="card-pontuar"
+                onClick={() => setMode('PONTUAR')}
+                className="group cursor-pointer bg-white dark:bg-slate-800/90 rounded-[32px] p-8 md:p-14 shadow-[0_25px_60px_rgba(0,0,0,0.1)] border-2 border-transparent transition-all hover:scale-[1.01] hover:border-slate-900 dark:hover:border-white hover:shadow-[0_35px_70px_rgba(0,0,0,0.15)] flex flex-col items-center justify-center text-center space-y-6 relative overflow-hidden"
+              >
+                <div className="absolute top-0 right-0 w-40 h-40 bg-slate-50 dark:bg-slate-900/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+                <div className="w-20 h-20 bg-slate-100 dark:bg-slate-500/10 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+                  <Star className="w-10 h-10 text-slate-900 dark:text-white group-hover:fill-current" />
+                </div>
+                <div className="space-y-3 relative z-10">
+                  <h3 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">Registrar Visita</h3>
+                  <p className="text-sm font-bold text-slate-500 dark:text-slate-400 max-w-sm">Toque no botão para registrar sua visita e ganhar pontos no programa.</p>
+                </div>
+                <div className="relative z-10 w-full max-w-xs mt-4">
+                  <div className="h-16 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[22px] flex items-center justify-center font-black uppercase tracking-widest group-hover:scale-105 transition-transform shadow-lg text-sm">
+                    Registrar visita
+                  </div>
+                </div>
               </div>
-              <div className="space-y-3 relative z-10">
-                <h3 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">Registrar Visita</h3>
-                <p className="text-[11px] md:text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Confirme sua visita para pontuar.</p>
-              </div>
-            </div>
+            )}
 
             {/* 2 Cards de tamanho igual um ao lado do outro */}
-            <div className="grid grid-cols-2 gap-4 md:gap-8">
+            <div className={`grid ${(deviceUid || qrToken) ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2'} gap-4 md:gap-8`}>
               {/* Card Cadastrar no Programa */}
               <div
                 onClick={() => setMode('REGISTER')}
-                className="group cursor-pointer bg-white dark:bg-slate-800/80 rounded-[28px] p-6 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.08)] border-2 border-transparent transition-all hover:-translate-y-1 hover:border-slate-300 hover:shadow-[0_40px_80px_rgba(0,0,0,0.15)] flex flex-col items-center justify-center text-center space-y-4"
+                className={`group cursor-pointer bg-white dark:bg-slate-800/80 rounded-[28px] p-6 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.08)] border-2 border-transparent transition-all hover:-translate-y-1 hover:border-slate-300 hover:shadow-[0_40px_80px_rgba(0,0,0,0.15)] flex flex-col items-center justify-center text-center space-y-4 ${!(deviceUid || qrToken) ? 'md:col-span-1 py-12 md:py-20 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border-slate-100 dark:border-slate-800' : ''}`}
               >
-                <div className="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
-                  <UserPlus className="w-7 h-7 text-slate-900 dark:text-white" />
+                <div className={`${!(deviceUid || qrToken) ? 'w-20 h-20' : 'w-14 h-14'} bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform`}>
+                  <UserPlus className={`${!(deviceUid || qrToken) ? 'w-10 h-10' : 'w-7 h-7'} text-slate-900 dark:text-white`} />
                 </div>
-                <div className="space-y-2">
-                  <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Cadastrar</h3>
-                  <p className="text-[10px] md:text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Para novos clientes</p>
+                <div className="space-y-2 flex-grow">
+                  <h3 className={`${!(deviceUid || qrToken) ? 'text-2xl md:text-3xl' : 'text-lg'} font-black text-slate-900 dark:text-white tracking-tight leading-tight`}>Entrar no Programa de Pontos</h3>
+                  <p className={`${!(deviceUid || qrToken) ? 'text-xs md:text-sm' : 'text-[10px]'} font-bold text-slate-400 dark:text-slate-500 max-w-xs mx-auto`}>Cadastre-se para começar a acumular pontos e ganhar prêmios.</p>
+                </div>
+                <div className={`${!(deviceUid || qrToken) ? 'h-14 px-10' : 'h-10 w-full'} bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center font-black uppercase ${!(deviceUid || qrToken) ? 'text-xs' : 'text-[10px]'} tracking-widest group-hover:bg-slate-200 dark:group-hover:bg-slate-600 transition-colors`}>
+                  Cadastrar agora.
                 </div>
               </div>
 
               {/* Card Consultar Saldo */}
               <div
                 onClick={() => setMode('CONSULT')}
-                className="group cursor-pointer bg-white dark:bg-slate-800/80 rounded-[28px] p-6 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.08)] border-2 border-transparent transition-all hover:-translate-y-1 hover:border-slate-300 hover:shadow-[0_40px_80px_rgba(0,0,0,0.15)] flex flex-col items-center justify-center text-center space-y-4"
+                className={`group cursor-pointer bg-white dark:bg-slate-800/80 rounded-[28px] p-6 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.08)] border-2 border-transparent transition-all hover:-translate-y-1 hover:border-slate-300 hover:shadow-[0_40px_80px_rgba(0,0,0,0.15)] flex flex-col items-center justify-center text-center space-y-4 ${!(deviceUid || qrToken) ? 'md:col-span-1 py-12 md:py-20' : ''}`}
               >
-                <div className="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
-                  <Search className="w-7 h-7 text-slate-900 dark:text-white" />
+                <div className={`${!(deviceUid || qrToken) ? 'w-20 h-20' : 'w-14 h-14'} bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform`}>
+                  <Search className={`${!(deviceUid || qrToken) ? 'w-10 h-10' : 'w-7 h-7'} text-slate-900 dark:text-white`} />
                 </div>
-                <div className="space-y-2">
-                  <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Consultar Saldo</h3>
-                  <p className="text-[10px] md:text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Ver seus pontos</p>
+                <div className="space-y-2 flex-grow">
+                  <h3 className={`${!(deviceUid || qrToken) ? 'text-2xl md:text-3xl' : 'text-lg'} font-black text-slate-900 dark:text-white tracking-tight leading-tight`}>Ver Meus Pontos</h3>
+                  <p className={`${!(deviceUid || qrToken) ? 'text-xs md:text-sm' : 'text-[10px]'} font-bold text-slate-400 dark:text-slate-500 max-w-xs mx-auto`}>Confira seu saldo de pontos, metas e prêmios disponíveis.</p>
+                </div>
+                <div className={`${!(deviceUid || qrToken) ? 'h-14 px-10' : 'h-10 w-full'} bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center font-black uppercase ${!(deviceUid || qrToken) ? 'text-xs' : 'text-[10px]'} tracking-widest group-hover:bg-slate-200 dark:group-hover:bg-slate-600 transition-colors`}>
+                  Consultar saldo
                 </div>
               </div>
             </div>
@@ -625,9 +714,30 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                   autoFocus
                 />
               </div>
-              <Button type="submit" isLoading={loading} className="w-full h-20 text-xl font-black uppercase tracking-widest bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.2)] transition-all active:scale-95">
-                Registrar visita
-              </Button>
+              <div className="relative">
+                <Button type="submit" isLoading={loading} className="w-full h-20 text-xl font-black uppercase tracking-widest bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.2)] transition-all active:scale-95 overflow-visible">
+                  {loading ? 'Registrando...' : 'Registrar visita'}
+                </Button>
+
+                {/* Micro-animação de Estrelas */}
+                {showStars && (
+                  <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-visible">
+                    {[...Array(8)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="absolute animate-star-burst"
+                        style={{
+                          '--star-angle': `${(360 / 8) * i}deg`,
+                          '--star-dist': `${30 + Math.random() * 20}px`,
+                          '--star-delay': `${Math.random() * 0.1}s`
+                        } as React.CSSProperties}
+                      >
+                        <Star className="w-6 h-6 text-amber-400 fill-amber-400 opacity-0" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </form>
           </div>
         )}
@@ -684,13 +794,36 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         )}
 
         {mode === 'RESULT_CLIENT' && foundCustomer && (
-          <div className="p-6 md:p-8 relative overflow-hidden animate-fade-in space-y-8 w-full">
+          <div className="p-6 md:p-8 relative overflow-hidden animate-fade-in space-y-6 w-full flex flex-col items-center">
             <button onClick={reset} className="absolute top-6 right-6 p-2.5 bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-md text-slate-500 hover:text-slate-900 rounded-full z-20 border border-slate-200/50 shadow-sm active:scale-90"><X className="w-5 h-5" /></button>
-            <div className="text-center space-y-3 pt-6">
-              <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.25em]">Área do Cliente</h3>
-              <p className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter leading-tight">{foundCustomer?.name || 'Cliente'}</p>
-              <div className="inline-flex items-center gap-2 px-5 py-2 rounded-xl border-2 bg-slate-50 border-slate-100 text-slate-700">
-                <span className="text-[13px] font-black uppercase tracking-widest text-center">{foundCustomer.loyalty_level_name || 'Bronze'}</span>
+
+            {/* Foto de Perfil */}
+            <div className="relative w-32 h-32 md:w-40 md:h-40 group mt-4">
+              <div className="w-full h-full rounded-full overflow-hidden border-4 border-white dark:border-slate-800 shadow-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center relative">
+                {foundCustomer.foto_perfil_url ? (
+                  <img src={foundCustomer.foto_perfil_url} alt={foundCustomer.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-slate-900 flex items-center justify-center text-white font-black text-4xl">
+                    {foundCustomer.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+                  </div>
+                )}
+                {uploading && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                )}
+              </div>
+              <label className="absolute bottom-1 right-1 w-10 h-10 md:w-12 md:h-12 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full flex items-center justify-center cursor-pointer shadow-xl hover:scale-110 active:scale-90 transition-all border-4 border-white dark:border-slate-800 z-10">
+                <Camera className="w-5 h-5 md:w-6 md:h-6" />
+                <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
+              </label>
+            </div>
+
+            <div className="text-center space-y-2">
+              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em]">Área do Cliente</h3>
+              <p className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter leading-tight px-4">{foundCustomer?.name || 'Cliente'}</p>
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl border-2 bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                <span className="text-[12px] font-black uppercase tracking-widest text-center">{foundCustomer.loyalty_level_name || 'Bronze'}</span>
               </div>
             </div>
             <div className="bg-white dark:bg-slate-800 rounded-[30px] p-8 text-slate-900 dark:text-white border border-slate-100 dark:border-slate-800 shadow-xl relative overflow-hidden">
@@ -753,10 +886,61 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         )}
 
         {mode === 'REGISTER' && (
-          <div className="p-6 md:p-8 relative overflow-hidden animate-fade-in space-y-6 w-full">
+          <div className="p-6 md:p-8 relative overflow-hidden animate-fade-in space-y-6 w-full max-w-lg mx-auto">
             <form onSubmit={handleRegister} className="space-y-6">
-              <div className="flex items-center justify-start"><button type="button" onClick={() => setMode('START')} className="p-2.5 bg-slate-50 rounded-full text-slate-500"><ChevronLeft className="w-5 h-5" /></button></div>
-              <div className="space-y-1 text-center"><h2 className="text-xl font-bold tracking-tight">Criar Cadastro</h2><p className="text-sm text-slate-500 font-medium">Preencha seus dados para ganhar seu primeiro ponto!</p></div>
+              <div className="flex items-center justify-start">
+                <button type="button" onClick={() => setMode('START')} className="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 hover:bg-slate-200 transition-colors">
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="text-center space-y-4">
+                {/* Foto de Perfil Opcional */}
+                <div className="relative w-24 h-24 mx-auto group">
+                  <div className="w-full h-full rounded-full overflow-hidden border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex flex-col items-center justify-center text-slate-400 group-hover:border-slate-900 transition-colors relative">
+                    {customerData.photo ? (
+                      <img src={customerData.photo} alt="Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <>
+                        <Camera className="w-8 h-8 mb-1" />
+                        <span className="text-[9px] font-black uppercase tracking-tighter">Foto Opcional</span>
+                      </>
+                    )}
+                  </div>
+                  <label className="absolute inset-0 cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setCustomerData({ ...customerData, photo: reader.result as string });
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                  </label>
+                  {customerData.photo && (
+                    <button
+                      type="button"
+                      onClick={() => setCustomerData({ ...customerData, photo: undefined })}
+                      className="absolute -top-1 -right-1 w-6 h-6 bg-rose-500 text-white rounded-full flex items-center justify-center shadow-md hover:bg-rose-600 transition-colors"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Criar Cadastro</h2>
+                  <p className="text-sm text-slate-500 font-medium">Preencha seus dados para ganhar seu primeiro ponto!</p>
+                </div>
+              </div>
+
               <div className="space-y-4">
                 <Input label="Nome Completo *" value={customerData.name} onChange={e => setCustomerData({ ...customerData, name: normalizeText(e.target.value) })} required />
                 <div className="grid grid-cols-2 gap-3">
@@ -765,7 +949,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 </div>
                 <Input label="Província *" value={customerData.province} onChange={e => setCustomerData({ ...customerData, province: normalizeText(e.target.value) })} required />
               </div>
-              <Button type="submit" isLoading={loading} className="w-full h-16 bg-slate-900 text-white rounded-[25px] font-black uppercase">CADASTRAR</Button>
+              <Button type="submit" isLoading={loading} className="w-full h-16 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[25px] font-black uppercase text-base shadow-xl tracking-widest transition-transform active:scale-95">
+                CADASTRAR E GANHAR PONTO
+              </Button>
             </form>
           </div>
         )}
@@ -777,8 +963,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             </div>
             <div className="space-y-4">
               <h2 className="text-4xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">Visita registrada ✅</h2>
-              <p className="text-base text-slate-600 dark:text-slate-400 font-bold max-w-[320px] mx-auto leading-relaxed italic">
-                Sua pontuação será confirmada pelo lojista em instantes.
+              <p className="text-base text-slate-600 dark:text-slate-400 font-bold max-w-[320px] mx-auto leading-relaxed">
+                Sua visita foi enviada para validação.<br />
+                O ponto será confirmado em instantes.
               </p>
             </div>
             <div className="pt-8 w-full max-w-xs mx-auto">
@@ -794,8 +981,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 bg-green-50 border-4 border-green-100">
               <CheckCircle2 className="w-12 h-12 text-green-500" />
             </div>
-            <h2 className="text-4xl font-black tracking-tighter uppercase text-slate-900 dark:text-white leading-tight">PONTO ADICIONADO COM SUCESSO ⭐</h2>
-            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-8 mb-8 border-2 border-slate-100 dark:border-slate-800 shadow-inner">
+            <h2 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">Visita registrada!<br />Seu ponto já foi adicionado.</h2>
+            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-8 mb-8 mt-8 border-2 border-slate-100 dark:border-slate-800 shadow-inner">
               <p className="text-[11px] font-black uppercase text-slate-400 dark:text-slate-500 mb-2 tracking-widest">Obrigado pela visita!</p>
               <p className="text-[10px] font-black uppercase text-slate-300 dark:text-slate-600 mb-1">Novo Saldo</p>
               <p className="text-8xl font-black text-slate-900 dark:text-white tracking-tighter">{approvedData.points_balance} <span className="text-3xl text-slate-300 dark:text-slate-700">/ {approvedData.points_goal}</span></p>

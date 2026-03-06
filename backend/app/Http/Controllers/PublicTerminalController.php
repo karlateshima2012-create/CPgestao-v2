@@ -241,8 +241,56 @@ class PublicTerminalController extends Controller
             'history' => $history,
             'is_premium' => $customer->is_premium,
             'loyalty_level' => $customer->loyalty_level,
-            'loyalty_level_name' => $customer->loyalty_level_name
+            'loyalty_level_name' => $customer->loyalty_level_name,
+            'foto_perfil_url' => $customer->photo_url_full,
+            'foto_perfil_thumb_url' => $customer->foto_perfil_thumb_url
         ]);
+    }
+
+    public function updatePhoto(Request $request, $slug, $uid = null)
+    {
+        $request->validate([
+            'phone' => 'required|string',
+            'photo' => 'required', // can be file or base64
+            'token' => 'nullable|string'
+        ]);
+
+        [$tenant, $device] = $this->validateDevice($slug, $uid, $request->token);
+        
+        $phone = PhoneHelper::normalize($request->phone);
+        $customer = Customer::withoutGlobalScopes()->where('tenant_id', $tenant->id)
+            ->where('phone', $phone)
+            ->first();
+
+        if (!$customer) {
+            return ApiResponse::error('Cliente não encontrado.', 'NOT_FOUND', 404);
+        }
+
+        // 60s cooldown
+        $prefs = $customer->preferences ?? [];
+        $lastUpdate = $prefs['last_photo_update'] ?? 0;
+        if (time() - $lastUpdate < 60) {
+            return ApiResponse::error('Aguarde 60 segundos entre alterações de foto.', 'COOLDOWN', 429);
+        }
+
+        $photoData = $request->photo;
+        if ($request->hasFile('photo')) {
+            $photoData = $request->file('photo');
+        }
+
+        $service = app(\App\Services\CustomerPhotoService::class);
+        $path = $service->processAndSave($photoData, $customer->id);
+        
+        $prefs['last_photo_update'] = time();
+        $customer->update([
+            'foto_perfil_url' => $path,
+            'preferences' => $prefs
+        ]);
+
+        return ApiResponse::ok([
+            'foto_perfil_url' => $customer->photo_url_full,
+            'foto_perfil_thumb_url' => $customer->foto_perfil_thumb_url
+        ], 'Foto atualizada com sucesso!');
     }
 
     public function validatePin(Request $request, $slug, $uid)
@@ -269,8 +317,10 @@ class PublicTerminalController extends Controller
             $token = $request->token;
             [$tenant, $device] = $this->validateDevice($slug, $uid, $token);
             
-            // CLASSIC PLAN PROTECTION: Passive totem
-            // Removed plan-based blockade to unify logic across Classic, Pro, and Elite
+            // MEASURE B: Presence detection
+            if (!$device && !$token) {
+                return ApiResponse::error('Esta ação exige presença física na loja (NFC ou QRCode do Totem).', 'DEVICE_REQUIRED', 403);
+            }
 
             $phone = PhoneHelper::normalize($request->phone);
 
@@ -321,6 +371,18 @@ class PublicTerminalController extends Controller
                         return ApiResponse::error($te->getMessage(), 'TOKEN_ERROR', 400);
                     }
                 }
+            }
+
+            // MEASURE C: Visit Cooldown (12 hours)
+            $cooldownHours = 12;
+            $recentVisit = \App\Models\Visit::where('customer_id', $customer->id)
+                ->where('tenant_id', $tenant->id)
+                ->whereIn('status', ['pendente', 'aprovado'])
+                ->where('visit_at', '>=', now()->subHours($cooldownHours))
+                ->first();
+
+            if ($recentVisit) {
+                return ApiResponse::error("Aguarde {$cooldownHours}h entre visitas para pontuar novamente.", 'VISIT_COOLDOWN', 429);
             }
 
             // AUTO-CHECKIN PROTECTION: Interval check
@@ -388,7 +450,7 @@ class PublicTerminalController extends Controller
                 'customer_name' => $customer->name,
                 'customer_phone' => $customer->phone,
                 'customer_company' => $customer->company_name,
-                'customer_photo_url' => $customer->photo_url,
+                'foto_perfil_url' => $customer->foto_perfil_url,
                 'visit_at' => now(),
                 'origin' => $token ? 'nfc' : 'qr',
                 'plan_type' => $tenant->plan,
@@ -457,6 +519,8 @@ class PublicTerminalController extends Controller
                 $goal = (int)($levelsConfig[$lvlIdx]['goal'] ?? $goal);
             }
 
+            $canAutoApprove = ($status === 'aprovado');
+
             $msg = ($canAutoApprove ? "✅ +{$pointsToAdd} ponto(s) adicionado(s) com sucesso." : "Solicitação de +{$pointsToAdd} ponto(s) enviada.") 
                  . " Saldo: {$newBalance} / Meta: {$goal}.";
             
@@ -465,7 +529,7 @@ class PublicTerminalController extends Controller
             }
 
             return ApiResponse::ok([
-                'request_id' => $requestRecord->id,
+                'request_id' => $visit->id,
                 'customer_name' => $customer->name,
                 'points_earned' => $pointsToAdd, 
                 'new_balance' => $newBalance,
@@ -489,6 +553,11 @@ class PublicTerminalController extends Controller
         return DB::transaction(function () use ($request, $slug, $uid) {
             $token = $request->token;
             [$tenant, $device] = $this->validateDevice($slug, $uid, $token);
+
+            // MEASURE B: Presence detection for Redeem
+            if (!$device && !$token) {
+                return ApiResponse::error('O resgate de prêmios deve ser feito presencialmente no caixa ou totem.', 'DEVICE_REQUIRED', 403);
+            }
 
             // Consumption of token if present
             if ($token) {
@@ -722,6 +791,12 @@ class PublicTerminalController extends Controller
                     'last_activity_at' => now()
                 ]);
 
+                if ($request->photo) {
+                    $service = app(\App\Services\CustomerPhotoService::class);
+                    $path = $service->processAndSave($request->photo, $customer->id);
+                    $customer->update(['foto_perfil_url' => $path]);
+                }
+
                 $tenant->verifyAndNotifyLimit();
 
                 $escName = TelegramService::escapeMarkdownV2($customer->name);
@@ -762,10 +837,15 @@ class PublicTerminalController extends Controller
                     }
                 }
 
-                // Award Points
-                $visitPts = (is_array($levels) && count($levels) > 0 && isset($levels[0]['points_per_visit'])) 
-                    ? (int)$levels[0]['points_per_visit'] 
-                    : (int)($loyalty->regular_points_per_scan ?? 1);
+                // Award Points (Welcome Bonus)
+                // If it's a "Web Join" (no device), give exactly 1 point as requested.
+                // If it's at the totem/card, give the level points.
+                $visitPts = 1; 
+                if ($device || $token) {
+                    $visitPts = (is_array($levels) && count($levels) > 0 && isset($levels[0]['points_per_visit'])) 
+                        ? (int)$levels[0]['points_per_visit'] 
+                        : (int)($loyalty->regular_points_per_scan ?? 1);
+                }
 
                 $bonusMessage = "";
                 if ($visitPts > 0) {
@@ -802,6 +882,8 @@ class PublicTerminalController extends Controller
                     'id' => $customer->id,
                     'name' => $customer->name,
                     'is_premium' => (bool)$refreshed->is_premium,
+                    'foto_perfil_url' => $refreshed->photo_url_full,
+                    'foto_perfil_thumb_url' => $refreshed->foto_perfil_thumb_url,
                     'message' => $successMsg
                 ], $successMsg);
             });

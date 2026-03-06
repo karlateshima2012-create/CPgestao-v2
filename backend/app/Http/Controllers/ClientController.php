@@ -22,11 +22,16 @@ class ClientController extends Controller
 {
     protected $deviceService;
     protected $telegramService;
+    protected $photoService;
 
-    public function __construct(DeviceService $deviceService, TelegramService $telegramService)
-    {
+    public function __construct(
+        DeviceService $deviceService, 
+        TelegramService $telegramService,
+        \App\Services\CustomerPhotoService $photoService
+    ) {
         $this->deviceService = $deviceService;
         $this->telegramService = $telegramService;
+        $this->photoService = $photoService;
     }
 
     public function getContacts(Request $request)
@@ -70,17 +75,12 @@ class ClientController extends Controller
             'postal_code' => 'sometimes|string|nullable',
             'address' => 'sometimes|string|nullable',
             'points_balance' => 'sometimes|integer',
-            'photo' => 'sometimes|nullable|string', // Base64 expected from frontend for better compatibility
+            'photo' => 'sometimes|nullable|string', // Base64 expected from frontend or null
         ]);
 
         $phone = PhoneHelper::normalize($request->phone);
         if (Customer::where('phone', $phone)->exists()) {
             return ApiResponse::error('Este número de telefone já está cadastrado nesta loja.', 'DUPLICATE_PHONE', 409);
-        }
-
-        $photoUrl = null;
-        if ($request->photo) {
-            $photoUrl = $this->processAndStorePhoto($request->photo);
         }
 
         $loyalty = \App\Models\LoyaltySetting::where('tenant_id', auth()->user()->tenant_id)->first();
@@ -100,70 +100,69 @@ class ClientController extends Controller
             return ApiResponse::error('Você atingiu o limite de contatos do seu plano. Realize o upgrade para continuar cadastrando.', 'PLAN_LIMIT_REACHED', 403);
         }
 
-        $customer = Customer::create([
-            'name' => $request->name,
-            'photo_url' => $photoUrl,
-            'phone' => $phone,
-            'company_name' => $request->company_name,
-            'email' => $request->email,
-            'city' => $request->city,
-            'province' => $request->province,
-            'postal_code' => $request->postal_code,
-            'address' => $request->address,
-            'is_premium' => false, // Always false now that Classic is gone
-            'points_balance' => $initialPoints + $signupBonus,
-            'source' => $request->source ?? 'crm',
-            'last_activity_at' => now(),
-            'notes' => $request->notes,
-            'last_contacted' => $request->last_contacted,
-            'reminder_date' => $request->reminder_date,
-            'reminder_text' => $request->reminder_text,
-            'birthday' => $request->birthday,
-            'tags' => $request->tags ?? [],
-            'preferences' => $request->preferences ?? [],
-            'attendance_count' => 0, // Initial visitas
-        ]);
-
-        $request->user()->tenant->verifyAndNotifyLimit();
-
-        if ($initialPoints > 0) {
-            \App\Models\PointMovement::create([
-                'tenant_id' => $customer->tenant_id,
-                'customer_id' => $customer->id,
-                'type' => 'earn',
-                'points' => $initialPoints,
-                'origin' => 'crm_manual',
-                'description' => 'Saldo inicial via CRM'
+        return DB::transaction(function() use ($request, $phone, $initialPoints, $signupBonus) {
+            $customer = Customer::create([
+                'name' => $request->name,
+                'phone' => $phone,
+                'company_name' => $request->company_name,
+                'email' => $request->email,
+                'city' => $request->city,
+                'province' => $request->province,
+                'postal_code' => $request->postal_code,
+                'address' => $request->address,
+                'is_premium' => false,
+                'points_balance' => $initialPoints + $signupBonus,
+                'source' => $request->source ?? 'crm',
+                'last_activity_at' => now(),
+                'notes' => $request->notes,
+                'last_contacted' => $request->last_contacted,
+                'reminder_date' => $request->reminder_date,
+                'reminder_text' => $request->reminder_text,
+                'birthday' => $request->birthday,
+                'tags' => $request->tags ?? [],
+                'preferences' => $request->preferences ?? [],
+                'attendance_count' => 0,
             ]);
-        }
 
-        if ($signupBonus > 0) {
-            \App\Models\PointMovement::create([
-                'tenant_id' => $customer->tenant_id,
-                'customer_id' => $customer->id,
-                'type' => 'earn',
-                'points' => $signupBonus,
-                'origin' => 'crm_bonus',
-                'description' => 'Bônus de Cadastro'
-            ]);
-        }
+            if ($request->photo) {
+                $path = $this->photoService->processAndSave($request->photo, $customer->id);
+                $customer->update(['foto_perfil_url' => $path]);
+            }
 
-        $bonusMsg = "";
-        if ($signupBonus > 0) {
-            $bonusMsg = " (Bônus de Cadastro de {$signupBonus} pontos aplicado!)";
+            $request->user()->tenant->verifyAndNotifyLimit();
+
+            if ($initialPoints > 0) {
+                \App\Models\PointMovement::create([
+                    'tenant_id' => $customer->tenant_id,
+                    'customer_id' => $customer->id,
+                    'type' => 'earn',
+                    'points' => $initialPoints,
+                    'origin' => 'crm_manual',
+                    'description' => 'Saldo inicial via CRM'
+                ]);
+            }
+
+            if ($signupBonus > 0) {
+                \App\Models\PointMovement::create([
+                    'tenant_id' => $customer->tenant_id,
+                    'customer_id' => $customer->id,
+                    'type' => 'earn',
+                    'points' => $signupBonus,
+                    'origin' => 'crm_bonus',
+                    'description' => 'Bônus de Cadastro'
+                ]);
+            }
+
             $escName = TelegramService::escapeMarkdownV2($customer->name);
-            $this->telegramService->sendMessage($customer->tenant_id, "🎁 *Bônus de Cadastro Aplicado \(CRM\)*\n*Cliente:* {$escName}\n*Pontos:* {$signupBonus}");
-        }
+            $escPhone = TelegramService::escapeMarkdownV2($customer->phone);
+            $this->telegramService->sendMessage($customer->tenant_id, "👤 *Novo Cliente Cadastrado \(CRM\)*\n\n*Nome:* {$escName}\n*Telefone:* {$escPhone}");
 
-        $escName = TelegramService::escapeMarkdownV2($customer->name);
-        $escPhone = TelegramService::escapeMarkdownV2($customer->phone);
-        $this->telegramService->sendMessage($customer->tenant_id, "👤 *Novo Cliente Cadastrado \(CRM\)*\n\n*Nome:* {$escName}\n*Telefone:* {$escPhone}");
+            $customer->load(['devices' => function($q) {
+                $q->where('status', 'linked')->where('type', 'premium');
+            }]);
 
-        $customer->load(['devices' => function($q) {
-            $q->where('status', 'linked')->where('type', 'premium');
-        }]);
-
-        return ApiResponse::ok($customer, "Contato criado com sucesso{$bonusMsg}");
+            return ApiResponse::ok($customer, "Contato criado com sucesso");
+        });
     }
 
     public function updateContact(Request $request, $id)
@@ -195,12 +194,16 @@ class ClientController extends Controller
             $customer->phone = $phone;
         }
 
-        if ($request->photo) {
-            // Delete old photo if exists
-            if ($customer->photo_url && \Illuminate\Support\Facades\Storage::disk('public')->exists($customer->photo_url)) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($customer->photo_url);
+        if ($request->has('photo')) {
+            if ($request->photo) {
+                $this->photoService->delete($customer->foto_perfil_url);
+                $path = $this->photoService->processAndSave($request->photo, $customer->id);
+                $customer->foto_perfil_url = $path;
+            } else {
+                // Remove photo if explicitly null
+                $this->photoService->delete($customer->foto_perfil_url);
+                $customer->foto_perfil_url = null;
             }
-            $customer->photo_url = $this->processAndStorePhoto($request->photo);
         }
 
         $oldPoints = $customer->points_balance;
@@ -234,6 +237,7 @@ class ClientController extends Controller
 
         return ApiResponse::ok($customer, 'Contato atualizado com sucesso');
     }
+
 
     public function getContactReminders(Request $request, $id)
     {

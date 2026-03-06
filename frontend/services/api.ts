@@ -81,10 +81,18 @@ export const terminalService = {
     redeem: (slug: string, uid: string | null, phone: string, token?: string | null) => uid
         ? api.post(`/public/terminal/${slug}/${uid}/redeem`, { phone, token })
         : api.post(`/public/p/${slug}/redeem`, { phone, token }),
-    register: (slug: string, uid: string | null, data: { name: string, phone: string, email?: string, city?: string, province?: string, postal_code?: string, address?: string, birthday?: string, device_uid?: string | null }) => uid
+    register: (slug: string, uid: string | null, data: any) => uid
         ? api.post(`/public/terminal/${slug}/${uid}/register`, data)
         : api.post(`/public/p/${slug}/register`, data),
+    updatePhoto: (slug: string, uid: string | null, data: FormData) => uid
+        ? api.post(`/public/terminal/${slug}/${uid}/photo`, data, { headers: { 'Content-Type': 'multipart/form-data' } })
+        : api.post(`/public/p/${slug}/photo`, data, { headers: { 'Content-Type': 'multipart/form-data' } }),
     getRequestStatus: (slug: string, uid: string | null, requestId: string) => uid
         ? api.get(`/public/terminal/${slug}/${uid}/point-requests/${requestId}/status`)
         : api.get(`/public/p/${slug}/point-requests/${requestId}/status`),
+};
+
+export const reportsService = {
+    getInsights: () => api.get('/client/reports/insights'),
+    getExport: (params?: any) => api.get('/client/reports/export', { params }),
 };

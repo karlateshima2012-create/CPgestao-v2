@@ -121,13 +121,41 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
 
           <button
             onClick={() => window.open(`${window.location.origin}/p/${tenantSlug}`, '_blank')}
-            className="px-5 h-10 rounded-xl bg-primary-500 text-white font-black text-[9px] uppercase tracking-widest shadow-lg hover:bg-primary-600 transition-all flex items-center gap-2"
+            className="px-5 h-10 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black text-[9px] uppercase tracking-widest shadow-lg hover:opacity-90 transition-all flex items-center gap-2"
           >
             <LayoutGrid className="w-3.5 h-3.5" />
-            Abrir Terminal
+            Visualizar Página
           </button>
         </div>
       </div>
+
+      {/* Link de Divulgação Social */}
+      <section className="relative overflow-hidden group">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 via-transparent to-primary-500/5 dark:from-primary-900/20 pointer-events-none rounded-[32px]" />
+        <Card className="p-8 border-primary-100 dark:border-primary-900/30 bg-white/40 dark:bg-slate-900/40 backdrop-blur-sm rounded-[32px] shadow-sm flex flex-col md:flex-row items-center justify-between gap-8 border-2 border-dashed">
+          <div className="flex items-center gap-6">
+            <div className="w-16 h-16 rounded-2xl bg-primary-500 flex items-center justify-center text-white shadow-xl shadow-primary-500/20 group-hover:scale-110 transition-transform">
+              <Smartphone className="w-8 h-8" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Divulgação nas Redes Sociais</h3>
+              <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Envie este link no WhatsApp ou Bio do Instagram. Ofereça 1 ponto de boas-vindas!</p>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+            <div className="bg-white dark:bg-slate-800 px-6 py-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 font-mono text-xs text-slate-500 dark:text-slate-400 flex-1 md:flex-none md:min-w-[300px] text-center shadow-inner">
+              {window.location.origin}/p/{tenantSlug}
+            </div>
+            <Button
+              onClick={onCopyLink}
+              className={`h-14 px-8 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all shadow-lg ${copiedLink ? 'bg-emerald-500 text-white' : 'bg-primary-500 text-white hover:bg-primary-600'}`}
+            >
+              {copiedLink ? 'Link Copiado! ✅' : 'Copiar Link agora'}
+            </Button>
+          </div>
+        </Card>
+      </section>
 
       {/* Sugestões Inteligentes */}
       {suggestions.length > 0 && (

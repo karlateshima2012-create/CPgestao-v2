@@ -18,7 +18,7 @@ class Customer extends Model
     protected $fillable = [
         'tenant_id',
         'name',
-        'photo_url',
+        'foto_perfil_url',
         'phone',
         'company_name',
         'email',
@@ -51,12 +51,21 @@ class Customer extends Model
         'average_ticket' => 'decimal:2',
     ];
 
-    protected $appends = ['loyalty_level_name', 'photo_url_full'];
+    protected $appends = ['loyalty_level_name', 'photo_url_full', 'foto_perfil_thumb_url'];
+
+    public function getFotoPerfilThumbUrlAttribute()
+    {
+        if ($this->foto_perfil_url) {
+            $thumbPath = str_replace('clientes/', 'clientes/thumbs/', $this->foto_perfil_url);
+            return asset('storage/' . $thumbPath);
+        }
+        return $this->getPhotoUrlFullAttribute();
+    }
 
     public function getPhotoUrlFullAttribute()
     {
-        if ($this->photo_url) {
-            return asset('storage/' . $this->photo_url);
+        if ($this->foto_perfil_url) {
+            return asset('storage/' . $this->foto_perfil_url);
         }
 
         $initials = collect(explode(' ', $this->name))

@@ -17,7 +17,7 @@ class Visit extends Model
         'customer_name',
         'customer_phone',
         'customer_company',
-        'customer_photo_url',
+        'foto_perfil_url',
         'visit_at',
         'origin',
         'plan_type',
@@ -34,6 +34,22 @@ class Visit extends Model
         'points_granted' => 'integer',
         'meta' => 'array',
     ];
+
+    protected $appends = ['foto_perfil_full'];
+
+    public function getFotoPerfilFullAttribute()
+    {
+        if ($this->foto_perfil_url) {
+            return asset('storage/' . $this->foto_perfil_url);
+        }
+
+        $initials = collect(explode(' ', $this->customer_name))
+            ->map(fn($n) => mb_substr($n, 0, 1))
+            ->take(2)
+            ->join('');
+        
+        return "https://ui-avatars.com/api/?name=" . urlencode($initials) . "&background=random&color=fff&size=400&rounded=true";
+    }
 
     /**
      * Relationship to Customer.

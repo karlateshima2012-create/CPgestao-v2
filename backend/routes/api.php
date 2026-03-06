@@ -90,7 +90,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/visits/{id}/approve', [\App\Http\Controllers\VisitController::class, 'approve']);
         Route::post('/visits/{id}/deny', [\App\Http\Controllers\VisitController::class, 'deny']);
         Route::post('/visits/approve-all', [\App\Http\Controllers\VisitController::class, 'approveAll']);
-        Route::post('/visits/manual', [\App\Http\Controllers\VisitController::class, 'storeManual']);
+        // Reports & Insights
+        Route::get('/reports/insights', [\App\Http\Controllers\ReportController::class, 'getInsights']);
+        Route::get('/reports/export', [\App\Http\Controllers\ReportController::class, 'getExportData']);
     });
 
     Route::post('/auth/logout', [AuthController::class, 'logout']);
@@ -106,6 +108,7 @@ Route::prefix('public')->group(function () {
     Route::prefix('terminal/{slug}/{uid}')->group(function () {
         Route::get('/', [PublicTerminalController::class, 'getInfo']);
         Route::post('/lookup', [PublicTerminalController::class, 'lookup'])->middleware('throttle:30,1');
+        Route::post('/photo', [PublicTerminalController::class, 'updatePhoto'])->middleware('throttle:10,1');
         Route::post('/validate-pin', [PublicTerminalController::class, 'validatePin'])->middleware('throttle:10,1');
         Route::post('/earn', [PublicTerminalController::class, 'earn'])->middleware('throttle:20,1');
         Route::post('/auto-earn', [PublicTerminalController::class, 'autoEarn'])->middleware('throttle:20,1');
@@ -118,6 +121,7 @@ Route::prefix('public')->group(function () {
     Route::prefix('p/{slug}')->group(function () {
         Route::get('/', [PublicTerminalController::class, 'getInfo']);
         Route::post('/lookup', [PublicTerminalController::class, 'lookup']);
+        Route::post('/photo', [PublicTerminalController::class, 'updatePhoto']);
         Route::post('/register', [PublicTerminalController::class, 'register']);
         Route::post('/earn', [PublicTerminalController::class, 'earn']);
         Route::post('/redeem', [PublicTerminalController::class, 'redeem']);
