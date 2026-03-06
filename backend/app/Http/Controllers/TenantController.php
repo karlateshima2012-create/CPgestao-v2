@@ -37,9 +37,6 @@ class TenantController extends Controller
         $totalTenants = Tenant::count();
         // Devices table is now for Totems
         $totalTotems = \App\Models\Device::count();
-        // LoyaltyCard is for physical cards
-        $totalCards = \App\Models\LoyaltyCard::count();
-        $linkedCards = \App\Models\LoyaltyCard::whereNotNull('linked_customer_id')->count();
         
         $expiringSoon = Tenant::whereNotNull('plan_expires_at')
             ->where('plan_expires_at', '>', now())
@@ -49,18 +46,8 @@ class TenantController extends Controller
         return ApiResponse::ok([
             'total_tenants' => $totalTenants,
             'total_totems' => $totalTotems,
-            'total_cards' => $totalCards,
-            'linked_cards' => $linkedCards,
             'expiring_soon' => $expiringSoon,
         ]);
-    }
-
-    public function listBatches($id)
-    {
-        $batches = \App\Models\DeviceBatch::where('tenant_id', $id)
-            ->orderBy('created_at', 'desc')
-            ->get();
-        return ApiResponse::ok($batches);
     }
 
     public function store(Request $request)
@@ -194,77 +181,7 @@ class TenantController extends Controller
         }
 
         $tenant->update($validated);
-
         return ApiResponse::ok($tenant, 'Loja atualizada com sucesso');
-    }
-
-    public function createBatch(Request $request, $id)
-    {
-        $request->validate([
-            'quantity' => 'required|integer|min:1|max:1000',
-            'label' => 'nullable|string',
-        ]);
-
-        $batch = $this->deviceService->createPremiumBatch($id, $request->quantity, $request->label);
-        return ApiResponse::ok($batch, 'Lote gerado com sucesso');
-    }
-
-    public function getBatch($id, $batchId)
-    {
-        $batch = \App\Models\DeviceBatch::where('tenant_id', $id)->findOrFail($batchId);
-        $devices = \App\Models\LoyaltyCard::where('batch_id', $batchId)->get();
-
-        // Check for duplicates across the entire tenant
-        $duplicates = [];
-        if ($devices->isNotEmpty()) {
-            $uids = $devices->pluck('uid')->toArray();
-            $duplicateUids = \App\Models\LoyaltyCard::where('tenant_id', $id)
-                ->whereIn('uid', $uids)
-                ->groupBy('uid')
-                ->havingRaw('COUNT(uid) > 1')
-                ->pluck('uid')
-                ->toArray();
-            $duplicates = $duplicateUids;
-        }
-
-        return ApiResponse::ok([
-            'batch' => $batch,
-            'devices' => $devices,
-            'duplicates' => $duplicates
-        ]);
-    }
-
-    public function exportBatch($id, $batchId)
-    {
-        $tenant = Tenant::findOrFail($id);
-        $batch = \App\Models\DeviceBatch::where('tenant_id', $id)->findOrFail($batchId);
-        $devices = \App\Models\LoyaltyCard::where('batch_id', $batchId)->get();
-
-        $filename = "batch_{$batchId}_" . now()->format('Y-m-d') . ".csv";
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"$filename\"",
-        ];
-
-        $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
-
-        $callback = function() use ($devices, $tenant, $frontendUrl) {
-            $file = fopen('php://output', 'w');
-            fputcsv($file, ['UID', 'Status', 'URL', 'Created At']);
-
-            foreach ($devices as $device) {
-                $publicUrl = "{$frontendUrl}/vip/{$device->uid}";
-                fputcsv($file, [
-                    $device->uid,
-                    $device->status,
-                    $publicUrl,
-                    (string) $device->created_at,
-                ]);
-            }
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
     }
 
     public function resetPin(Request $request, $id)
@@ -296,7 +213,6 @@ class TenantController extends Controller
             // Delete movements, devices, and customers
             \App\Models\PointMovement::where('tenant_id', $tenant->id)->delete();
             \App\Models\Device::where('tenant_id', $tenant->id)->delete();
-            \App\Models\DeviceBatch::where('tenant_id', $tenant->id)->delete();
             \App\Models\Customer::where('tenant_id', $tenant->id)->delete();
             
             // Delete users (all users associated with this tenant)

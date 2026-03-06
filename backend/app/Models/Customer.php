@@ -24,7 +24,6 @@ class Customer extends Model
         'city',
         'postal_code',
         'address',
-        'is_premium',
         'source',
         'points_balance',
         'loyalty_level',
@@ -43,7 +42,6 @@ class Customer extends Model
     ];
 
     protected $casts = [
-        'is_premium' => 'boolean',
         'birthday' => 'date:Y-m-d',
         'tags' => 'array',
         'preferences' => 'array',
@@ -77,11 +75,6 @@ class Customer extends Model
         return 'Nível ' . $this->loyalty_level;
     }
 
-
-    public function devices(): HasMany
-    {
-        return $this->hasMany(LoyaltyCard::class, 'linked_customer_id');
-    }
 
     public function movements(): HasMany
     {

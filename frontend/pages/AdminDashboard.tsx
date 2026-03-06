@@ -5,9 +5,7 @@ import { Tenant, PlanType } from '../types';
 import { tenantsService } from '../services/api';
 import { copyToClipboard } from '../utils/clipboard';
 
-const LIMIT_UNLIMITED = 999999;
 const PLAN_LIMITS: Record<PlanType, number> = {
-  [PlanType.CLASSIC]: 2000,
   [PlanType.PRO]: 4000,
   [PlanType.UNLIMITED]: 6000,
 };
@@ -22,7 +20,7 @@ export const AdminDashboard: React.FC = () => {
     email: '',
     owner_name: '',
     phone: '',
-    plan: PlanType.CLASSIC,
+    plan: PlanType.PRO,
     extra_contacts_quota: 0,
     totems_count: 2,
     plan_expires_at: ''
@@ -45,23 +43,10 @@ export const AdminDashboard: React.FC = () => {
   });
 
   const [isLoading, setIsLoading] = useState(false);
-  const [batchQuantity, setBatchQuantity] = useState(10);
   const [manualPin, setManualPin] = useState('');
   const [tempPin, setTempPin] = useState<string | null>(null);
-  const [batches, setBatches] = useState<any[]>([]);
-  const [selectedBatch, setSelectedBatch] = useState<any>(null);
-  const [batchDevices, setBatchDevices] = useState<any[]>([]);
-  const [batchDuplicates, setBatchDuplicates] = useState<string[]>([]);
-  const [isBatchDetailOpen, setIsBatchDetailOpen] = useState(false);
-  const [copiedUids, setCopiedUids] = useState<Set<string>>(new Set());
-  const [globalMetrics, setGlobalMetrics] = useState<{ total_tenants: number; total_cards: number; linked_cards: number; expiring_soon: number } | null>(null);
-  const [tenantForCards, setTenantForCards] = useState<Tenant | null>(null);
-  const [batchPage, setBatchPage] = useState(1);
-  const BATCHES_PER_PAGE = 5;
+  const [globalMetrics, setGlobalMetrics] = useState<{ total_tenants: number; expiring_soon: number } | null>(null);
 
-  const formatCardUID = (uid: string) => {
-    return uid.replace(/(\d{4})(\d{4})(\d{4})/, '$1 $2 $3');
-  };
 
   const handleCopyPublicLink = async (slug: string) => {
     const url = `${window.location.origin}/p/${slug}`;
@@ -83,13 +68,6 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleCopyURL = async (uid: string) => {
-    const url = `${window.location.origin}/p/${editingTenant?.slug}`;
-    const success = await copyToClipboard(url);
-    if (success) {
-      setCopiedUids(prev => new Set(prev).add(uid));
-    }
-  };
 
   useEffect(() => {
     fetchTenants();
@@ -114,25 +92,14 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const fetchBatches = async (tenantId: string) => {
-    try {
-      const res = await tenantsService.getBatches(tenantId);
-      setBatches(res.data);
-    } catch (error) {
-      console.error('Error fetching batches:', error);
-    }
-  };
-
   useEffect(() => {
     if (editingTenant) {
-      fetchBatches(editingTenant.id);
-    } else if (tenantForCards) {
-      fetchBatches(tenantForCards.id);
+      setTenantForDevices(editingTenant);
+      fetchStoreDevices(editingTenant.id);
     } else {
-      setBatches([]);
       setManualPin('');
     }
-  }, [editingTenant, tenantForCards]);
+  }, [editingTenant]);
 
   const formatJapanesePhone = (val: string) => {
     const digits = val.replace(/\D/g, '').slice(0, 11);
@@ -224,7 +191,7 @@ export const AdminDashboard: React.FC = () => {
         email: '',
         owner_name: '',
         phone: '',
-        plan: PlanType.CLASSIC,
+        plan: PlanType.PRO,
         extra_contacts_quota: 0,
         totems_count: 2,
         plan_expires_at: ''
@@ -295,7 +262,7 @@ export const AdminDashboard: React.FC = () => {
       fetchStoreDevices(tenantForDevices.id);
       setNewDeviceData({
         name: '',
-        mode: tenantForDevices.plan === PlanType.UNLIMITED ? 'auto_checkin' : (tenantForDevices.plan === PlanType.PRO ? 'approval' : 'manual')
+        mode: tenantForDevices.plan === PlanType.UNLIMITED ? 'auto_checkin' : 'approval'
       });
     } catch (error) {
       setStatusModal({
@@ -323,9 +290,9 @@ export const AdminDashboard: React.FC = () => {
   const handleOpenEditModal = (tenant: Tenant) => {
     setEditingTenant(tenant);
     setTempPin(null);
-    if (tenant.plan === PlanType.CLASSIC) {
-      setTenantForCards(tenant);
-      fetchBatches(tenant.id);
+    if (tenant) {
+      setTenantForDevices(tenant);
+      fetchStoreDevices(tenant.id);
     }
     setTenantForDevices(tenant);
     fetchStoreDevices(tenant.id);
@@ -334,11 +301,8 @@ export const AdminDashboard: React.FC = () => {
   const handleCloseEditModal = () => {
     setEditingTenant(null);
     setTempPin(null);
-    setTenantForCards(null);
     setTenantForDevices(null);
     setStoreDevices([]);
-    setBatches([]);
-    setBatchDuplicates([]);
   };
 
   const handleUpdateTenant = async () => {
@@ -378,60 +342,6 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleCreateBatch = async (tenantId: string) => {
-    if (!batchQuantity || batchQuantity < 1) {
-      setStatusModal({
-        isOpen: true,
-        title: 'Quantidade Inválida',
-        message: 'Por favor, insira uma quantidade válida.',
-        type: 'info'
-      });
-      return;
-    }
-    setIsLoading(true);
-    try {
-      await tenantsService.createBatch(tenantId, { quantity: batchQuantity });
-      setStatusModal({
-        isOpen: true,
-        title: 'Sucesso',
-        message: 'Lote de cartões gerado com sucesso!',
-        type: 'success'
-      });
-      fetchBatches(tenantId);
-    } catch (error: any) {
-      console.error('Batch creation error:', error);
-      const msg = error.response?.data?.error || error.response?.data?.message || 'Erro desconhecido.';
-      setStatusModal({
-        isOpen: true,
-        title: 'Erro de Criação',
-        message: `Erro ao criar lote: ${msg}`,
-        type: 'error'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleViewBatch = async (tenantId: string, batch: any) => {
-    setCopiedUids(new Set());
-    setSelectedBatch(batch);
-    setIsLoading(true);
-    try {
-      const res = await tenantsService.getBatchDetails(tenantId, batch.id);
-      setBatchDevices(res.data.devices);
-      setBatchDuplicates(res.data.duplicates || []);
-      setIsBatchDetailOpen(true);
-    } catch (error) {
-      setStatusModal({
-        isOpen: true,
-        title: 'Erro',
-        message: 'Erro ao carregar dispositivos do lote.',
-        type: 'error'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleDeleteTenant = async (tenant: Tenant) => {
     const confirmDelete = window.confirm(
@@ -490,32 +400,6 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleExportBatch = async (tenantId: string, batchId: string, label: string) => {
-    setIsLoading(true);
-    try {
-      const response = await tenantsService.exportBatch(tenantId, batchId);
-      // Create a URL for the blob
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      const filename = `lote_${label || batchId}_${new Date().toISOString().split('T')[0]}.csv`;
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Export error:', error);
-      setStatusModal({
-        isOpen: true,
-        title: 'Erro na Exportação',
-        message: 'Não foi possível gerar o arquivo CSV. Tente novamente.',
-        type: 'error'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <>
@@ -531,7 +415,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Global Metrics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="p-6 border-none shadow-sm bg-white dark:bg-gray-900 overflow-visible relative group">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-blue-50 text-blue-600 rounded-[15px] group-hover:scale-110 transition-transform">
@@ -542,30 +426,6 @@ export const AdminDashboard: React.FC = () => {
             <h3 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">{globalMetrics?.total_tenants ?? '...'}</h3>
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Total de Empresas</p>
             <div className="absolute -bottom-1 left-0 w-full h-1 bg-blue-500 rounded-b-full"></div>
-          </Card>
-
-          <Card className="p-6 border-none shadow-sm bg-white dark:bg-gray-900 overflow-visible relative group">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-purple-50 text-purple-600 rounded-[15px] group-hover:scale-110 transition-transform">
-                <TagIcon className="w-6 h-6" />
-              </div>
-              <Badge color="blue">Produção</Badge>
-            </div>
-            <h3 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">{globalMetrics?.total_cards ?? '...'}</h3>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Cartões Gerados</p>
-            <div className="absolute -bottom-1 left-0 w-full h-1 bg-purple-500 rounded-b-full"></div>
-          </Card>
-
-          <Card className="p-6 border-none shadow-sm bg-white dark:bg-gray-900 overflow-visible relative group">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-green-50 text-green-600 rounded-[15px] group-hover:scale-110 transition-transform">
-                <CheckCircle className="w-6 h-6" />
-              </div>
-              <Badge color="green">Em Uso</Badge>
-            </div>
-            <h3 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">{globalMetrics?.linked_cards ?? '...'}</h3>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Cartões Vinculados</p>
-            <div className="absolute -bottom-1 left-0 w-full h-1 bg-green-500 rounded-b-full"></div>
           </Card>
 
           <Card className="p-6 border-none shadow-sm bg-white dark:bg-gray-900 overflow-visible relative group">
@@ -696,7 +556,7 @@ export const AdminDashboard: React.FC = () => {
                         <div className="space-y-1">
                           <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-gray-400">
                             <span className="flex items-center gap-1">
-                              {tenant.plan === PlanType.UNLIMITED ? 'ELITE' : tenant.plan === PlanType.PRO ? 'PRO' : 'CLASSIC'}
+                              {tenant.plan === PlanType.UNLIMITED ? 'ELITE' : 'PRO'}
                               {tenant.extra_contacts_quota ? <Badge color="orange" className="text-[8px] px-1 py-0">+{(tenant.extra_contacts_quota / 1000).toFixed(0)}K</Badge> : null}
                             </span>
                             <span className={tenant.extra_contacts_quota ? 'text-primary-600 font-black' : usage > 0.9 ? 'text-amber-500' : ''}>
@@ -739,7 +599,7 @@ export const AdminDashboard: React.FC = () => {
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button onClick={() => handleCopyPublicLink(tenant.slug)} className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg" title="Copiar Link Público"><Copy className="w-4 h-4 text-primary-500" /></button>
-                          <button onClick={() => handleOpenEditModal(tenant)} className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg"><Edit2 className="w-4 h-4 text-gray-700" title="Editar Loja" /></button>
+                          <button onClick={() => handleOpenEditModal(tenant)} className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg" title="Editar Loja"><Edit2 className="w-4 h-4 text-gray-700" /></button>
                           <button
                             onClick={() => handleToggleBlock(tenant)}
                             className={`p-2 rounded-lg transition-colors ${tenant.status === 'blocked' ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'text-gray-700 hover:bg-gray-100'}`}
@@ -797,7 +657,6 @@ export const AdminDashboard: React.FC = () => {
                               });
                             }}
                           >
-                            <option value={PlanType.CLASSIC}>⚪ Classic: Limite de 2.000 contatos.</option>
                             <option value={PlanType.PRO}>🔵 Pro: Limite de 4.000 contatos.</option>
                             <option value={PlanType.UNLIMITED}>🟣 Elite: Limite de 6.000 contatos.</option>
                           </select>
@@ -984,72 +843,6 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                 )}
 
-                {editingTenant.plan === PlanType.CLASSIC && (
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-[0.2em] flex items-center gap-2">
-                        <TagIcon className="w-5 h-5 text-primary-500" /> Gerenciar Dispositivos
-                      </h4>
-                    </div>
-
-                    <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-800">
-                      <h5 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                        <Plus className="w-4 h-4" /> Gerar Novo Lote (VIP)
-                      </h5>
-                      <div className="flex items-end gap-3">
-                        <div className="flex-1">
-                          <Input
-                            label="Quantidade de Dispositivos"
-                            type="number"
-                            value={batchQuantity}
-                            onChange={(e) => setBatchQuantity(parseInt(e.target.value))}
-                          />
-                        </div>
-                        <Button className="bg-gray-700 text-white h-[52px] px-8 font-bold" onClick={() => handleCreateBatch(editingTenant.id)} disabled={isLoading}>
-                          {isLoading ? '...' : 'Gerar Agora'}
-                        </Button>
-                      </div>
-                    </div>
-
-                    {batches.length > 0 && (
-                      <div className="space-y-4">
-                        <h5 className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 flex items-center gap-2">
-                          <ArrowUpCircle className="w-4 h-4" /> Lotes Disponíveis
-                        </h5>
-                        <div className="space-y-3">
-                          {batches.slice((batchPage - 1) * BATCHES_PER_PAGE, batchPage * BATCHES_PER_PAGE).map((b) => (
-                            <div key={b.id} className="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 flex justify-between items-center shadow-sm hover:border-primary-400 transition-colors">
-                              <div className="flex-1">
-                                <p className="font-bold text-gray-900 dark:text-gray-100">{b.label || `Lote #${b.batch_number || b.id.slice(0, 4)}`}</p>
-                                <div className="flex items-center gap-3 mt-1 text-[10px] font-bold text-gray-400 uppercase">
-                                  <span>{b.quantity} cartões</span>
-                                  <span className="w-1 h-1 bg-gray-300 rounded-full" />
-                                  <span>{new Date(b.created_at).toLocaleDateString()}</span>
-                                </div>
-                              </div>
-                              <div className="flex gap-2">
-                                <button
-                                  onClick={() => handleViewBatch(editingTenant.id, b)}
-                                  className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-300 transition-all border border-gray-100 dark:border-gray-700"
-                                  title="Editar Lote"
-                                >
-                                  <Edit2 className="w-3.5 h-3.5" /> Editar
-                                </button>
-                                <button
-                                  onClick={() => handleExportBatch(editingTenant.id, b.id, b.label)}
-                                  className="p-2.5 bg-white hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl text-gray-500 hover:text-primary-500 transition-all"
-                                  title="Exportar CSV"
-                                >
-                                  <Download className="w-4.5 h-4.5" />
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
               <div className="p-6 border-t flex justify-end gap-2 bg-gray-50 flex-none">
                 <Button variant="secondary" onClick={handleCloseEditModal}>Cancelar</Button>
@@ -1135,7 +928,6 @@ export const AdminDashboard: React.FC = () => {
                             setNewTenantData({ ...newTenantData, plan: p });
                           }}
                         >
-                          <option value={PlanType.CLASSIC}>⚪ Classic: Limite de 2.000 contatos.</option>
                           <option value={PlanType.PRO}>🔵 Pro: Limite de 4.000 contatos.</option>
                           <option value={PlanType.UNLIMITED}>🟣 Elite: Limite de 6.000 contatos.</option>
                         </select>
@@ -1214,110 +1006,6 @@ export const AdminDashboard: React.FC = () => {
             />
           )
         }
-
-        {
-          isBatchDetailOpen && selectedBatch && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-              <Card className="w-full max-w-3xl p-0 shadow-2xl border-none flex flex-col max-h-[90vh]">
-                <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/50">
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                      <Crown className="w-6 h-6 text-yellow-500" />
-                      Cartões VIP - {selectedBatch?.label || `Lote #${selectedBatch?.id?.slice(0, 6)}`}
-                    </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Copie os links para gravar nos cartões físicos. O sistema previne repetições na mesma loja.</p>
-                  </div>
-                  <button onClick={() => setIsBatchDetailOpen(false)} className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-
-                <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {batchDevices.map((card, idx) => {
-                      const url = `${window.location.origin}/vip/${card.uid}`;
-                      const isCopied = copiedUids.has(card.uid);
-
-                      // Check if this UID is marked as duplicate from the backend check
-                      const isDuplicateInBatch = batchDuplicates.includes(card.uid);
-
-                      let statusText = 'Disponível';
-                      let statusColor = 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400';
-
-                      if (card.status === 'linked') {
-                        statusText = 'Vinculado';
-                        statusColor = 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-500';
-                      } else if (card.status === 'disabled') {
-                        statusText = 'Bloqueado/Perdido';
-                        statusColor = 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-500';
-                      }
-
-                      return (
-                        <div
-                          key={`${card.uid}-${idx}`}
-                          className={`p-3 rounded-xl border flex justify-between items-center transition-all cursor-pointer select-none relative overflow-hidden
-                        ${isCopied
-                              ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800'
-                              : isDuplicateInBatch
-                                ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800'
-                                : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-emerald-400'
-                            }`}
-                          onClick={() => {
-                            copyToClipboard(url);
-                            setCopiedUids(prev => {
-                              const newSet = new Set(prev);
-                              newSet.add(card.uid);
-                              return newSet;
-                            });
-                          }}
-                        >
-                          {isDuplicateInBatch && (
-                            <div className="absolute top-0 right-0 bg-red-500 text-white text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-bl-lg">
-                              Duplicado
-                            </div>
-                          )}
-                          <div className="flex-1 truncate pr-3">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-[10px] font-black tracking-widest text-gray-400 uppercase">#{idx + 1}</span>
-                              <span className="font-mono text-sm font-bold text-gray-700 dark:text-gray-300">
-                                {card.uid.replace(/(\d{4})(\d{4})(\d{4})(\d{4})/, '$1-$2-$3-$4')}
-                              </span>
-                              <span className={`text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded whitespace-nowrap ${statusColor}`}>
-                                {statusText}
-                              </span>
-                            </div>
-                            <p className="text-[10px] text-gray-400 truncate font-mono">{url}</p>
-                          </div>
-
-                          <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all relative z-10
-                        ${isCopied
-                              ? 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-400'
-                              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 group-hover:bg-emerald-50 group-hover:text-emerald-600'
-                            }`}
-                          >
-                            {isCopied ? (
-                              <><CheckCircle2 className="w-3.5 h-3.5" /> Copiado</>
-                            ) : (
-                              <><Copy className="w-3.5 h-3.5" /> Copiar</>
-                            )}
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="p-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900 flex justify-between items-center">
-                  <span className="text-sm font-bold text-gray-500">
-                    Lote de {batchDevices.length} cartões totais
-                  </span>
-                  <Button variant="secondary" onClick={() => setIsBatchDetailOpen(false)}>
-                    Fechar
-                  </Button>
-                </div>
-              </Card>
-            </div>
-          )}
 
       </div>
     </>

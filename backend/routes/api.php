@@ -36,12 +36,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // =========================================================================
     Route::prefix('admin')->middleware('role:admin')->group(function () {
         Route::get('/tenants', [TenantController::class, 'index']);
-        Route::get('/tenants/{id}/premium-batches', [TenantController::class, 'listBatches']);
         Route::post('/tenants', [TenantController::class, 'store']);
         Route::patch('/tenants/{id}', [TenantController::class, 'update']);
-        Route::post('/tenants/{id}/premium-batches', [TenantController::class, 'createBatch']);
-        Route::get('/tenants/{id}/premium-batches/{batchId}', [TenantController::class, 'getBatch']);
-        Route::get('/tenants/{id}/premium-batches/{batchId}/export', [TenantController::class, 'exportBatch']);
         Route::get('/tenants/{id}/devices', [TenantController::class, 'listDevices']);
         Route::post('/tenants/{id}/devices', [TenantController::class, 'storeDevice']);
         Route::put('/tenants/{id}/devices/{deviceId}', [TenantController::class, 'updateDevice']);
@@ -84,12 +80,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/devices', [ClientController::class, 'storeDevice']);
         Route::put('/devices/{deviceId}', [ClientController::class, 'updateDevice']);
         Route::delete('/devices/{deviceId}', [ClientController::class, 'deleteDevice']);
-        Route::get('/premium-batches', [ClientController::class, 'getPremiumBatches']);
-        Route::get('/premium-batches/{id}', [ClientController::class, 'getPremiumBatch']);
-        Route::get('/premium-batches/{batchId}/cards', [ClientController::class, 'getPremiumBatchCards']);
-        Route::post('/devices/premium/link', [ClientController::class, 'linkDevice']);
-        Route::post('/devices/premium/unlink', [ClientController::class, 'unlinkDevice']);
-        Route::post('/devices/premium/disable', [ClientController::class, 'disablePremiumCard']);
         Route::patch('/devices/{uid}/toggle-status', [ClientController::class, 'toggleDeviceStatus']);
 
         Route::get('/loyalty/history', [ClientController::class, 'getLoyaltyHistory']);
@@ -120,7 +110,6 @@ Route::prefix('public')->group(function () {
         Route::post('/auto-earn', [PublicTerminalController::class, 'autoEarn'])->middleware('throttle:20,1');
         Route::post('/redeem', [PublicTerminalController::class, 'redeem'])->middleware('throttle:20,1');
         Route::post('/register', [PublicTerminalController::class, 'register'])->middleware('throttle:10,1');
-        Route::post('/link-vip', [PublicTerminalController::class, 'linkVip'])->middleware('throttle:10,1');
         Route::get('/point-requests/{requestId}/status', [PublicTerminalController::class, 'getRequestStatus']);
     });
 
@@ -137,17 +126,3 @@ Route::prefix('public')->group(function () {
 
 // Webhooks
 Route::post('/webhooks/telegram', [\App\Http\Controllers\Webhooks\TelegramWebhookController::class, 'handle']);
-
-// =========================================================================
-// VIP CARD NFC ROUTES
-// =========================================================================
-Route::prefix('vip')->group(function () {
-    // Resolve owner vs public without enforcing auth block
-    Route::get('/resolve/{uid}', [\App\Http\Controllers\VipCardController::class, 'resolve']);
-    
-    // Add point & Redeem are explicitly protected
-    Route::post('/point/{uid}', [\App\Http\Controllers\VipCardController::class, 'addPoint'])
-        ->middleware(['auth:sanctum', 'role:client']);
-    Route::post('/redeem/{uid}', [\App\Http\Controllers\VipCardController::class, 'redeem'])
-        ->middleware(['auth:sanctum', 'role:client']);
-});

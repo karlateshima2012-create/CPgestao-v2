@@ -12,19 +12,6 @@ class PlanSeeder extends Seeder
     {
         $plans = [
             [
-                'name' => '⚪ Plano CLASSIC',
-                'slug' => 'classic',
-                'description' => 'Fluxo manual com cartão físico. O dono escaneia o cartão do cliente.',
-                'features' => [
-                    'contact_limit' => 2000,
-                    'device_limit' => 999,
-                    'user_limit' => 5,
-                    'allow_auto_approve' => 1, // Automatic when owner scans card
-                    'allow_online_qr' => 0,
-                    'nfc_cards_enabled' => 1,
-                ]
-            ],
-            [
                 'name' => '🔵 Plano PRO',
                 'slug' => 'pro',
                 'description' => 'Fluxo QR Online com aprovação manual. Sem cartões físicos.',

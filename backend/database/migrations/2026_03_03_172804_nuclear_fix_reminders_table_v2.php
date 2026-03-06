@@ -12,8 +12,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Forçar a remoção absoluta da tabela, ignorando qualquer trava de banco de dados
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        if (config('database.default') !== 'sqlite') {
+            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        }
         Schema::dropIfExists('customer_reminders');
         
         // Criar usando string simples (VARCHAR 255) para evitar QUALQUER problema de truncamento no MySQL
@@ -31,7 +32,9 @@ return new class extends Migration
             $table->index('tenant_id');
             $table->index('customer_id');
         });
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        if (config('database.default') !== 'sqlite') {
+            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        }
     }
 
     /**

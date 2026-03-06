@@ -32,10 +32,7 @@ export const LoyaltyTab: React.FC<LoyaltyTabProps> = ({ tenantPlan, contacts = [
    const [loyaltySettings, setLoyaltySettings] = useState({
       loyalty_active: true,
       points_goal: 10,
-      vip_points_per_scan: 2,
-      regular_points_per_scan: 1,
       signup_bonus_points: 1,
-      vip_initial_points: 0,
       description: '',
       rules_text: '',
       levels_config: [] as LevelConfig[]

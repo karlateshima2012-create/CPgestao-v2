@@ -91,7 +91,7 @@ export const Input: React.FC<InputProps> = ({ label, error, className = '', type
 };
 
 // --- Badge ---
-export const Badge: React.FC<{ children: React.ReactNode; color?: 'blue' | 'green' | 'red' | 'yellow' | 'gray' | 'bronze' | 'silver' | 'gold' | 'diamond' | 'orange' | 'purple'; className?: string }> = ({ children, color = 'blue', className = '' }) => {
+export const Badge: React.FC<{ children: React.ReactNode; color?: 'blue' | 'green' | 'red' | 'yellow' | 'gray' | 'bronze' | 'silver' | 'gold' | 'diamond' | 'orange' | 'purple'; className?: string; onClick?: () => void }> = ({ children, color = 'blue', className = '', onClick }) => {
   const colors = {
     blue: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
     green: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
@@ -106,7 +106,10 @@ export const Badge: React.FC<{ children: React.ReactNode; color?: 'blue' | 'gree
     purple: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
   };
   return (
-    <span className={`inline-flex items-center gap-1.5 whitespace-nowrap px-2.5 py-0.5 rounded-[10px] text-xs font-medium ${colors[color]} ${className}`}>
+    <span
+      onClick={onClick}
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap px-2.5 py-0.5 rounded-[10px] text-xs font-medium ${colors[color]} ${className} ${onClick ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+    >
       {children}
     </span>
   );

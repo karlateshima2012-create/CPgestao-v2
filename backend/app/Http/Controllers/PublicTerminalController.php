@@ -100,24 +100,7 @@ class PublicTerminalController extends Controller
             ->first();
 
         if (!$device) {
-            // Check if it's a Loyalty Card (NFC Card) being scanned as a terminal
-            $card = \App\Models\LoyaltyCard::withoutGlobalScopes()
-                ->where('uid', $uid)
-                ->where('tenant_id', $tenant->id)
-                ->first();
-
-            if ($card) {
-                // Create a virtual device object to satisfy the response
-                $device = new Device([
-                    'tenant_id' => $tenant->id,
-                    'name' => 'Cartão VIP (Leitura Direta)',
-                    'mode' => 'standard',
-                    'active' => true,
-                    'nfc_uid' => $uid
-                ]);
-            } else {
-                abort(404, 'Dispositivo ou Cartão não reconhecido.');
-            }
+            abort(404, 'Dispositivo não reconhecido.');
         }
 
         if (!$device->active) {
@@ -823,62 +806,6 @@ class PublicTerminalController extends Controller
             \Illuminate\Support\Facades\Log::error("Registration error for {$slug}: " . $e->getMessage());
             return ApiResponse::error('Erro ao completar cadastro: ' . $e->getMessage(), 'REGISTRATION_ERROR', 500);
         }
-    }
-
-    public function linkVip(Request $request, $slug, $uid = null)
-    {
-        $request->validate([
-            'phone' => 'required|string',
-            'target_uid' => 'required|string',
-            'pin' => 'sometimes|nullable|string'
-        ]);
-
-        return DB::transaction(function () use ($request, $slug, $uid) {
-            [$tenant, $device] = $this->validateDevice($slug, $uid);
-
-            $phone = PhoneHelper::normalize($request->phone);
-            $customer = Customer::where('tenant_id', $tenant->id)->where('phone', $phone)->firstOrFail();
-
-            // Handle Lost Card / Re-linking
-            // If customer already has a card, we unlink the old one first
-            \App\Models\LoyaltyCard::where('tenant_id', $tenant->id)
-                ->where('linked_customer_id', $customer->id)
-                ->update([
-                    'linked_customer_id' => null,
-                    'status' => 'deactivated', // or 'available' if you want it reusable, but deactivated is safer for lost cards
-                    'active' => false
-                ]);
-
-            $targetUidRaw = preg_replace('/\D/', '', $request->target_uid);
-            
-            if (strlen($targetUidRaw) !== 12) {
-                return ApiResponse::error('O número do cartão deve ter exatamente 12 dígitos.', 'INVALID_LENGTH', 400);
-            }
-            
-            // Resolve target card (LoyaltyCard)
-            $targetCard = \App\Models\LoyaltyCard::where('tenant_id', $tenant->id)
-                ->where('uid', $targetUidRaw)
-                ->where('type', 'premium')
-                ->first();
-
-            if (!$targetCard) {
-                return ApiResponse::error('Cartão VIP não encontrado ou inválido.', 'VIP_NOT_FOUND', 404);
-            }
-
-            if ($targetCard->linked_customer_id) {
-                return ApiResponse::error('Este cartão já está vinculado a outro cliente.', 'ALREADY_LINKED', 409);
-            }
-
-            $targetCard->update([
-                'linked_customer_id' => $customer->id,
-                'status' => 'linked',
-                'active' => true
-            ]);
-
-            $customer->update(['is_premium' => true]);
-
-            return ApiResponse::ok(null, 'Cartão VIP vinculado com sucesso. O cartão anterior (se houver) foi invalidado.');
-        });
     }
 
     public function getRequestStatus($slug, $uidOrRequestId, $requestId = null)

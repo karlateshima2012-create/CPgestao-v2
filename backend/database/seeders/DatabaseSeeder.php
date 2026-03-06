@@ -9,7 +9,6 @@ use App\Models\LoyaltySetting;
 use App\Models\Customer;
 use App\Models\PointRequest;
 use App\Models\Device;
-use App\Models\LoyaltyCard;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -24,12 +23,14 @@ class DatabaseSeeder extends Seeder
         // Seed Plans first
         $this->call(PlanSeeder::class);
 
-        // 0. RESET DATABASE (Opcional, mas recomendado para testes limpos)
-        // DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        // DB::table('users')->truncate();
-        // DB::table('tenants')->truncate();
-        // ...
-        // DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        // Limpar dados para evitar erros de duplicidade
+        DB::statement('PRAGMA foreign_keys = OFF;');
+        DB::table('point_requests')->delete();
+        DB::table('point_movements')->delete();
+        DB::table('customers')->delete();
+        DB::table('users')->where('role', '!=', 'admin')->delete();
+        DB::table('tenants')->delete();
+        DB::statement('PRAGMA foreign_keys = ON;');
 
         // 1. ADMIN MASTER
         $adminEmail = 'admin@creativeprint.com';
@@ -44,47 +45,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // --- 1. CENÁRIO LOJA CLASSIC (TESTE DE LIMITE E CARTÃO) ---
-        $classicPlan = \App\Models\Plan::where('slug', 'classic')->first();
-        $classicTenant = Tenant::updateOrCreate(
-            ['slug' => 'pizzaria-classic'],
-            [
-                'name' => 'Pizzaria Classic',
-                'owner_name' => 'Carlos Classic',
-                'phone' => '09012345678',
-                'email' => 'classic@loja.com',
-                'plan' => 'Classic',
-                'plan_id' => $classicPlan?->id,
-                'status' => 'active',
-                'loyalty_active' => true,
-                'points_goal' => 10,
-                'reward_text' => 'Pizza de Calabresa Grátis',
-            ]
-        );
-        TenantSetting::updateOrCreate(['tenant_id' => $classicTenant->id], ['pin_hash' => Hash::make('1234')]);
-        LoyaltySetting::updateOrCreate(['tenant_id' => $classicTenant->id], ['points_goal' => 10]);
-        User::updateOrCreate(['email' => 'login-classic@teste.com'], ['name' => 'Carlos Classic', 'password' => Hash::make('senha123'), 'tenant_id' => $classicTenant->id, 'role' => 'client', 'active' => true]);
-
-        // Clientes Específicos
-        $c1 = Customer::updateOrCreate(
-            ['phone' => '09000000001', 'tenant_id' => $classicTenant->id],
-            ['name' => 'Cliente 01 - Saldo Prata', 'email' => 'cliente01@teste.com', 'points_balance' => 5, 'loyalty_level' => 2]
-        );
-        $c2 = Customer::updateOrCreate(
-            ['phone' => '09000000002', 'tenant_id' => $classicTenant->id],
-            ['name' => 'Cliente 02 - Cartão NFC', 'email' => 'cliente02@teste.com', 'points_balance' => 0]
-        );
-        // Vincular Cartão NFC ao C2
-        $cardUid = '123456781234';
-        LoyaltyCard::updateOrCreate(
-            ['uid' => $cardUid],
-            ['tenant_id' => $classicTenant->id, 'type' => 'premium', 'status' => 'linked', 'linked_customer_id' => $c2->id, 'active' => true]
-        );
-
-        $this->command->info('⏳ Gerando base de 1.999 clientes para Pizzaria Classic...');
-        $this->generateCustomers($classicTenant->id, 1997); // 1999 - 2 já criados
-
-        // --- 2. CENÁRIO LOJA PRO (TESTE DE TELEGRAM E EXPANSÃO) ---
+        // --- 1. CENÁRIO LOJA PRO (TESTE DE TELEGRAM E EXPANSÃO) ---
         $proPlan = \App\Models\Plan::where('slug', 'pro')->first();
         $proTenant = Tenant::updateOrCreate(
             ['slug' => 'burger-pro'],
@@ -113,7 +74,7 @@ class DatabaseSeeder extends Seeder
         $this->command->info('⏳ Gerando base de 3.500 clientes para Burger Pro...');
         $this->generateCustomers($proTenant->id, 3500);
 
-        // --- 3. CENÁRIO LOJA ELITE (TESTE DE AUTOMAÇÃO E ILIMITADO) ---
+        // --- 2. CENÁRIO LOJA ELITE (TESTE DE AUTOMAÇÃO E ILIMITADO) ---
         $elitePlan = \App\Models\Plan::where('slug', 'elite')->first();
         $eliteTenant = Tenant::updateOrCreate(
             ['slug' => 'sushi-elite'],
@@ -143,7 +104,7 @@ class DatabaseSeeder extends Seeder
         $this->generateCustomers($eliteTenant->id, 6500);
 
         // --- RELATÓRIO FINAL ---
-        $this->printReport($adminEmail, $adminPass, $classicTenant, $proTenant, $eliteTenant, $cardUid);
+        $this->printReport($adminEmail, $adminPass, $proTenant, $eliteTenant);
     }
 
     private function generateCustomers($tenantId, $count)
@@ -167,7 +128,7 @@ class DatabaseSeeder extends Seeder
         }
     }
 
-    private function printReport($adminEmail, $adminPass, $classic, $pro, $elite, $cardUid)
+    private function printReport($adminEmail, $adminPass, $pro, $elite)
     {
         $baseUrl = 'http://localhost:5173'; // Ajustar se necessário para o ambiente
         
@@ -180,23 +141,16 @@ class DatabaseSeeder extends Seeder
         $this->command->info("   Senha: $adminPass");
 
         $this->command->warn("\n🏪 ACESSOS LOJISTAS:");
-        $this->command->info("   1. Classic: login-classic@teste.com / senha123");
-        $this->command->info("   2. Pro:     login-pro@teste.com / senha123");
-        $this->command->info("   3. Elite:   login-elite@teste.com / senha123");
+        $this->command->info("   1. Pro:     login-pro@teste.com / senha123");
+        $this->command->info("   2. Elite:   login-elite@teste.com / senha123");
 
         $this->command->warn("\n👥 ACESSOS CLIENTES FINAIS (PARA CONSULTAR SALDO):");
-        $this->command->info("   - Classic: 09000000001 (5 Pontos / Prata)");
-        $this->command->info("   - Classic: 09000000002 (0 Pontos / NFC Linked)");
         $this->command->info("   - Pro:     09000000010 (0 Pontos)");
         $this->command->info("   - Elite:   09000000010 (0 Pontos)");
 
         $this->command->warn("\n🔗 LINKS PÁGINAS PÚBLICAS:");
-        $this->command->info("   - Classic: $baseUrl/p/{$classic->slug}");
         $this->command->info("   - Pro:     $baseUrl/p/{$pro->slug}");
         $this->command->info("   - Elite:   $baseUrl/p/{$elite->slug}");
-
-        $this->command->warn("\n📡 TERMINAIS NFC (SIMULAÇÃO):");
-        $this->command->info("   - URL NFC C2: $baseUrl/terminal/{$classic->slug}/$cardUid");
 
         $this->command->info("\n" . str_repeat('=', 60));
         $this->command->info('✅ TUDO PRONTO PARA OS TESTES!');

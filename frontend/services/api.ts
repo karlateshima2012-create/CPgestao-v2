@@ -43,12 +43,7 @@ export const tenantsService = {
     create: (data: any) => api.post('/admin/tenants', data),
     update: (id: string, data: any) => api.patch(`/admin/tenants/${id}`, data),
     resetPin: (id: string, data?: { pin: string }) => api.post(`/admin/tenants/${id}/pin-reset`, data),
-    getBatches: (id: string) => api.get(`/admin/tenants/${id}/premium-batches`),
-    getBatchDetails: (id: string, batchId: string) => api.get(`/admin/tenants/${id}/premium-batches/${batchId}`),
-    createBatch: (id: string, data: { quantity: number; label?: string }) =>
-        api.post(`/admin/tenants/${id}/premium-batches`, data),
     delete: (id: string) => api.delete(`/admin/tenants/${id}`),
-    exportBatch: (id: string, batchId: string) => api.get(`/admin/tenants/${id}/premium-batches/${batchId}/export`, { responseType: 'blob' }),
     getDevices: (id: string) => api.get(`/admin/tenants/${id}/devices`),
     createDevice: (id: string, data: { name: string; mode: string; telegram_chat_id?: string; responsible_name?: string }) => api.post(`/admin/tenants/${id}/devices`, data),
     updateDevice: (tenantId: string, deviceId: string, data: Partial<{ name: string; mode: string; telegram_chat_id: string; responsible_name: string }>) => api.put(`/admin/tenants/${tenantId}/devices/${deviceId}`, data),
@@ -89,8 +84,6 @@ export const terminalService = {
     register: (slug: string, uid: string | null, data: { name: string, phone: string, email?: string, city?: string, province?: string, postal_code?: string, address?: string, birthday?: string, device_uid?: string | null }) => uid
         ? api.post(`/public/terminal/${slug}/${uid}/register`, data)
         : api.post(`/public/p/${slug}/register`, data),
-    linkVip: (slug: string, uid: string, data: { phone: string, target_uid: string }) =>
-        api.post(`/public/terminal/${slug}/${uid}/link-vip`, data),
     getRequestStatus: (slug: string, uid: string | null, requestId: string) => uid
         ? api.get(`/public/terminal/${slug}/${uid}/point-requests/${requestId}/status`)
         : api.get(`/public/p/${slug}/point-requests/${requestId}/status`),

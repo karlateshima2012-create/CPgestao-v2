@@ -1,13 +1,11 @@
 
 export enum PlanType {
-  CLASSIC = 'Classic',
   PRO = 'Pro',
   UNLIMITED = 'Elite'
 }
 
 export enum DeviceType {
-  TOTEM = 'totem',
-  PREMIUM = 'premium'
+  TOTEM = 'totem'
 }
 
 export interface Device {
@@ -22,20 +20,6 @@ export interface Device {
   customer?: Contact;
   uid_formatted?: string;
   telegram_chat_id?: string;
-}
-
-export interface DeviceBatch {
-  id: string;
-  tenant_id: string;
-  batch_number?: string;
-  type: string;
-  quantity: number;
-  label?: string;
-  total: number;
-  assigned: number;
-  linked: number;
-  disabled: number;
-  created_at: string;
 }
 
 export interface Tenant {
@@ -67,19 +51,9 @@ export interface PointMovement {
   tenantId: string;
   type: 'earn' | 'redeem';
   points: number;
-  origin: 'totem' | 'premium' | 'manual';
+  origin: 'totem' | 'manual';
   timestamp: string;
   description: string;
-}
-
-export interface TagLot {
-  id: string;
-  tenantId: string;
-  name: string;
-  quantity: number;
-  pointsPerUse: number;
-  active: boolean;
-  createdAt: string;
 }
 
 export interface TenantTag {
@@ -105,10 +79,8 @@ export interface Contact {
   notes: string;
   createdAt: string;
   pointsBalance: number;
-  isPremium: boolean;
   loyaltyLevel: number;
   loyalty_level_name?: string;
-  linkedCard?: string;
   lastContacted?: string;
   reminderDate?: string;
   reminderTime?: string;
@@ -137,7 +109,7 @@ export interface PointRequest {
   customer_id?: string;
   phone: string;
   device_id?: string;
-  source: 'approval' | 'manual_card' | 'online_qr' | 'auto_checkin';
+  source: 'approval' | 'online_qr' | 'auto_checkin';
   status: 'pending' | 'approved' | 'denied' | 'auto_approved';
   requested_points: number;
   approved_by?: string;

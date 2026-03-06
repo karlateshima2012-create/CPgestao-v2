@@ -16,7 +16,6 @@ class Tenant extends Model
     protected $appends = ['total_contact_limit'];
     
     public const PLAN_LIMITS = [
-        'Classic' => 2000,
         'Pro' => 4000,
         'Elite' => 6000,
     ];
@@ -74,12 +73,6 @@ class Tenant extends Model
         // This handles cases where plans were not seeded or linked yet
         $planType = strtolower($this->plan ?? '');
         $defaults = [
-            'classic' => [
-                'contact_limit' => 2000,
-                'device_limit' => 10,
-                'allow_auto_approve' => 1,
-                'nfc_cards_enabled' => 1,
-            ],
             'pro' => [
                 'contact_limit' => 4000,
                 'device_limit' => 3,

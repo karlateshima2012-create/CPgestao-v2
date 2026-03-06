@@ -36,7 +36,6 @@ export const PointRequestsTab: React.FC = () => {
 
     const getSourceIcon = (source: string) => {
         switch (source) {
-            case 'manual_card': return <Smartphone className="w-4 h-4" />;
             case 'online_qr': return <Globe className="w-4 h-4" />;
             case 'auto_checkin': return <UserCheck className="w-4 h-4" />;
             default: return <Clock className="w-4 h-4" />;
@@ -46,7 +45,6 @@ export const PointRequestsTab: React.FC = () => {
     const getSourceLabel = (source: string) => {
         switch (source) {
             case 'approval': return 'Página Pública';
-            case 'manual_card': return 'Cartão Manual';
             case 'online_qr': return 'QR Online';
             case 'auto_checkin': return 'Check-in Auto';
             default: return source;

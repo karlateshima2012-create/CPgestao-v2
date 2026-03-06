@@ -233,7 +233,7 @@ const BirthdayInput = ({ value, onChange }: { value: string, onChange: (v: strin
 export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, onCancel }) => {
   const initialData: Partial<Contact> = useMemo(() => ({
     name: '', phone: '', email: '', birthday: '', postalCode: '', province: '', city: '', address: '', notes: '',
-    pointsBalance: 0, isPremium: false, loyaltyLevel: 1, source: '', tags: [], preferences: [],
+    pointsBalance: 0, loyaltyLevel: 1, source: '', tags: [], preferences: [],
     totalSpent: 0, averageTicket: 0, attendanceCount: 0, reminderTime: '', reminderDate: '', reminderText: ''
   }), []);
 
@@ -392,7 +392,6 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
         const mappedData = {
           ...updatedData,
           pointsBalance: updatedData.points_balance ?? updatedData.pointsBalance ?? 0,
-          isPremium: updatedData.is_premium ?? updatedData.isPremium ?? false,
           loyaltyLevel: updatedData.loyalty_level ?? updatedData.loyaltyLevel ?? 1,
           postalCode: updatedData.postal_code ?? updatedData.postalCode,
           totalSpent: updatedData.total_spent ?? updatedData.totalSpent ?? 0,

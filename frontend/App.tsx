@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { ClientCRM } from './pages/ClientCRM';
 import { PublicTerminal } from './pages/PublicTerminal';
-import { VipPointHandler } from './pages/VipPointHandler';
 import { ForgotPasswordScreen, ResetPasswordScreen, FirstAccessChangeScreen } from './pages/AuthScreens';
 import { OnboardingModal } from './pages/OnboardingModal';
 import {
@@ -94,7 +93,7 @@ const App: React.FC = () => {
 
   // Check login on load
   useEffect(() => {
-    const isPublic = window.location.pathname.startsWith('/terminal') || window.location.pathname.startsWith('/p/') || window.location.pathname.startsWith('/vip/');
+    const isPublic = window.location.pathname.startsWith('/terminal') || window.location.pathname.startsWith('/p/');
     if (isPublic) return;
 
     const token = localStorage.getItem('auth_token');
@@ -152,7 +151,6 @@ const App: React.FC = () => {
             name: c.name || '',
             phone: c.phone || '',
             pointsBalance: c.points_balance ?? c.pointsBalance ?? 0,
-            isPremium: c.is_premium ?? c.isPremium ?? false,
             loyaltyLevel: c.loyalty_level ?? 1,
             loyalty_level_name: c.loyalty_level_name,
             postalCode: c.postal_code,
@@ -286,11 +284,6 @@ const App: React.FC = () => {
   };
 
   const isPublicTerminal = window.location.pathname.includes('/terminal') || window.location.pathname.includes('/p/');
-  const isVipHandler = window.location.pathname.includes('/vip/');
-
-  if (isVipHandler) {
-    return <VipPointHandler />;
-  }
 
   if (isPublicTerminal) {
     return (
@@ -452,16 +445,14 @@ const App: React.FC = () => {
             <>
               <SidebarItem id="side-tab-dashboard" icon={LayoutDashboard} label="Dashboard" onboardingActive={showOnboarding && clientTab === 'dashboard'} active={clientTab === 'dashboard'} onClick={() => { setClientTab('dashboard'); setIsMobileMenuOpen(false); }} collapsed={sidebarCollapsed} />
 
-              {userData?.tenant?.plan !== PlanType.CLASSIC && (
-                <div className="relative">
-                  <SidebarItem id="side-tab-requests" icon={Calendar} label="Solicitações" active={clientTab === 'requests'} onClick={() => { setClientTab('requests'); setIsMobileMenuOpen(false); }} collapsed={sidebarCollapsed} />
-                  {pendingRequestsCount > 0 && (
-                    <div className={`absolute ${sidebarCollapsed ? 'top-1 right-3' : 'top-3 right-4'} bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-gray-900 pointer-events-none`}>
-                      {pendingRequestsCount}
-                    </div>
-                  )}
-                </div>
-              )}
+              <div className="relative">
+                <SidebarItem id="side-tab-requests" icon={Calendar} label="Solicitações" active={clientTab === 'requests'} onClick={() => { setClientTab('requests'); setIsMobileMenuOpen(false); }} collapsed={sidebarCollapsed} />
+                {pendingRequestsCount > 0 && (
+                  <div className={`absolute ${sidebarCollapsed ? 'top-1 right-3' : 'top-3 right-4'} bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-gray-900 pointer-events-none`}>
+                    {pendingRequestsCount}
+                  </div>
+                )}
+              </div>
 
               <SidebarItem id="side-tab-loyalty" icon={Star} label="Programa de Fidelidade" onboardingActive={showOnboarding && clientTab === 'loyalty'} active={clientTab === 'loyalty'} onClick={() => { setSelectedContact(null); setClientTab('loyalty'); setIsMobileMenuOpen(false); }} collapsed={sidebarCollapsed} />
               <SidebarItem id="side-tab-devices" icon={Smartphone} label="Gerenciar Dispositivos" onboardingActive={showOnboarding && clientTab === 'devices'} active={clientTab === 'devices'} onClick={() => { setSelectedContact(null); setClientTab('devices'); setIsMobileMenuOpen(false); }} collapsed={sidebarCollapsed} />
