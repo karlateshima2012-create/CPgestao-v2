@@ -48,6 +48,48 @@ class TelegramService
     }
 
     /**
+     * Send a photo notification to the tenant's Telegram chat.
+     */
+    public function sendPhoto(string $tenantId, string $photoUrl, string $caption, string $type = 'points', $replyMarkup = null): void
+    {
+        $settings = TenantSetting::withoutGlobalScopes()->where('tenant_id', $tenantId)->first();
+        $botToken = config('services.telegram.bot_token');
+
+        if (!$settings || !$botToken || !$settings->telegram_chat_id) {
+            return;
+        }
+
+        try {
+            $url = "https://api.telegram.org/bot{$botToken}/sendPhoto";
+            
+            $disableNotification = false;
+            if ($type === 'points') {
+                $disableNotification = !$settings->telegram_sound_points;
+            }
+
+            $payload = [
+                'chat_id' => $settings->telegram_chat_id,
+                'photo' => $photoUrl,
+                'caption' => $caption,
+                'parse_mode' => 'HTML',
+                'disable_notification' => (bool)$disableNotification,
+            ];
+
+            if ($replyMarkup) {
+                $payload['reply_markup'] = json_encode($replyMarkup);
+            }
+
+            $response = Http::post($url, $payload);
+
+            if ($response->failed()) {
+                Log::error("Telegram photo notification failed for tenant {$tenantId}: " . $response->body());
+            }
+        } catch (\Exception $e) {
+            Log::error("Telegram photo notification exception for tenant {$tenantId}: " . $e->getMessage());
+        }
+    }
+
+    /**
      * Send a notification to a specific Chat ID using the central app bot.
      */
     public function sendDirectMessage(string $chatId, string $message, bool $disableNotification = false, $replyMarkup = null): void
@@ -99,8 +141,7 @@ class TelegramService
                 'chat_id' => $chatId,
                 'message_id' => $messageId,
                 'text' => $text,
-                'send_sound' => false,
-                'parse_mode' => 'HTML',
+                'parse_mode' => 'HTML', // Ensure we use HTML
             ];
 
             if ($replyMarkup) {
@@ -110,6 +151,35 @@ class TelegramService
             Http::post($url, $payload);
         } catch (\Exception $e) {
             Log::error("Telegram editMessage exception: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Update an existing Telegram photo caption.
+     */
+    public function editMessageCaption(string $chatId, int $messageId, string $caption, $replyMarkup = null): void
+    {
+        $botToken = config('services.telegram.bot_token');
+
+        if (!$botToken) return;
+
+        try {
+            $url = "https://api.telegram.org/bot{$botToken}/editMessageCaption";
+            
+            $payload = [
+                'chat_id' => $chatId,
+                'message_id' => $messageId,
+                'caption' => $caption,
+                'parse_mode' => 'HTML',
+            ];
+
+            if ($replyMarkup !== null) {
+                $payload['reply_markup'] = json_encode($replyMarkup);
+            }
+
+            Http::post($url, $payload);
+        } catch (\Exception $e) {
+            Log::error("Telegram editMessageCaption exception: " . $e->getMessage());
         }
     }
 

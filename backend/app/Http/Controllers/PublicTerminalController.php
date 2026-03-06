@@ -424,26 +424,27 @@ class PublicTerminalController extends Controller
                 $targetChatId = ($device && $device->telegram_chat_id) ? $device->telegram_chat_id : ($settings ? $settings->telegram_chat_id : null);
 
                 if ($targetChatId) {
-                    // Not auto-approved: Send Telegram notification with interactive buttons
+                    // Not auto-approved: Send Telegram notification with interactive photo/caption
                     $locationName = $device ? ($device->responsible_name ?: $device->name) : 'Terminal Público';
                     
-                    $escName = TelegramService::escapeMarkdownV2($customer->name);
-                    $escLoc = TelegramService::escapeMarkdownV2($locationName);
-                    
-                    $message = "🔔 *Solicitação no Totem\!*\n\n"
-                             . "O cliente *{$escName}* solicitou um ponto no *{$escLoc}*\. Aprovar?";
+                    $caption = "⭐ <b>Solicitação de ponto</b>\n\n"
+                             . "<b>Cliente:</b> {$customer->name}\n"
+                             . "<b>Telefone:</b> {$customer->phone}\n"
+                             . "<b>Empresa:</b> " . ($customer->company_name ?: "—") . "\n"
+                             . "<b>Visitas:</b> {$customer->attendance_count}\n"
+                             . "<b>Hora:</b> " . now()->format('H:i') . "\n\n"
+                             . "<b>📍 Local:</b> {$locationName}";
                     
                     $replyMarkup = [
                         'inline_keyboard' => [
                             [
-                                ['text' => '✅ APROVAR', 'callback_data' => "approve_request:{$requestRecord->id}"],
-                                ['text' => '❌ RECUSAR', 'callback_data' => "reject_request:{$requestRecord->id}"]
+                                ['text' => '✅ Aprovar +1 ponto', 'callback_data' => "approve_request:{$requestRecord->id}"],
+                                ['text' => '❌ Negar', 'callback_data' => "reject_request:{$requestRecord->id}"]
                             ]
                         ]
                     ];
                     
-                    $disableSound = $settings ? !$settings->telegram_sound_points : false;
-                    $this->telegramService->sendDirectMessage($targetChatId, $message, $disableSound, $replyMarkup);
+                    $this->telegramService->sendPhoto($tenant->id, $customer->photo_url_full, $caption, 'points', $replyMarkup);
                 }
             }
 
@@ -590,28 +591,33 @@ class PublicTerminalController extends Controller
                 } catch (\Throwable $ee) {
                     \Illuminate\Support\Facades\Log::warning("Broadcast failed in redeem: " . $ee->getMessage());
                 }
-            } elseif ($device && $device->telegram_chat_id && $requestRecord->status === 'pending' && ($tenant->plan === 'Pro' || $tenant->plan === 'pro')) {
-                $levelName = $customer->loyalty_level_name;
-                $locationName = $device->responsible_name ?: $device->name;
-                $message = "👑 <b>Pedido de Resgate VIP - {$tenant->name}</b>\n"
-                         . "📍 <b>Local:</b> {$locationName}\n"
-                         . "👤 <b>Cliente:</b> {$customer->name} ({$customer->phone})\n"
-                         . "📈 <b>Nível Atual:</b> {$levelName}\n\n"
-                         . "Deseja aprovar o resgate de prêmio para este cliente?";
-                
-                $replyMarkup = [
-                    'inline_keyboard' => [
-                        [
-                            ['text' => '✅ APROVAR', 'callback_data' => "approve_request:{$requestRecord->id}"],
-                            ['text' => '❌ RECUSAR', 'callback_data' => "reject_request:{$requestRecord->id}"]
+            } elseif ($requestRecord->status === 'pending' && ($tenant->plan === 'Pro' || $tenant->plan === 'pro')) {
+                $settings = \App\Models\TenantSetting::where('tenant_id', $tenant->id)->first();
+                $targetChatId = ($device && $device->telegram_chat_id) ? $device->telegram_chat_id : ($settings ? $settings->telegram_chat_id : null);
+
+                if ($targetChatId) {
+                    $locationName = $device ? ($device->responsible_name ?: $device->name) : 'Terminal Público';
+                    
+                    $caption = "👑 <b>Solicitação de Resgate</b>\n\n"
+                             . "<b>Cliente:</b> {$customer->name}\n"
+                             . "<b>Telefone:</b> {$customer->phone}\n"
+                             . "<b>Empresa:</b> " . ($customer->company_name ?: "—") . "\n"
+                             . "<b>Visitas:</b> {$customer->attendance_count}\n"
+                             . "<b>Hora:</b> " . now()->format('H:i') . "\n\n"
+                             . "<b>📍 Local:</b> {$locationName}\n\n"
+                             . "Deseja aprovar o resgate de prêmio para este cliente?";
+                    
+                    $replyMarkup = [
+                        'inline_keyboard' => [
+                            [
+                                ['text' => '✅ Aprovar Resgate', 'callback_data' => "approve_request:{$requestRecord->id}"],
+                                ['text' => '❌ Negar', 'callback_data' => "reject_request:{$requestRecord->id}"]
+                            ]
                         ]
-                    ]
-                ];
-                         
-                $settings = TenantSetting::where('tenant_id', $tenant->id)->first();
-                $disableSound = $settings ? !$settings->telegram_sound_points : false;
-                
-                $this->telegramService->sendDirectMessage($device->telegram_chat_id, $message, $disableSound, $replyMarkup);
+                    ];
+                    
+                    $this->telegramService->sendPhoto($tenant->id, $customer->photo_url_full, $caption, 'points', $replyMarkup);
+                }
             }
 
             $customer = $customer->fresh();

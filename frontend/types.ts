@@ -92,6 +92,10 @@ export interface Contact {
   totalSpent?: number;
   averageTicket?: number;
   attendanceCount?: number;
+  visitas?: number;
+  photo_url?: string;
+  photo_url_full?: string;
+  company_name?: string;
 }
 export interface Reminder {
   id: string;

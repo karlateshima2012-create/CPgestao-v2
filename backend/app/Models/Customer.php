@@ -18,7 +18,9 @@ class Customer extends Model
     protected $fillable = [
         'tenant_id',
         'name',
+        'photo_url',
         'phone',
+        'company_name',
         'email',
         'province',
         'city',
@@ -49,7 +51,21 @@ class Customer extends Model
         'average_ticket' => 'decimal:2',
     ];
 
-    protected $appends = ['loyalty_level_name'];
+    protected $appends = ['loyalty_level_name', 'photo_url_full'];
+
+    public function getPhotoUrlFullAttribute()
+    {
+        if ($this->photo_url) {
+            return asset('storage/' . $this->photo_url);
+        }
+
+        $initials = collect(explode(' ', $this->name))
+            ->map(fn($n) => mb_substr($n, 0, 1))
+            ->take(2)
+            ->join('');
+        
+        return "https://ui-avatars.com/api/?name=" . urlencode($initials) . "&background=random&color=fff&size=400&rounded=true";
+    }
 
     public function getLoyaltyLevelNameAttribute()
     {

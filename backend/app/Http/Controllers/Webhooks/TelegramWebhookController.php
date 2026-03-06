@@ -138,18 +138,29 @@ class TelegramWebhookController extends Controller
                 'approved_at' => now(),
             ]);
 
-            $escOriginal = TelegramService::escapeMarkdownV2($originalText);
-            $newText = "✅ *Pontuação realizada com sucesso\!*\n\n" . $escOriginal;
-            $this->telegramService->editMessage($chatId, $messageId, $newText);
+            $customer = $request->customer;
+            $newText = "Ponto aprovado ✅\n"
+                     . "Cliente agora possui *{$customer->points_balance}* pontos\n"
+                     . "Total de visitas: *{$customer->attendance_count}*";
+
+            if (isset($callbackQuery['message']['photo'])) {
+                $this->telegramService->editMessageCaption($chatId, $messageId, $newText);
+            } else {
+                $this->telegramService->editMessage($chatId, $messageId, $newText);
+            }
         } else {
             $request->update([
                 'status' => 'denied',
                 'approved_at' => now(),
             ]);
 
-            $escOriginal = TelegramService::escapeMarkdownV2($originalText);
-            $newText = "❌ *SOLICITAÇÃO RECUSADA*\n\n" . $escOriginal;
-            $this->telegramService->editMessage($chatId, $messageId, $newText);
+            $newText = "❌ *SOLICITAÇÃO RECUSADA*";
+            
+            if (isset($callbackQuery['message']['photo'])) {
+                $this->telegramService->editMessageCaption($chatId, $messageId, $newText);
+            } else {
+                $this->telegramService->editMessage($chatId, $messageId, $newText);
+            }
         }
 
         // Fire Broadcast Event for real-time UI updates (Public Terminal & Admin)

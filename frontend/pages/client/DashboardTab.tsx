@@ -199,10 +199,10 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
             colorClass="bg-orange-500"
           />
           <KpiCard
-            label="Visitas na Página"
-            value={metrics?.public_page_visits || 0}
-            description="Acessos via NFC ou Link."
-            icon={MousePointerClick}
+            label="Visitas Totais"
+            value={metrics?.total_visitas || 0}
+            description="Acúmulo total de atendimentos."
+            icon={Activity}
             colorClass="bg-indigo-500"
           />
         </div>

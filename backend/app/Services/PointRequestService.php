@@ -48,6 +48,7 @@ class PointRequestService
                 // New Balance = (Remaining from previous level) + visit points + vip reward bonus + new level initial bonus
                 $customer->points_balance = ($customer->points_balance - $goal) + $request->requested_points + $appliedVipInitial + $initialLevelPoints;
                 $customer->loyalty_level = $nextLevel;
+                $customer->attendance_count = ($customer->attendance_count ?? 0) + 1;
                 $customer->last_activity_at = now();
                 $customer->save();
 
@@ -84,6 +85,7 @@ class PointRequestService
             } else {
                 // Simple Credit
                 $customer->increment('points_balance', $request->requested_points);
+                $customer->increment('attendance_count');
                 $customer->update(['last_activity_at' => now()]);
 
                 PointMovement::create([

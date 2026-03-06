@@ -87,8 +87,12 @@ export const ClientsTab: React.FC<ClientsTabProps> = ({ contacts, onEdit, onDele
                 >
                   <td className="px-8 py-5">
                     <div className="flex items-center gap-4">
-                      <div className="w-11 h-11 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center font-black text-gray-700 dark:text-gray-300 shadow-inner group-hover:bg-white dark:group-hover:bg-gray-700 transition-colors">
-                        {(contact.name || '?')[0].toUpperCase()}
+                      <div className="w-11 h-11 rounded-2xl overflow-hidden bg-gray-100 dark:bg-gray-800 flex items-center justify-center font-black text-gray-700 dark:text-gray-300 shadow-inner group-hover:bg-white dark:group-hover:bg-gray-700 transition-colors">
+                        {contact.photo_url_full ? (
+                          <img src={contact.photo_url_full} alt={contact.name} className="w-full h-full object-cover" />
+                        ) : (
+                          (contact.name || '?')[0].toUpperCase()
+                        )}
                       </div>
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2">
@@ -102,9 +106,14 @@ export const ClientsTab: React.FC<ClientsTabProps> = ({ contacts, onEdit, onDele
                             )}
                           </Badge>
                         </div>
-                        <span className="text-xs text-gray-400 font-medium mt-1 tracking-tight">
-                          {(contact.phone || '').replace(/(\d{3})(\d{4})(\d{4})/, '$1 $2 $3')}
-                        </span>
+                        <div className="flex flex-col mt-0.5">
+                          {contact.company_name && (
+                            <span className="text-[10px] font-black text-primary-500 uppercase tracking-widest">{contact.company_name}</span>
+                          )}
+                          <span className="text-xs text-gray-400 font-medium tracking-tight">
+                            {(contact.phone || '').replace(/(\d{3})(\d{4})(\d{4})/, '$1 $2 $3')}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </td>

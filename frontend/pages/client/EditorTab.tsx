@@ -486,8 +486,12 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
 
       {selectedContact && (
         <Card className="p-8 w-full flex items-center gap-6 border border-gray-200 dark:border-gray-800 shadow-xl bg-white dark:bg-gray-900 rounded-[24px]">
-          <div className="w-20 h-20 shrink-0 rounded-[20px] flex items-center justify-center text-3xl font-black bg-gray-50 dark:bg-gray-800">
-            {(formData.name || '?')[0].toUpperCase()}
+          <div className="w-20 h-20 shrink-0 rounded-[20px] overflow-hidden flex items-center justify-center text-3xl font-black bg-gray-50 dark:bg-gray-800">
+            {formData.photo_url_full ? (
+              <img src={formData.photo_url_full} alt={formData.name} className="w-full h-full object-cover" />
+            ) : (
+              (formData.name || '?')[0].toUpperCase()
+            )}
           </div>
           <div className="flex-1 space-y-1">
             <div className="flex items-center gap-3">
@@ -507,10 +511,48 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
 
       <Card className="p-8 border border-gray-200 dark:border-gray-800 w-full rounded-[24px]">
         <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2 mb-8"><User className="w-5 h-5 text-gray-400" /> Dados Básicos</h3>
+
+        <div className="flex flex-col items-center mb-10">
+          <div className="relative group cursor-pointer" onClick={() => (document.getElementById('photo-upload') as HTMLInputElement)?.click()}>
+            <div className={`w-32 h-32 rounded-full border-4 border-white dark:border-gray-800 shadow-xl overflow-hidden flex items-center justify-center bg-gray-100 dark:bg-gray-800 group-hover:opacity-90 transition-all ${!formData.photo_url_full ? 'p-6' : ''}`}>
+              {formData.photo_url_full ? (
+                <img src={formData.photo_url_full} alt="Preview" className="w-full h-full object-cover" />
+              ) : (
+                <Camera className="w-full h-full text-gray-300" />
+              )}
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 rounded-full transition-opacity">
+              <Camera className="w-8 h-8 text-white" />
+            </div>
+            <div className="absolute -bottom-1 -right-1 bg-primary-500 text-white p-2 rounded-full shadow-lg border-2 border-white dark:border-gray-900">
+              <Edit2 className="w-4 h-4" />
+            </div>
+          </div>
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-4">Foto de Perfil (Opcional)</p>
+          <input
+            type="file"
+            id="photo-upload"
+            className="hidden"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                  const base64 = reader.result as string;
+                  setFormData(prev => ({ ...prev, photo: base64 as any, photo_url_full: base64 }));
+                };
+                reader.readAsDataURL(file);
+              }
+            }}
+          />
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="md:col-span-3"><Input label="NOME COMPLETO *" value={formData.name || ''} onChange={e => handleCapitalize('name', e.target.value)} /></div>
           <Input label="TELEFONE *" value={formData.phone || ''} onChange={e => handlePhoneMask(e.target.value)} />
           <Input label="E-MAIL" type="email" value={formData.email || ''} onChange={e => setFormData(p => ({ ...p, email: e.target.value }))} />
+          <Input label="NOME DA EMPRESA" value={formData.company_name || ''} onChange={e => setFormData(p => ({ ...p, company_name: e.target.value }))} />
           <BirthdayInput value={formData.birthday || ''} onChange={v => setFormData(p => ({ ...p, birthday: v }))} />
           <Input label="CÓDIGO POSTAL" value={formData.postalCode || ''} onChange={e => setFormData(p => ({ ...p, postalCode: e.target.value }))} />
           <Input label="PROVÍNCIA *" value={formData.province || ''} onChange={e => handleCapitalize('province', e.target.value)} />
@@ -570,7 +612,7 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
             <p className="text-2xl font-black">¥ {Number(formData.averageTicket || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           </div>
           <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 border border-gray-200 flex flex-col items-center">
-            <p className="text-[10px] font-black text-gray-400 uppercase mb-1">Movimentações</p>
+            <p className="text-[10px] font-black text-gray-400 uppercase mb-1">Visitas</p>
             <p className="text-2xl font-black">{formData.attendanceCount || 0}</p>
           </div>
         </div>

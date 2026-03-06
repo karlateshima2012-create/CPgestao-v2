@@ -82,21 +82,23 @@ export const ClientCRM: React.FC<ClientCRMProps> = ({ tenantPlan, contacts, setC
     try {
       const payload = {
         ...data,
-        is_premium: data.isPremium,
+        is_premium: false,
         points_balance: data.pointsBalance,
         last_contacted: data.lastContacted,
         reminder_date: data.reminderDate,
         reminder_time: data.reminderTime,
         reminder_text: data.reminderText,
         postal_code: data.postalCode,
-        address: data.address
+        address: data.address,
+        company_name: data.company_name,
+        photo: (data as any).photo
       };
       if (selectedContact) {
         const res = await api.patch(`/client/contacts/${selectedContact.id}`, payload);
         const mapped = {
           ...res.data,
           pointsBalance: res.data.points_balance ?? res.data.pointsBalance ?? 0,
-          isPremium: res.data.is_premium ?? res.data.isPremium ?? false,
+          isPremium: false,
           loyaltyLevel: res.data.loyalty_level ?? 1,
           loyalty_level_name: res.data.loyalty_level_name,
           postalCode: res.data.postal_code,
@@ -105,7 +107,11 @@ export const ClientCRM: React.FC<ClientCRMProps> = ({ tenantPlan, contacts, setC
           totalSpent: res.data.total_spent ?? res.data.totalSpent ?? 0,
           averageTicket: res.data.average_ticket ?? res.data.averageTicket ?? 0,
           attendanceCount: res.data.attendance_count ?? res.data.attendanceCount ?? 0,
+          visitas: res.data.attendance_count ?? res.data.attendanceCount ?? 0,
           reminderTime: res.data.reminder_time,
+          company_name: res.data.company_name,
+          photo_url: res.data.photo_url,
+          photo_url_full: res.data.photo_url_full
         };
         setContacts(contacts.map(c => c.id === selectedContact.id ? mapped : c));
         onRefresh();
@@ -114,7 +120,7 @@ export const ClientCRM: React.FC<ClientCRMProps> = ({ tenantPlan, contacts, setC
         const mapped = {
           ...res.data,
           pointsBalance: res.data.points_balance ?? res.data.pointsBalance ?? 0,
-          isPremium: res.data.is_premium ?? res.data.isPremium ?? false,
+          isPremium: false,
           loyaltyLevel: res.data.loyalty_level ?? 1,
           loyalty_level_name: res.data.loyalty_level_name,
           postalCode: res.data.postal_code,
@@ -123,7 +129,11 @@ export const ClientCRM: React.FC<ClientCRMProps> = ({ tenantPlan, contacts, setC
           totalSpent: res.data.total_spent ?? res.data.totalSpent ?? 0,
           averageTicket: res.data.average_ticket ?? res.data.averageTicket ?? 0,
           attendanceCount: res.data.attendance_count ?? res.data.attendanceCount ?? 0,
+          visitas: res.data.attendance_count ?? res.data.attendanceCount ?? 0,
           reminderTime: res.data.reminder_time,
+          company_name: res.data.company_name,
+          photo_url: res.data.photo_url,
+          photo_url_full: res.data.photo_url_full
         };
         setContacts([mapped, ...contacts]);
         onRefresh();

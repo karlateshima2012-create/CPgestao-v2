@@ -64,17 +64,23 @@ class ClientController extends Controller
         $request->validate([
             'name' => 'required|string',
             'phone' => 'required|string',
+            'company_name' => 'sometimes|string|nullable',
             'city' => 'sometimes|string|nullable',
             'province' => 'sometimes|string|nullable',
             'postal_code' => 'sometimes|string|nullable',
             'address' => 'sometimes|string|nullable',
             'points_balance' => 'sometimes|integer',
-            'is_premium' => 'sometimes|boolean',
+            'photo' => 'sometimes|nullable|string', // Base64 expected from frontend for better compatibility
         ]);
 
         $phone = PhoneHelper::normalize($request->phone);
         if (Customer::where('phone', $phone)->exists()) {
             return ApiResponse::error('Este número de telefone já está cadastrado nesta loja.', 'DUPLICATE_PHONE', 409);
+        }
+
+        $photoUrl = null;
+        if ($request->photo) {
+            $photoUrl = $this->processAndStorePhoto($request->photo);
         }
 
         $loyalty = \App\Models\LoyaltySetting::where('tenant_id', auth()->user()->tenant_id)->first();
@@ -96,13 +102,15 @@ class ClientController extends Controller
 
         $customer = Customer::create([
             'name' => $request->name,
+            'photo_url' => $photoUrl,
             'phone' => $phone,
+            'company_name' => $request->company_name,
             'email' => $request->email,
             'city' => $request->city,
             'province' => $request->province,
             'postal_code' => $request->postal_code,
             'address' => $request->address,
-            'is_premium' => $request->is_premium ?? false,
+            'is_premium' => false, // Always false now that Classic is gone
             'points_balance' => $initialPoints + $signupBonus,
             'source' => $request->source ?? 'crm',
             'last_activity_at' => now(),
@@ -113,6 +121,7 @@ class ClientController extends Controller
             'birthday' => $request->birthday,
             'tags' => $request->tags ?? [],
             'preferences' => $request->preferences ?? [],
+            'attendance_count' => 0, // Initial visitas
         ]);
 
         $request->user()->tenant->verifyAndNotifyLimit();
@@ -164,17 +173,18 @@ class ClientController extends Controller
         $request->validate([
             'name' => 'sometimes|string',
             'phone' => 'sometimes|string',
+            'company_name' => 'sometimes|string|nullable',
             'city' => 'sometimes|string|nullable',
             'province' => 'sometimes|string|nullable',
             'postal_code' => 'sometimes|string|nullable',
             'address' => 'sometimes|string|nullable',
             'email' => 'sometimes|email|nullable',
-            'is_premium' => 'sometimes|boolean',
             'points_balance' => 'sometimes|integer',
             'source' => 'sometimes|string',
             'birthday' => 'sometimes|date|nullable',
             'tags' => 'sometimes|array|nullable',
             'preferences' => 'sometimes|array|nullable',
+            'photo' => 'sometimes|string|nullable',
         ]);
 
         if ($request->has('phone')) {
@@ -182,12 +192,22 @@ class ClientController extends Controller
             if (Customer::where('phone', $phone)->where('id', '!=', $id)->exists()) {
                 return ApiResponse::error('Telefone já cadastrado', 'DUPLICATE_PHONE', 409);
             }
-            $request->merge(['phone' => $phone]);
+            $customer->phone = $phone;
+        }
+
+        if ($request->photo) {
+            // Delete old photo if exists
+            if ($customer->photo_url && \Illuminate\Support\Facades\Storage::disk('public')->exists($customer->photo_url)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($customer->photo_url);
+            }
+            $customer->photo_url = $this->processAndStorePhoto($request->photo);
         }
 
         $oldPoints = $customer->points_balance;
         
-        $customer->fill($request->all());
+        $data = $request->except(['phone', 'photo', 'is_premium']);
+        $customer->fill($data);
+        $customer->is_premium = false; // Always false now
         $customer->last_activity_at = now();
         $customer->save();
 
@@ -685,8 +705,7 @@ class ClientController extends Controller
                 'redemption_rate' => round($redemptionRate, 1),
                 'suggestions' => $suggestions,
                 'total_points_generated' => $totalPointsEarned,
-                'total_premium_customers' => Customer::where('is_premium', true)->count(),
-                'total_linked_cards' => \App\Models\LoyaltyCard::where('status', 'linked')->count(),
+                'total_visitas' => Customer::sum('attendance_count'),
                 'active_reminders' => CustomerReminder::with('customer:id,name,phone')
                     ->where('status', 'pending')
                     ->where('reminder_date', '>=', now()->toDateString())
@@ -698,6 +717,63 @@ class ClientController extends Controller
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Dashboard Metrics Error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
             return ApiResponse::error('Erro ao carregar métricas: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Process a base64 image: Crop to square (centralized), resize to 400x400,
+     * convert to WEBP and compress.
+     */
+    private function processAndStorePhoto(string $base64Image): string
+    {
+        try {
+            // Strip out header if present (data:image/png;base64,...)
+            if (preg_match('/^data:image\/(\w+);base64,/', $base64Image, $type)) {
+                $base64Image = substr($base64Image, strpos($base64Image, ',') + 1);
+                $type = strtolower($type[1]); // png, jpg, etc.
+            } else {
+                throw new \Exception('Invalid image format');
+            }
+
+            $imgData = base64_decode($base64Image);
+            if (!$imgData) throw new \Exception('Base64 decode failed');
+
+            $sourceImage = imagecreatefromstring($imgData);
+            if (!$sourceImage) throw new \Exception('Failed to create image from string');
+
+            $width = imagesx($sourceImage);
+            $height = imagesy($sourceImage);
+
+            // 1. Crop to square (centralized)
+            $size = min($width, $height);
+            $x = ($width - $size) / 2;
+            $y = ($height - $size) / 2;
+
+            $squareImage = imagecreatetruecolor(400, 400);
+            
+            // Preserve transparency for PNGs before conversion to webp
+            imagealphablending($squareImage, false);
+            imagesavealpha($squareImage, true);
+            
+            imagecopyresampled($squareImage, $sourceImage, 0, 0, $x, $y, 400, 400, $size, $size);
+
+            // 2. Generate filename
+            $filename = 'customers/' . uniqid() . '.webp';
+            
+            // 3. Save as WEBP with compression
+            ob_start();
+            imagewebp($squareImage, null, 80); // 80 quality (approx 80-120KB)
+            $webpData = ob_get_clean();
+
+            \Illuminate\Support\Facades\Storage::disk('public')->put($filename, $webpData);
+
+            imagedestroy($sourceImage);
+            imagedestroy($squareImage);
+
+            return $filename;
+        } catch (\Exception $e) {
+            Log::error('Photo processing failed: ' . $e->getMessage());
+            return '';
         }
     }
 }
