@@ -422,6 +422,16 @@ export const AccountTab: React.FC = () => {
             </div>
           </div>
 
+          <div className="pt-8 border-t border-gray-100 dark:border-gray-800 space-y-4">
+            <h2 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight flex items-center gap-3">
+              <Smartphone className="w-5 h-5 text-primary-500" /> Gerenciar Dispositivos (Totens)
+            </h2>
+            <DevicesTab
+              tenantSlug={tenantInfo.slug}
+              tenantPlan={tenantInfo.plan as any}
+            />
+          </div>
+
           {/* Plan Status & Limits Unified Card */}
           <Card className="p-0 border-none shadow-xl overflow-hidden bg-white dark:bg-slate-900">
             <div className="bg-gradient-to-r from-primary-600 to-primary-400 p-6">
@@ -529,16 +539,6 @@ export const AccountTab: React.FC = () => {
           </Button>
         </div>
       </Card>
-
-      <div className="pt-8 border-t border-gray-100 dark:border-gray-800">
-        <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight mb-4 flex items-center gap-3">
-          <Smartphone className="w-6 h-6 text-primary-500" /> Gerenciar Dispositivos (Totens)
-        </h2>
-        <DevicesTab
-          tenantSlug={tenantInfo.slug}
-          tenantPlan={tenantInfo.plan as any}
-        />
-      </div>
 
       {modal.isOpen && (
         <StatusModal
