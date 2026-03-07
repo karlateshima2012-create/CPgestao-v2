@@ -22,11 +22,13 @@ class Device extends Model
         'active',
         'telegram_chat_id',
         'responsible_name',
+        'telegram_sound_points',
     ];
 
     protected $casts = [
         'auto_approve' => 'boolean',
         'active' => 'boolean',
+        'telegram_sound_points' => 'boolean',
     ];
 
     /**

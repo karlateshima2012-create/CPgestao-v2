@@ -403,11 +403,8 @@ class PublicTerminalController extends Controller
                 $newMessage = "🆕 *Novo Cliente \(Pontuação Balcão\)*\n\n"
                             . "📞 *Telefone:* {$escPhone}";
                 
-                if ($device && $device->telegram_chat_id) {
-                    $this->telegramService->sendDirectMessage($device->telegram_chat_id, $newMessage);
-                } else {
-                    $this->telegramService->sendMessage($tenant->id, $newMessage);
-                }
+                // For New Registrations, we always use the General Chat ID (settings->telegram_chat_id)
+                $this->telegramService->sendMessage($tenant->id, $newMessage, 'registration');
             }
 
             // Consumption of token if present
@@ -532,8 +529,9 @@ class PublicTerminalController extends Controller
             } elseif ($isPro) {
                 $settings = \App\Models\TenantSetting::where('tenant_id', $tenant->id)->first();
                 $targetChatId = ($device && $device->telegram_chat_id) ? $device->telegram_chat_id : ($settings ? $settings->telegram_chat_id : null);
+                $isSoundEnabled = $device ? $device->telegram_sound_points : ($settings ? $settings->telegram_sound_points : true);
 
-                if ($targetChatId) {
+                if ($targetChatId && $isSoundEnabled) {
                     $locationName = $device ? ($device->responsible_name ?: $device->name) : 'Terminal Público';
                     $caption = "⭐ <b>Solicitação de ponto</b>\n\n"
                              . "<b>Cliente:</b> {$customer->name}\n"
@@ -552,7 +550,7 @@ class PublicTerminalController extends Controller
                         ]
                     ];
                     
-                    $this->telegramService->sendPhoto($tenant->id, $customer->photo_url_full, $caption, 'points', $replyMarkup);
+                    $this->telegramService->sendPhoto($tenant->id, $customer->photo_url_full, $caption, 'points', $replyMarkup, $targetChatId);
                 }
             }
 
@@ -719,8 +717,9 @@ class PublicTerminalController extends Controller
             } elseif ($requestRecord->status === 'pending' && ($tenant->plan === 'Pro' || $tenant->plan === 'pro')) {
                 $settings = \App\Models\TenantSetting::where('tenant_id', $tenant->id)->first();
                 $targetChatId = ($device && $device->telegram_chat_id) ? $device->telegram_chat_id : ($settings ? $settings->telegram_chat_id : null);
+                $isSoundEnabled = $device ? $device->telegram_sound_points : ($settings ? $settings->telegram_sound_points : true);
 
-                if ($targetChatId) {
+                if ($targetChatId && $isSoundEnabled) {
                     $locationName = $device ? ($device->responsible_name ?: $device->name) : 'Terminal Público';
                     
                     $caption = "👑 <b>Solicitação de Resgate</b>\n\n"
@@ -741,7 +740,7 @@ class PublicTerminalController extends Controller
                         ]
                     ];
                     
-                    $this->telegramService->sendPhoto($tenant->id, $customer->photo_url_full, $caption, 'points', $replyMarkup);
+                    $this->telegramService->sendPhoto($tenant->id, $customer->photo_url_full, $caption, 'points', $replyMarkup, $targetChatId);
                 }
             }
 

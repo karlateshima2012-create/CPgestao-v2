@@ -294,49 +294,6 @@ export const AccountTab: React.FC = () => {
             </div>
 
 
-
-            <div className="space-y-1 md:col-span-2">
-              <label className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1 flex items-center gap-2">
-                <ExternalLink className="w-3 h-3" /> LINK DA SUA PÁGINA PÚBLICA
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  readOnly
-                  value={`${window.location.origin}/p/${tenantInfo.slug}`}
-                  className="flex-1 px-4 py-3.5 bg-gray-50 dark:bg-gray-900/30 border border-gray-100 dark:border-gray-800 rounded-[15px] text-gray-500 font-medium text-sm outline-none"
-                />
-                <div className="flex flex-col items-center gap-1">
-                  <Button
-                    variant="secondary"
-                    className="px-4 rounded-[15px] border-gray-100 h-[52px]"
-                    type="button"
-                    onClick={async () => {
-                      const success = await copyToClipboard(`${window.location.origin}/p/${tenantInfo.slug}`);
-                      if (success) {
-                        setModal({
-                          isOpen: true,
-                          title: 'Link Copiado!',
-                          message: 'O link do terminal já está na sua área de transferência.',
-                          type: 'success'
-                        });
-                      } else {
-                        setModal({
-                          isOpen: true,
-                          title: 'Erro ao Copiar',
-                          message: 'Não foi possível copiar o link. Por favor, copie manualmente.',
-                          type: 'error'
-                        });
-                      }
-                    }}
-                  >
-                    <Copy className="w-4 h-4" />
-                  </Button>
-                  <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Copiar</span>
-                </div>
-              </div>
-              <p className="text-[10px] text-gray-400 ml-1 font-bold">Encaminhe este link para seus clientes se cadastarem ou consultarem saldo.</p>
-            </div>
           </div>
 
           {/* Telegram Notifications Section */}
@@ -387,21 +344,6 @@ export const AccountTab: React.FC = () => {
                   </label>
                 </div>
 
-                <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm">
-                  <div>
-                    <h5 className="text-sm font-semibold text-slate-800 dark:text-slate-200">Solicitações de pontos</h5>
-                    <p className="text-[10px] text-slate-500 mt-0.5">Notificar quando um cliente solicita ponto por visita</p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="sr-only peer"
-                      checked={telegramSettings.sound_points}
-                      onChange={(e) => setTelegramSettings({ ...telegramSettings, sound_points: e.target.checked })}
-                    />
-                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-primary-500"></div>
-                  </label>
-                </div>
 
                 <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm">
                   <div>

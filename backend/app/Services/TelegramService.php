@@ -9,14 +9,16 @@ use Illuminate\Support\Facades\Log;
 class TelegramService
 {
     /**
-     * Send a notification to the tenant's Telegram chat.
+     * Send a notification to the tenant's Telegram chat or a specific chat ID.
      */
-    public function sendMessage(string $tenantId, string $message, string $type = 'registration'): void
+    public function sendMessage(string $tenantId, string $message, string $type = 'registration', ?string $chatId = null): void
     {
         $settings = TenantSetting::withoutGlobalScopes()->where('tenant_id', $tenantId)->first();
         $botToken = config('services.telegram.bot_token');
 
-        if (!$settings || !$botToken || !$settings->telegram_chat_id) {
+        $targetChatId = $chatId ?: ($settings ? $settings->telegram_chat_id : null);
+
+        if (!$botToken || !$targetChatId) {
             return;
         }
 
@@ -24,23 +26,25 @@ class TelegramService
             $url = "https://api.telegram.org/bot{$botToken}/sendMessage";
             
             $disableNotification = false;
-            if ($type === 'registration') {
-                $disableNotification = !$settings->telegram_sound_registration;
-            } elseif ($type === 'points') {
-                $disableNotification = !$settings->telegram_sound_points;
-            } elseif ($type === 'reminder') {
-                $disableNotification = !$settings->telegram_sound_reminders;
+            if ($settings) {
+                if ($type === 'registration') {
+                    $disableNotification = !$settings->telegram_sound_registration;
+                } elseif ($type === 'points') {
+                    $disableNotification = !$settings->telegram_sound_points;
+                } elseif ($type === 'reminder') {
+                    $disableNotification = !$settings->telegram_sound_reminders;
+                }
             }
 
             $response = Http::post($url, [
-                'chat_id' => $settings->telegram_chat_id,
+                'chat_id' => $targetChatId,
                 'text' => $message,
                 'parse_mode' => 'HTML',
                 'disable_notification' => (bool)$disableNotification,
             ]);
 
             if ($response->failed()) {
-                Log::error("Telegram notification failed for tenant {$tenantId}: " . $response->body());
+                Log::error("Telegram notification failed for tenant {$tenantId} (Target: {$targetChatId}): " . $response->body());
             }
         } catch (\Exception $e) {
             Log::error("Telegram notification exception for tenant {$tenantId}: " . $e->getMessage());
@@ -48,27 +52,35 @@ class TelegramService
     }
 
     /**
-     * Send a photo notification to the tenant's Telegram chat.
+     * Send a photo notification to the tenant's Telegram chat or a specific chat ID.
      */
-    public function sendPhoto(string $tenantId, string $photoUrl, string $caption, string $type = 'points', $replyMarkup = null): void
+    public function sendPhoto(string $tenantId, ?string $photoUrl, string $caption, string $type = 'points', $replyMarkup = null, ?string $chatId = null): void
     {
         $settings = TenantSetting::withoutGlobalScopes()->where('tenant_id', $tenantId)->first();
         $botToken = config('services.telegram.bot_token');
 
-        if (!$settings || !$botToken || !$settings->telegram_chat_id) {
+        $targetChatId = $chatId ?: ($settings ? $settings->telegram_chat_id : null);
+
+        if (!$botToken || !$targetChatId) {
             return;
         }
 
         try {
+            // Fallback for photo
+            if (!$photoUrl) {
+                $this->sendMessage($tenantId, $caption, $type, $targetChatId);
+                return;
+            }
+
             $url = "https://api.telegram.org/bot{$botToken}/sendPhoto";
             
             $disableNotification = false;
-            if ($type === 'points') {
+            if ($settings && $type === 'points') {
                 $disableNotification = !$settings->telegram_sound_points;
             }
 
             $payload = [
-                'chat_id' => $settings->telegram_chat_id,
+                'chat_id' => $targetChatId,
                 'photo' => $photoUrl,
                 'caption' => $caption,
                 'parse_mode' => 'HTML',
@@ -82,7 +94,9 @@ class TelegramService
             $response = Http::post($url, $payload);
 
             if ($response->failed()) {
-                Log::error("Telegram photo notification failed for tenant {$tenantId}: " . $response->body());
+                // If photo fails, try sending as text
+                $this->sendMessage($tenantId, $caption, $type, $targetChatId);
+                Log::error("Telegram photo notification failed for tenant {$tenantId} (Target: {$targetChatId}): " . $response->body());
             }
         } catch (\Exception $e) {
             Log::error("Telegram photo notification exception for tenant {$tenantId}: " . $e->getMessage());

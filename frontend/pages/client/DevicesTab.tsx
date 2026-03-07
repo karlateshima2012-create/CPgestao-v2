@@ -26,7 +26,7 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug }
     // Totem State
     const [devices, setDevices] = useState<any[]>([]);
     const [editingTelegram, setEditingTelegram] = useState<string | null>(null);
-    const [telegramData, setTelegramData] = useState({ chat_id: '' });
+    const [telegramData, setTelegramData] = useState({ chat_id: '', responsible_name: '', sound_points: true });
     const [generalTelegramId, setGeneralTelegramId] = useState('');
     const [isEditingGeneral, setIsEditingGeneral] = useState(false);
 
@@ -79,7 +79,9 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug }
         setIsLoading(true);
         try {
             await api.put(`/client/devices/${deviceId}`, {
-                telegram_chat_id: telegramData.chat_id
+                telegram_chat_id: telegramData.chat_id,
+                responsible_name: telegramData.responsible_name,
+                telegram_sound_points: telegramData.sound_points
             });
             setModal({
                 isOpen: true, title: 'Configuração Salva',
@@ -99,64 +101,6 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug }
 
     return (
         <div className="space-y-6 animate-fade-in pb-12 w-full max-w-5xl mx-auto pt-6">
-            {/* SESSSÃO: CONFIGURAÇÃO DE NOTIFICAÇÃO CENTRAL */}
-            {tenantPlan === PlanType.PRO && (
-                <div className="bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 p-6 rounded-[15px] space-y-4">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h3 className="text-sm font-black text-blue-700 dark:text-blue-500 uppercase tracking-widest flex items-center gap-2">
-                                <MessageCircle className="w-5 h-5" /> ID para Aprovação de Pontos (Telegram)
-                            </h3>
-                            <p className="text-[10px] text-blue-600/70 font-bold mt-1">
-                                Este ID receberá os pedidos de aprovação dos Totens.
-                            </p>
-                        </div>
-                        {!isEditingGeneral && (
-                            <Button
-                                size="sm"
-                                variant="secondary"
-                                className="bg-white dark:bg-blue-900/40 text-blue-600 border-blue-200"
-                                onClick={() => setIsEditingGeneral(true)}
-                            >
-                                {generalTelegramId ? 'Alterar ID' : 'Configurar'}
-                            </Button>
-                        )}
-                    </div>
-
-                    {isEditingGeneral ? (
-                        <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30 space-y-3 animate-fade-in shadow-sm">
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Seu Chat ID do Telegram</label>
-                                    <a
-                                        href="https://t.me/cpgestao_fidelidade_bot"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-[9px] font-bold text-blue-500 hover:underline flex items-center gap-1 uppercase"
-                                    >
-                                        <HelpCircle className="w-3 h-3" /> Abrir Bot e pegar ID
-                                    </a>
-                                </div>
-                                <Input
-                                    placeholder="Ex: 123456789"
-                                    value={generalTelegramId}
-                                    onChange={e => setGeneralTelegramId(e.target.value)}
-                                />
-                            </div>
-                            <div className="flex gap-2 justify-end">
-                                <Button size="sm" variant="secondary" onClick={() => { setIsEditingGeneral(false); fetchGeneralSettings(); }}>Cancelar</Button>
-                                <Button size="sm" onClick={handleUpdateGeneralTelegram} disabled={isLoading} className="bg-blue-600 text-white hover:bg-blue-700">Salvar ID</Button>
-                            </div>
-                        </div>
-                    ) : generalTelegramId && (
-                        <div className="flex items-center gap-2 text-[11px] font-black">
-                            <span className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 px-3 py-1.5 rounded-lg border border-blue-200 dark:border-blue-800">
-                                ATIVO: {generalTelegramId}
-                            </span>
-                        </div>
-                    )}
-                </div>
-            )}
 
             {/* SESSÃO: GERENCIAR TOTENS */}
             <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-6 rounded-[15px] space-y-6">
@@ -240,7 +184,11 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug }
                                                     <button
                                                         onClick={() => {
                                                             setEditingTelegram(device.id);
-                                                            setTelegramData({ chat_id: device.telegram_chat_id || '' });
+                                                            setTelegramData({
+                                                                chat_id: device.telegram_chat_id || '',
+                                                                responsible_name: device.responsible_name || '',
+                                                                sound_points: device.telegram_sound_points ?? true
+                                                            });
                                                         }}
                                                         className="text-[10px] text-blue-500 hover:underline font-bold uppercase tracking-widest disabled:opacity-50"
                                                     >
@@ -266,8 +214,34 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug }
                                                         <Input
                                                             placeholder="Ex: 123456789"
                                                             value={telegramData.chat_id}
-                                                            onChange={e => setTelegramData({ chat_id: e.target.value })}
+                                                            onChange={e => setTelegramData({ ...telegramData, chat_id: e.target.value })}
                                                         />
+                                                    </div>
+
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Nome do Responsável / Local</label>
+                                                        <Input
+                                                            placeholder="Ex: Celular Balcão"
+                                                            value={telegramData.responsible_name}
+                                                            onChange={e => setTelegramData({ ...telegramData, responsible_name: e.target.value })}
+                                                        />
+                                                        <p className="text-[9px] text-gray-400 font-bold ml-1 italic">Aparecerá na mensagem do Telegram como '📍 Local'</p>
+                                                    </div>
+
+                                                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-100 dark:border-gray-800">
+                                                        <div>
+                                                            <h5 className="text-[10px] font-black text-slate-700 dark:text-slate-200 uppercase tracking-widest">Aviso Sonoro</h5>
+                                                            <p className="text-[9px] text-slate-500 font-bold">Ativar som para este totem no Telegram</p>
+                                                        </div>
+                                                        <label className="relative inline-flex items-center cursor-pointer">
+                                                            <input
+                                                                type="checkbox"
+                                                                className="sr-only peer"
+                                                                checked={telegramData.sound_points}
+                                                                onChange={(e) => setTelegramData({ ...telegramData, sound_points: e.target.checked })}
+                                                            />
+                                                            <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-slate-600 peer-checked:bg-primary-500"></div>
+                                                        </label>
                                                     </div>
                                                     <div className="flex gap-2 justify-end">
                                                         <Button size="sm" variant="secondary" onClick={() => setEditingTelegram(null)}>Cancelar</Button>
@@ -277,8 +251,18 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug }
                                             ) : (
                                                 device.telegram_chat_id ? (
                                                     <div className="flex items-center gap-4 text-[10px] font-medium text-gray-600 dark:text-gray-400">
-                                                        <span className="bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-md border border-blue-100 dark:border-blue-900/30">
-                                                            <b className="text-blue-500">CANAL ATIVO (CHAT ID):</b> {device.telegram_chat_id}
+                                                        <span className="bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-md border border-blue-100 dark:border-blue-900/30 flex flex-col gap-0.5">
+                                                            <span className="flex items-center gap-2">
+                                                                <b className="text-blue-500">CANAL ATIVO (ID):</b> {device.telegram_chat_id}
+                                                            </span>
+                                                            {device.responsible_name && (
+                                                                <span className="text-[9px] text-slate-500 font-bold flex items-center gap-1.5">
+                                                                    DESTINATÁRIO: {device.responsible_name}
+                                                                    <Badge color={device.telegram_sound_points ? 'blue' : 'gray'} className="text-[7px] px-1 py-0 uppercase">
+                                                                        {device.telegram_sound_points ? 'Com Som' : 'Silencioso'}
+                                                                    </Badge>
+                                                                </span>
+                                                            )}
                                                         </span>
                                                     </div>
                                                 ) : (
