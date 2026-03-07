@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Card, Button, Input, Badge, StatusModal } from '../../components/ui';
-import { Calendar, ShieldCheck, Upload, X, Image as ImageIcon, Lock, Send, ExternalLink, Eye, EyeOff, Copy, Settings, Rocket, ArrowUpCircle, Check } from 'lucide-react';
+import { Calendar, ShieldCheck, Upload, X, Image as ImageIcon, Lock, Send, ExternalLink, Eye, EyeOff, Copy, Settings, Rocket, ArrowUpCircle, Check, Smartphone } from 'lucide-react';
 import api from '../../services/api';
 import { copyToClipboard } from '../../utils/clipboard';
+import { DevicesTab } from './DevicesTab';
 
 export const AccountTab: React.FC = () => {
   const [logo, setLogo] = useState<string | null>(null);
@@ -528,6 +529,17 @@ export const AccountTab: React.FC = () => {
           </Button>
         </div>
       </Card>
+
+      <div className="pt-8 border-t border-gray-100 dark:border-gray-800">
+        <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight mb-4 flex items-center gap-3">
+          <Smartphone className="w-6 h-6 text-primary-500" /> Gerenciar Dispositivos (Totens)
+        </h2>
+        <DevicesTab
+          tenantSlug={tenantInfo.slug}
+          tenantPlan={tenantInfo.plan as any}
+        />
+      </div>
+
       {modal.isOpen && (
         <StatusModal
           isOpen={modal.isOpen}

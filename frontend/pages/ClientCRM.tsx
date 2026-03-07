@@ -8,7 +8,6 @@ import { EditorTab } from './client/EditorTab';
 import { ExportTab } from './client/ExportTab';
 import { AccountTab } from './client/AccountTab';
 import { LoyaltyTab } from './client/LoyaltyTab';
-import { DevicesTab } from './client/DevicesTab';
 import { VisitRecordsTab } from './client/VisitRecordsTab';
 import { StatusModal } from '../components/ui';
 import { copyToClipboard } from '../utils/clipboard';
@@ -206,7 +205,6 @@ export const ClientCRM: React.FC<ClientCRMProps> = ({ tenantPlan, contacts, setC
         />
       )}
       {activeTab === 'loyalty' && <LoyaltyTab contacts={contacts} tenantPlan={tenantPlan} />}
-      {activeTab === 'devices' && <DevicesTab tenantPlan={tenantPlan} tenantSlug={tenantSlug} contacts={contacts} />}
       {activeTab === 'visits' && <VisitRecordsTab />}
       {activeTab === 'clients' && (
         <ClientsTab contacts={contacts} onEdit={(c) => { setSelectedContact(c); onChangeTab('new'); }} onDelete={handleDelete} onNew={() => { setSelectedContact(null); onChangeTab('new'); }} onRefresh={onRefresh} />

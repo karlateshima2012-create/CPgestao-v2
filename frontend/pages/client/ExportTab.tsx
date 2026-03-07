@@ -41,6 +41,7 @@ const EXPORT_OPTIONS = [
 
 interface ExportTabProps {
   contacts: Contact[];
+  onExportSuccess?: (ids: string[]) => void;
 }
 
 export const ExportTab: React.FC<ExportTabProps> = ({ contacts: initialContacts }) => {
