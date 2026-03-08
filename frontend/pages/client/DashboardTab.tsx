@@ -125,7 +125,10 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
         <div className="flex flex-wrap items-center gap-3">
 
           <button
-            onClick={() => onChangeTab('new')}
+            onClick={() => {
+              if (typeof setSelectedContact === 'function') setSelectedContact(null);
+              onChangeTab('new');
+            }}
             className="px-5 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-black text-[9px] uppercase tracking-widest shadow-sm ring-1 ring-gray-200 dark:ring-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all flex items-center gap-2"
           >
             <UserPlus className="w-3.5 h-3.5" />

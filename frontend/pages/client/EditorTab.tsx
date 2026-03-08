@@ -617,25 +617,28 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
           <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2 mb-8"><Shield className="w-5 h-5 text-gray-400" /> Ações do Lojista</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={() => { setActionModal('add'); setActionData({ points: 1, reason: '' }); }}
-              className="h-16 flex items-center justify-center gap-3 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all rounded-[18px] font-black uppercase text-[10px] tracking-[0.15em] shadow-sm"
+              className="h-24 flex flex-col items-center justify-center gap-2 bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-700 hover:bg-gray-300 dark:hover:bg-gray-700 transition-all rounded-[20px] font-black uppercase text-[10px] tracking-widest shadow-sm leading-tight text-center px-4"
             >
-              <Plus className="w-4 h-4 text-emerald-500" /> Adicionar Pontos
+              <Plus className="w-5 h-5 text-emerald-500" />
+              <span>Adicionar Pontos</span>
             </Button>
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={() => { setActionModal('remove'); setActionData({ points: 1, reason: '' }); }}
-              className="h-16 flex items-center justify-center gap-3 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all rounded-[18px] font-black uppercase text-[10px] tracking-[0.15em] shadow-sm"
+              className="h-24 flex flex-col items-center justify-center gap-2 bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-700 hover:bg-gray-300 dark:hover:bg-gray-700 transition-all rounded-[20px] font-black uppercase text-[10px] tracking-widest shadow-sm leading-tight text-center px-4"
             >
-              <Minus className="w-4 h-4 text-rose-500" /> Remover Pontos
+              <Minus className="w-5 h-5 text-rose-500" />
+              <span>Remover Pontos</span>
             </Button>
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={() => { setActionModal('visit'); setActionData({ points: 1, reason: '' }); }}
-              className="h-16 flex items-center justify-center gap-3 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all rounded-[18px] font-black uppercase text-[10px] tracking-[0.15em] shadow-sm"
+              className="h-24 flex flex-col items-center justify-center gap-2 bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-700 hover:bg-gray-300 dark:hover:bg-gray-700 transition-all rounded-[20px] font-black uppercase text-[10px] tracking-widest shadow-sm leading-tight text-center px-4"
             >
-              <Star className="w-4 h-4 text-amber-500 fill-amber-500" /> Registrar Visita Manual
+              <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
+              <span>Registrar Visita Manual</span>
             </Button>
           </div>
         </Card>
