@@ -20,21 +20,21 @@ import { reportsService } from '../../services/api';
 
 const EXPORT_OPTIONS = [
   { key: 'name', label: 'Nome Completo' },
-  { key: 'email', label: 'Email' },
   { key: 'phone', label: 'Telefone' },
-  { key: 'city', label: 'Cidade' },
-  { key: 'province', label: 'Província / Estado' },
-  { key: 'address', label: 'Endereço' },
+  { key: 'email', label: 'E-mail' },
+  { key: 'company_name', label: 'Nome da Empresa' },
+  { key: 'birthday', label: 'Data de Aniversário' },
   { key: 'postal_code', label: 'CEP' },
-  { key: 'notes', label: 'Observações' },
-  { key: 'created_at', label: 'Data de Cadastro' },
-  { key: 'last_contacted', label: 'Último Contato' },
-  { key: 'reminder_date', label: 'Data do Lembrete' },
-  { key: 'reminder_text', label: 'Mensagem do Lembrete' },
+  { key: 'province', label: 'Província / Estado' },
+  { key: 'city', label: 'Cidade' },
+  { key: 'address', label: 'Endereço' },
   { key: 'source', label: 'Origem do Cadastro' },
-  { key: 'attendance_count', label: 'Total de Visitas' },
+  { key: 'notes', label: 'Observações' },
   { key: 'points_balance', label: 'Saldo de Pontos' },
+  { key: 'attendance_count', label: 'Total de Visitas' },
+  { key: 'average_ticket', label: 'Ticket Médio' },
   { key: 'loyalty_level_name', label: 'Nível de Fidelidade' },
+  { key: 'created_at', label: 'Data de Cadastro' },
 ];
 
 interface ExportTabProps {
