@@ -37,6 +37,26 @@ return new class extends Migration
             if (!Schema::hasColumn('customers', 'reminder_time')) {
                 $table->time('reminder_time')->nullable()->after('reminder_date');
             }
+
+            if (!Schema::hasColumn('customers', 'total_spent')) {
+                $table->decimal('total_spent', 15, 2)->default(0)->after('preferences');
+            }
+
+            if (!Schema::hasColumn('customers', 'average_ticket')) {
+                $table->decimal('average_ticket', 15, 2)->default(0)->after('total_spent');
+            }
+
+            if (!Schema::hasColumn('customers', 'attendance_count')) {
+                $table->integer('attendance_count')->default(0)->after('average_ticket');
+            }
+
+            if (!Schema::hasColumn('customers', 'tags')) {
+                $table->json('tags')->nullable()->after('birthday');
+            }
+
+            if (!Schema::hasColumn('customers', 'preferences')) {
+                $table->json('preferences')->nullable()->after('tags');
+            }
         });
 
         // Force check and add missing columns to visits table
