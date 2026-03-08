@@ -640,26 +640,7 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
 
       <Card className="p-8 border border-gray-200 dark:border-gray-800 w-full rounded-[24px]">
         <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2 mb-8"><BarChart3 className="w-5 h-5 text-gray-400" /> Perfil Estratégico</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="p-6 bg-gray-50 dark:bg-gray-800/50 rounded-[20px] border border-gray-100 space-y-4">
-            <div className="flex items-center justify-between">
-              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Tags</label>
-              <button onClick={() => setTagModal(true)} className="text-[9px] font-black text-white bg-gray-600 px-2.5 py-1 rounded-[6px] uppercase">+ Nova</button>
-            </div>
-            <div className="flex flex-wrap gap-2 min-h-[46px] p-3 bg-white dark:bg-gray-900 border border-gray-200 rounded-[12px]">
-              {(!formData.tags || formData.tags.length === 0) ? <div className="w-full text-center text-[10px] font-bold text-gray-400">Vazio</div> : formData.tags.map(t => <span key={t} onClick={() => toggleTagSelection(t)} className="px-2.5 py-1 rounded-[8px] text-[10px] font-black uppercase border cursor-pointer hover:bg-gray-50"><Check className="w-2.5 h-2.5 mr-1 inline" />{t}</span>)}
-            </div>
-            <div className="relative">
-              <div onClick={() => setIsTagSelectOpen(!isTagSelectOpen)} className="w-full h-10 px-4 flex items-center justify-between bg-white dark:bg-gray-900 border border-gray-200 rounded-[12px] cursor-pointer text-[10px] font-black text-gray-400 uppercase">Selecionar ▾</div>
-              {isTagSelectOpen && <div className="absolute z-20 top-full left-0 right-0 mt-2 p-4 bg-white dark:bg-gray-800 border border-gray-200 rounded-[20px] shadow-2xl max-h-[250px] overflow-y-auto">
-                {['Comportamento', 'Perfil', 'Serviço / Interesse', 'Relacionamento', 'Outro'].map(cat => {
-                  const items = availableTags.filter(t => t.category === cat && !formData.tags?.includes(t.name));
-                  if (!items.length) return null;
-                  return <div key={cat} className="mb-4 last:mb-0"><p className="text-[9px] font-black text-gray-400 uppercase mb-2 ml-1">{cat}</p><div className="flex flex-wrap gap-2">{items.map(tag => <span key={tag.id} onClick={() => { toggleTagSelection(tag.name); setIsTagSelectOpen(false); }} className={`px-2.5 py-1 rounded-[8px] text-[10px] font-black uppercase border cursor-pointer ${tag.color} opacity-60 hover:opacity-100`}>{tag.name}</span>)}</div></div>
-                })}
-              </div>}
-            </div>
-          </div>
+        <div className="grid grid-cols-1 gap-6">
           <div className="p-6 bg-gray-50 dark:bg-gray-800/50 rounded-[20px] border border-gray-100 flex flex-col space-y-4">
             <div className="space-y-2">
               <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">ORIGEM DO CLIENTE</label>
