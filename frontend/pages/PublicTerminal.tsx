@@ -862,24 +862,68 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           const goal = Number(foundCustomer.points_goal || storeInfo?.points_goal || 10);
           const canRedeem = balance >= goal;
           return (
-            <div className="p-6 md:p-10 text-center animate-fade-in space-y-8 w-full">
-              <div className="space-y-4">
-                <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-3xl flex items-center justify-center mx-auto shadow-inner"><UserCheck className="w-10 h-10 text-slate-900 dark:text-white" /></div>
-                <div className="space-y-1">
-                  <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Atendimento ao Cliente</h3>
-                  <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{foundCustomer?.name}</h2>
-                  <p className="text-sm font-bold text-slate-500">{foundCustomer?.phone}</p>
+            <div className="p-6 md:p-8 relative overflow-hidden animate-fade-in space-y-6 w-full flex flex-col items-center">
+              <button onClick={reset} className="absolute top-6 right-6 p-2.5 bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-md text-slate-500 hover:text-slate-900 rounded-full z-20 border border-slate-200/50 shadow-sm active:scale-90"><X className="w-5 h-5" /></button>
+
+              {/* Foto de Perfil */}
+              <div className="relative w-32 h-32 md:w-40 md:h-40 group mt-4">
+                <div className="w-full h-full rounded-full overflow-hidden border-4 border-white dark:border-slate-800 shadow-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center relative">
+                  {foundCustomer.foto_perfil_url ? (
+                    <img src={foundCustomer.foto_perfil_url} alt={foundCustomer.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-slate-900 flex items-center justify-center text-white font-black text-4xl leading-none">
+                      {foundCustomer.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                  {uploading && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  )}
+                </div>
+                <label className="absolute bottom-1 right-1 w-10 h-10 md:w-12 md:h-12 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full flex items-center justify-center cursor-pointer shadow-xl hover:scale-110 active:scale-90 transition-all border-4 border-white dark:border-slate-800 z-10">
+                  <Camera className="w-5 h-5 md:w-6 md:h-6" />
+                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
+                </label>
+              </div>
+
+              <div className="text-center space-y-2">
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em]">Atendimento ao Cliente</h3>
+                <p className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter leading-tight px-4">{foundCustomer?.name || 'Cliente'}</p>
+
+                {/* Badge de Nível */}
+                <div className="flex flex-col items-center gap-2">
+                  <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl border-2 bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                    <span className="text-[12px] font-black uppercase tracking-widest text-center">
+                      {foundCustomer.loyalty_level === 1 ? '🥉 BRONZE' :
+                        foundCustomer.loyalty_level === 2 ? '🥈 SILVER' :
+                          foundCustomer.loyalty_level === 3 ? '🥇 GOLD' :
+                            foundCustomer.loyalty_level_name || '🥉 Bronze'}
+                    </span>
+                  </div>
+                  <p className="text-[11px] font-bold text-slate-400">{foundCustomer?.phone}</p>
                 </div>
               </div>
-              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6 space-y-1">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Saldo Atual</p>
-                <p className="text-5xl font-black tracking-tighter text-slate-900 dark:text-white">{balance} <span className="text-xl text-slate-300">/ {goal}</span></p>
+
+              <div className="bg-white dark:bg-slate-800 rounded-[30px] p-8 md:px-14 text-slate-900 dark:text-white border border-slate-100 dark:border-slate-800 shadow-xl relative overflow-hidden">
+                <div className="text-center space-y-2">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Saldo Atual</p>
+                  <div className="flex items-baseline justify-center gap-2">
+                    <span className="text-7xl font-black tracking-tighter tabular-nums text-slate-900 dark:text-white">{balance}</span>
+                    <span className="text-2xl font-black text-slate-300 dark:text-slate-600">/ {goal}</span>
+                  </div>
+                </div>
               </div>
-              <div className="flex flex-col gap-4">
-                <Button onClick={() => handleAction(canRedeem ? 'redeem' : 'earn')} isLoading={loading} className={`h-20 ${canRedeem ? 'bg-amber-500' : 'bg-slate-900'} text-white rounded-2xl font-black uppercase text-lg shadow-xl`}>
+
+              <div className="flex flex-col gap-4 w-full">
+                <Button
+                  onClick={() => handleAction(canRedeem ? 'redeem' : 'earn')}
+                  isLoading={loading}
+                  className={`w-full h-20 ${canRedeem ? 'bg-amber-500 hover:bg-amber-600' : 'bg-slate-900 hover:bg-slate-800'} text-white rounded-[25px] font-black uppercase text-xl shadow-2xl transition-all active:scale-95`}
+                >
                   {canRedeem ? 'RESGATAR PRÊMIO' : 'LANÇAR PONTO'}
                 </Button>
-                <Button variant="ghost" onClick={reset} className="h-12 text-slate-400 font-bold uppercase text-xs">CANCELAR</Button>
+                <button onClick={reset} className="text-slate-400 font-bold uppercase text-[10px] tracking-widest hover:text-slate-600 transition-colors">CANCELAR</button>
               </div>
             </div>
           );
