@@ -119,7 +119,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-2">
         <div>
           <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Visão Geral</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1 text-lg">Dados convertidos em estratégia.</p>
+          <p className="text-gray-500 dark:text-gray-400 mt-1 text-lg"></p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -154,7 +154,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
             </div>
             <div className="space-y-1">
               <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Divulgação nas Redes Sociais</h3>
-              <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Envie este link no WhatsApp ou Bio do Instagram. Ofereça 1 ponto de boas-vindas!</p>
+              <p className="text-sm font-bold text-slate-500 dark:text-slate-400"></p>
             </div>
           </div>
 
@@ -180,7 +180,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
           </div>
           <div>
             <h2 className="text-xl font-extrabold tracking-tight text-gray-900 dark:text-white">Inteligência do Negócio</h2>
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Cards estratégicos sincronizados da aba exportar</p>
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-400"></p>
           </div>
         </div>
 
@@ -252,7 +252,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
 
       {/* Seção 1: Crescimento */}
       <section>
-        <SectionHeader title="Métricas de Crescimento" subtitle="Evolução da base de clientes" icon={Users} colorClass="bg-blue-500" />
+        <SectionHeader title="Métricas de Crescimento" subtitle="" icon={Users} colorClass="bg-blue-500" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <KpiCard
             label="Total de Clientes"
@@ -283,7 +283,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
       {suggestions.length > 0 && (
         <section className="bg-slate-50 dark:bg-slate-900/50 rounded-[32px] p-8 overflow-hidden relative border border-slate-100 dark:border-slate-800 shadow-sm">
           <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-primary-500/5 to-transparent pointer-events-none" />
-          <SectionHeader title="Insights Estratégicos" subtitle="Sugestões baseadas em dados reais" icon={Activity} colorClass="bg-slate-900" />
+          <SectionHeader title="Insights Estratégicos" subtitle="" icon={Activity} colorClass="bg-slate-900" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {suggestions.map((s: any, i: number) => (
               <div key={i} className="group p-6 bg-white dark:bg-slate-900/40 rounded-[24px] border border-slate-100 dark:border-slate-800 hover:shadow-md transition-all duration-300">
@@ -302,7 +302,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
 
       {/* Seção 2: Engajamento & Fidelidade */}
       <section>
-        <SectionHeader title="Engajamento & Fidelidade" subtitle="Retenção e saúde do programa" icon={Gift} colorClass="bg-rose-500" />
+        <SectionHeader title="Engajamento & Fidelidade" subtitle="" icon={Gift} colorClass="bg-rose-500" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <KpiCard
             label="Pontos Circulantes"
@@ -332,7 +332,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
       {/* Seção 4: Lembretes do CRM */}
       <section>
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
-          <SectionHeader title="Lembretes do CRM" subtitle="Próximas ações agendadas" icon={Activity} colorClass="bg-amber-500" />
+          <SectionHeader title="Lembretes do CRM" subtitle="" icon={Activity} colorClass="bg-amber-500" />
 
           {metrics?.active_reminders?.last_page > 1 && (
             <div className="flex items-center gap-2 bg-white dark:bg-gray-800 p-1 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm self-start md:self-auto">
@@ -408,7 +408,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
 
       {/* Seção 3: Performance Financeira */}
       <section>
-        <SectionHeader title="Performance Financeira" subtitle="Volume transacionado no CRM" icon={TrendingUp} colorClass="bg-emerald-500" />
+        <SectionHeader title="Performance Financeira" subtitle="" icon={TrendingUp} colorClass="bg-emerald-500" />
         <div className="grid grid-cols-1">
           <KpiCard
             label="Receita Registrada"
