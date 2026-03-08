@@ -46,6 +46,7 @@ export const AdminDashboard: React.FC = () => {
   const [manualPin, setManualPin] = useState('');
   const [tempPin, setTempPin] = useState<string | null>(null);
   const [globalMetrics, setGlobalMetrics] = useState<{ total_tenants: number; expiring_soon: number } | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
 
   const handleCopyPublicLink = async (slug: string) => {
@@ -827,10 +828,23 @@ export const AdminDashboard: React.FC = () => {
                                       {window.location.origin}/terminal/{editingTenant.slug}/{device.nfc_uid}
                                     </div>
                                     <button
-                                      onClick={() => copyToClipboard(`${window.location.origin}/terminal/${editingTenant.slug}/${device.nfc_uid}`)}
-                                      className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-md flex items-center gap-2"
+                                      onClick={() => {
+                                        const text = `${window.location.origin}/terminal/${editingTenant.slug}/${device.nfc_uid}`;
+                                        copyToClipboard(text);
+                                        setCopiedId(device.id);
+                                        setTimeout(() => setCopiedId(null), 2000);
+                                      }}
+                                      className={`px-4 py-2 ${copiedId === device.id ? 'bg-green-500 hover:bg-green-600' : 'bg-primary-500 hover:bg-primary-600'} text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-md flex items-center gap-2`}
                                     >
-                                      <Copy className="w-3.5 h-3.5" /> Copiar Link
+                                      {copiedId === device.id ? (
+                                        <>
+                                          <Check className="w-3.5 h-3.5" /> Copiado
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Copy className="w-3.5 h-3.5" /> Copiar Link
+                                        </>
+                                      )}
                                     </button>
                                   </div>
                                   <p className="text-[9px] text-gray-400 font-bold uppercase ml-1 italic">* Use este link exclusivamente nos totens físicos para liberar a função "Registrar Visita".</p>
