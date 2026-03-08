@@ -13,9 +13,13 @@ import {
   Crown,
   Smartphone,
   MousePointerClick,
-  ChevronLeft
+  ChevronLeft,
+  UserX,
+  MapPin,
+  Trophy
 } from 'lucide-react';
 import { Contact, PlanType } from '../../types';
+import { reportsService } from '../../services/api';
 
 interface DashboardTabProps {
   tenantPlan?: PlanType;
@@ -41,6 +45,25 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
   setSelectedContact,
   contacts,
 }) => {
+  const [insights, setInsights] = React.useState<any>(null);
+  const [loadingInsights, setLoadingInsights] = React.useState(true);
+
+  React.useEffect(() => {
+    fetchInsights();
+  }, []);
+
+  const fetchInsights = async () => {
+    try {
+      setLoadingInsights(true);
+      const res = await reportsService.getInsights();
+      setInsights(res.data);
+    } catch (error) {
+      console.error('Erro ao buscar insights:', error);
+    } finally {
+      setLoadingInsights(false);
+    }
+  };
+
   const suggestions = metrics?.suggestions || [];
 
   const SectionHeader = ({ title, subtitle, icon: Icon, colorClass }: any) => (
@@ -119,6 +142,28 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
         </div>
       </div>
 
+
+      {/* Sugestões Inteligentes */}
+      {suggestions.length > 0 && (
+        <section className="bg-slate-50 dark:bg-slate-900/50 rounded-[32px] p-8 overflow-hidden relative border border-slate-100 dark:border-slate-800 shadow-sm">
+          <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-primary-500/5 to-transparent pointer-events-none" />
+          <SectionHeader title="Insights Estratégicos" subtitle="Sugestões baseadas em dados reais" icon={Activity} colorClass="bg-slate-900" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {suggestions.map((s: any, i: number) => (
+              <div key={i} className="group p-6 bg-white dark:bg-slate-900/40 rounded-[24px] border border-slate-100 dark:border-slate-800 hover:shadow-md transition-all duration-300">
+                <div className="flex items-center gap-4 mb-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center bg-${s.color}-500/10 text-${s.color}-600 dark:text-${s.color}-400`}>
+                    <Star className="w-5 h-5 fill-current" />
+                  </div>
+                  <p className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">{s.title}</p>
+                </div>
+                <p className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-relaxed">{s.text}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Link de Divulgação Social */}
       <section className="relative overflow-hidden group">
         <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 via-transparent to-primary-500/5 dark:from-primary-900/20 pointer-events-none rounded-[32px]" />
@@ -147,26 +192,83 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
         </Card>
       </section>
 
-      {/* Sugestões Inteligentes */}
-      {suggestions.length > 0 && (
-        <section className="bg-slate-50 dark:bg-slate-900/50 rounded-[32px] p-8 overflow-hidden relative border border-slate-100 dark:border-slate-800 shadow-sm">
-          <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-primary-500/5 to-transparent pointer-events-none" />
-          <SectionHeader title="Insights Estratégicos" subtitle="Sugestões baseadas em dados reais" icon={Activity} colorClass="bg-slate-900" />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {suggestions.map((s: any, i: number) => (
-              <div key={i} className="group p-6 bg-white dark:bg-slate-900/40 rounded-[24px] border border-slate-100 dark:border-slate-800 hover:shadow-md transition-all duration-300">
-                <div className="flex items-center gap-4 mb-3">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center bg-${s.color}-500/10 text-${s.color}-600 dark:text-${s.color}-400`}>
-                    <Star className="w-5 h-5 fill-current" />
-                  </div>
-                  <p className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">{s.title}</p>
-                </div>
-                <p className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-relaxed">{s.text}</p>
-              </div>
-            ))}
+      {/* Seção de Inteligência (Insights) - Movida da aba Exportar */}
+      <section className="space-y-6">
+        <div className="flex items-center gap-3">
+          <div className={`p-2.5 rounded-2xl bg-slate-900 bg-opacity-10 dark:bg-opacity-20 shadow-sm ring-1 ring-inset ring-slate-900/20`}>
+            <TrendingUp className="w-5 h-5 text-slate-600" />
           </div>
-        </section>
-      )}
+          <div>
+            <h2 className="text-xl font-extrabold tracking-tight text-gray-900 dark:text-white">Inteligência do Negócio</h2>
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Cards estratégicos sincronizados da aba exportar</p>
+          </div>
+        </div>
+
+        {loadingInsights ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-pulse">
+            {[1, 2, 3].map(i => <div key={i} className="h-40 bg-slate-100 dark:bg-slate-800 rounded-[2rem]"></div>)}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Cards de Inatividade */}
+            <Card className="p-8 border-none bg-rose-50 dark:bg-rose-950/20 shadow-sm relative overflow-hidden group rounded-[2rem]">
+              <UserX className="absolute -right-4 -bottom-4 w-32 h-32 text-rose-500/10 group-hover:scale-110 transition-transform" />
+              <div className="relative z-10 space-y-4">
+                <p className="text-[11px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-widest">Alerta de Churn (Inativos)</p>
+                <div className="flex items-end gap-4">
+                  <div className="text-center">
+                    <p className="text-3xl font-black text-rose-700 dark:text-rose-300">{insights?.inactive?.days_30 || 0}</p>
+                    <p className="text-[9px] font-bold text-rose-500 uppercase">+30 dias</p>
+                  </div>
+                  <div className="w-px h-10 bg-rose-200 dark:bg-rose-800" />
+                  <div className="text-center">
+                    <p className="text-3xl font-black text-rose-700 dark:text-rose-300">{insights?.inactive?.days_60 || 0}</p>
+                    <p className="text-[9px] font-bold text-rose-500 uppercase">+60 dias</p>
+                  </div>
+                  <div className="w-px h-10 bg-rose-200 dark:bg-rose-800" />
+                  <div className="text-center">
+                    <p className="text-3xl font-black text-rose-700 dark:text-rose-300">{insights?.inactive?.days_90 || 0}</p>
+                    <p className="text-[9px] font-bold text-rose-500 uppercase">+90 dias</p>
+                  </div>
+                </div>
+                <p className="text-xs font-semibold text-rose-600/70 leading-tight">Clientes que pararam de registrar visitas recentemente.</p>
+              </div>
+            </Card>
+
+            {/* Ranking de Engajamento */}
+            <Card className="col-span-1 lg:col-span-1 p-8 border-none bg-amber-50 dark:bg-amber-950/20 shadow-sm overflow-hidden relative group rounded-[2rem]">
+              <Trophy className="absolute -right-4 -bottom-4 w-32 h-32 text-amber-500/10 group-hover:rotate-12 transition-transform" />
+              <div className="relative z-10 space-y-4">
+                <p className="text-[11px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest">Maiores Pontuadores</p>
+                <div className="space-y-2 max-h-[120px] overflow-y-auto no-scrollbar pr-2">
+                  {insights?.ranking?.map((c: any, i: number) => (
+                    <div key={c.id} className="flex items-center justify-between text-xs py-1 border-b border-amber-200/30">
+                      <span className="font-bold text-slate-700 dark:text-slate-300 truncate max-w-[120px]">{i + 1}. {c.name}</span>
+                      <Badge color="yellow" className="text-[9px]">{c.points_balance} pts</Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Card>
+
+            {/* Distribuição por Cidade */}
+            <Card className="p-8 border-none bg-sky-50 dark:bg-sky-950/20 shadow-sm relative overflow-hidden group rounded-[2rem]">
+              <MapPin className="absolute -right-4 -bottom-4 w-32 h-32 text-sky-500/10 group-hover:-translate-y-2 transition-transform" />
+              <div className="relative z-10 space-y-4">
+                <p className="text-[11px] font-black text-sky-600 dark:text-sky-400 uppercase tracking-widest">Cidades com Mais Ativos</p>
+                <div className="space-y-2 max-h-[120px] overflow-y-auto no-scrollbar pr-2">
+                  {insights?.geo?.length > 0 ? insights.geo.map((g: any) => (
+                    <div key={g.city} className="flex items-center justify-between text-xs py-1 border-b border-sky-200/30">
+                      <span className="font-bold text-slate-700 dark:text-slate-300">{g.city}</span>
+                      <span className="text-sky-600 font-black">{g.total}</span>
+                    </div>
+                  )) : <p className="text-[10px] text-sky-400 font-bold">Nenhum dado ativo capturado.</p>}
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
+      </section>
 
       {/* Seção 1: Crescimento */}
       <section>

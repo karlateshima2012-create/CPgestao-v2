@@ -83,6 +83,15 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug }
                                                 <Badge color={device.active ? 'green' : 'red'} className="text-[8px] px-1.5 py-0">
                                                     {device.active ? 'ATIVO' : 'PAUSADO'}
                                                 </Badge>
+                                                <a 
+                                                    href="https://t.me/cpgestao_fidelidade_bot" 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer" 
+                                                    className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[8px] font-black uppercase tracking-widest rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-all border border-blue-100 dark:border-blue-800"
+                                                    title="Clique para pegar seu Chat ID no Telegram"
+                                                >
+                                                    <MessageCircle className="w-2.5 h-2.5" /> Pegar ID
+                                                </a>
                                             </div>
                                             <p className="text-[10px] text-gray-400 font-mono select-all bg-gray-50 dark:bg-gray-800/50 px-2 py-0.5 rounded border border-gray-100/50 dark:border-gray-800/50 inline-block uppercase italic">
                                                 UID: {device.nfc_uid}
@@ -117,9 +126,6 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug }
                                             <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
                                                 <MessageCircle className="w-3 h-3 text-blue-500" /> ID TELEGRAM
                                             </label>
-                                            <a href="https://t.me/cpgestao_fidelidade_bot" target="_blank" rel="noopener noreferrer" className="text-[8px] font-bold text-blue-500 hover:underline uppercase flex items-center gap-1">
-                                                <HelpCircle className="w-2.5 h-2.5" /> Pegar ID
-                                            </a>
                                         </div>
                                         <Input
                                             placeholder="Ex: 1234567"

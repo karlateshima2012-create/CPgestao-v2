@@ -8,11 +8,7 @@ import {
   Settings2,
   CheckSquare,
   Search,
-  TrendingUp,
-  UserX,
-  MapPin,
   Calendar,
-  Trophy,
   Filter,
   FileSpreadsheet,
   FileCode
@@ -45,8 +41,6 @@ interface ExportTabProps {
 }
 
 export const ExportTab: React.FC<ExportTabProps> = ({ contacts: initialContacts }) => {
-  const [insights, setInsights] = useState<any>(null);
-  const [loadingInsights, setLoadingInsights] = useState(true);
   const [exportData, setExportData] = useState<any[]>([]);
   const [loadingExport, setLoadingExport] = useState(false);
 
@@ -57,22 +51,6 @@ export const ExportTab: React.FC<ExportTabProps> = ({ contacts: initialContacts 
     'name', 'email', 'phone', 'city', 'points_balance', 'attendance_count'
   ]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-
-  useEffect(() => {
-    fetchInsights();
-  }, []);
-
-  const fetchInsights = async () => {
-    try {
-      setLoadingInsights(true);
-      const res = await reportsService.getInsights();
-      setInsights(res.data);
-    } catch (error) {
-      console.error('Erro ao buscar insights:', error);
-    } finally {
-      setLoadingInsights(false);
-    }
-  };
 
   const handleFetchExport = async () => {
     try {
@@ -132,81 +110,6 @@ export const ExportTab: React.FC<ExportTabProps> = ({ contacts: initialContacts 
         <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Exportação & Inteligência</h1>
         <p className="text-lg text-slate-500 dark:text-slate-400 mt-2 font-medium">Relatórios estratégicos sincronizados em tempo real com seu CRM.</p>
       </div>
-
-      {/* Seção de Inteligência (Insights) */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-xl">
-            <TrendingUp className="w-5 h-5 text-primary-600" />
-          </div>
-          <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Inteligência do Negócio</h2>
-        </div>
-
-        {loadingInsights ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-pulse">
-            {[1, 2, 3].map(i => <div key={i} className="h-40 bg-slate-100 dark:bg-slate-800 rounded-[2rem]"></div>)}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Cards de Inatividade */}
-            <Card className="p-8 border-none bg-rose-50 dark:bg-rose-950/20 shadow-sm relative overflow-hidden group">
-              <UserX className="absolute -right-4 -bottom-4 w-32 h-32 text-rose-500/10 group-hover:scale-110 transition-transform" />
-              <div className="relative z-10 space-y-4">
-                <p className="text-[11px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-widest">Alerta de Churn (Inativos)</p>
-                <div className="flex items-end gap-4">
-                  <div className="text-center">
-                    <p className="text-3xl font-black text-rose-700 dark:text-rose-300">{insights?.inactive?.days_30 || 0}</p>
-                    <p className="text-[9px] font-bold text-rose-500 uppercase">+30 dias</p>
-                  </div>
-                  <div className="w-px h-10 bg-rose-200 dark:bg-rose-800" />
-                  <div className="text-center">
-                    <p className="text-3xl font-black text-rose-700 dark:text-rose-300">{insights?.inactive?.days_60 || 0}</p>
-                    <p className="text-[9px] font-bold text-rose-500 uppercase">+60 dias</p>
-                  </div>
-                  <div className="w-px h-10 bg-rose-200 dark:bg-rose-800" />
-                  <div className="text-center">
-                    <p className="text-3xl font-black text-rose-700 dark:text-rose-300">{insights?.inactive?.days_90 || 0}</p>
-                    <p className="text-[9px] font-bold text-rose-500 uppercase">+90 dias</p>
-                  </div>
-                </div>
-                <p className="text-xs font-semibold text-rose-600/70 leading-tight">Clientes que pararam de registrar visitas recentemente.</p>
-              </div>
-            </Card>
-
-            {/* Ranking de Engajamento */}
-            <Card className="col-span-1 lg:col-span-1 p-8 border-none bg-amber-50 dark:bg-amber-950/20 shadow-sm overflow-hidden relative group">
-              <Trophy className="absolute -right-4 -bottom-4 w-32 h-32 text-amber-500/10 group-hover:rotate-12 transition-transform" />
-              <div className="relative z-10 space-y-4">
-                <p className="text-[11px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest">Maiores Pontuadores</p>
-                <div className="space-y-2 max-h-[120px] overflow-y-auto no-scrollbar pr-2">
-                  {insights?.ranking?.map((c: any, i: number) => (
-                    <div key={c.id} className="flex items-center justify-between text-xs py-1 border-b border-amber-200/30">
-                      <span className="font-bold text-slate-700 dark:text-slate-300 truncate max-w-[120px]">{i + 1}. {c.name}</span>
-                      <Badge color="yellow" className="text-[9px]">{c.points_balance} pts</Badge>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </Card>
-
-            {/* Distribuição por Cidade */}
-            <Card className="p-8 border-none bg-sky-50 dark:bg-sky-950/20 shadow-sm relative overflow-hidden group">
-              <MapPin className="absolute -right-4 -bottom-4 w-32 h-32 text-sky-500/10 group-hover:-translate-y-2 transition-transform" />
-              <div className="relative z-10 space-y-4">
-                <p className="text-[11px] font-black text-sky-600 dark:text-sky-400 uppercase tracking-widest">Cidades com Mais Ativos</p>
-                <div className="space-y-2 max-h-[120px] overflow-y-auto no-scrollbar pr-2">
-                  {insights?.geo?.length > 0 ? insights.geo.map((g: any) => (
-                    <div key={g.city} className="flex items-center justify-between text-xs py-1 border-b border-sky-200/30">
-                      <span className="font-bold text-slate-700 dark:text-slate-300">{g.city}</span>
-                      <span className="text-sky-600 font-black">{g.total}</span>
-                    </div>
-                  )) : <p className="text-[10px] text-sky-400 font-bold">Nenhum dado ativo capturado.</p>}
-                </div>
-              </div>
-            </Card>
-          </div>
-        )}
-      </section>
 
       {/* Seção de Filtros e Exportação */}
       <section className="space-y-8">
