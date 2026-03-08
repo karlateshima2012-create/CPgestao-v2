@@ -214,23 +214,6 @@ export const ExportTab: React.FC<ExportTabProps> = ({ contacts: initialContacts 
           </Button>
         </div>
 
-        <Card className="p-10 bg-slate-900 rounded-[32px] text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10">
-            <div className="space-y-2">
-              <h4 className="text-xl font-black tracking-tight">Aviso de Segurança e Sincronização</h4>
-              <p className="text-sm text-slate-400 font-medium max-w-xl">
-                O arquivo gerado reflete o estado exato dos dados agora. Como você solicitou, as fotos de perfil são omitidas para maior segurança e leveza no processamento de planilhas.
-              </p>
-            </div>
-            <div className="bg-white/10 p-6 rounded-3xl border border-white/10 backdrop-blur-md">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Status do Banco</p>
-              <p className="text-2xl font-black text-emerald-400 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> 100% Sincronizado
-              </p>
-            </div>
-          </div>
-        </Card>
       </section>
 
       <StatusModal
