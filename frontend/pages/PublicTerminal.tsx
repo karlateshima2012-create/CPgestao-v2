@@ -874,7 +874,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               </div>
               <div className="flex flex-col gap-4">
                 <Button onClick={() => handleAction(canRedeem ? 'redeem' : 'earn')} isLoading={loading} className={`h-20 ${canRedeem ? 'bg-amber-500' : 'bg-slate-900'} text-white rounded-2xl font-black uppercase text-lg shadow-xl`}>
-                  {canRedeem ? 'RESGATAR PRÊMIO' : 'DANÇAR PONTO'}
+                  {canRedeem ? 'RESGATAR PRÊMIO' : 'LANÇAR PONTO'}
                 </Button>
                 <Button variant="ghost" onClick={reset} className="h-12 text-slate-400 font-bold uppercase text-xs">CANCELAR</Button>
               </div>
