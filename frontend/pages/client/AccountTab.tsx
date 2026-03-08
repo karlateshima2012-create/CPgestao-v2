@@ -239,7 +239,6 @@ export const AccountTab: React.FC = () => {
               Configurações gerais do estabelecimento.
             </p>
             <div className="flex flex-wrap justify-center md:justify-start gap-2">
-              <Badge color="blue">{tenantInfo.plan || 'Carregando...'}</Badge>
               <span className="flex items-center gap-1 text-xs text-green-600 font-bold uppercase tracking-tighter">
                 <ShieldCheck className="w-3.5 h-3.5" /> Conta Verificada
               </span>
