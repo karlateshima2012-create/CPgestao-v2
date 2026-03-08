@@ -11,16 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('customer_reminders', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
-            $table->foreignUuid('customer_id')->constrained()->onDelete('cascade');
-            $table->date('reminder_date');
-            $table->time('reminder_time');
-            $table->string('reminder_text');
-            $table->enum('status', ['pending', 'sent', 'cancelled'])->default('pending');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('customer_reminders')) {
+            Schema::create('customer_reminders', function (Blueprint $table) {
+                $table->uuid('id')->primary();
+                $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
+                $table->foreignUuid('customer_id')->constrained()->onDelete('cascade');
+                $table->date('reminder_date');
+                $table->time('reminder_time');
+                $table->string('reminder_text');
+                $table->enum('status', ['pending', 'sent', 'cancelled'])->default('pending');
+                $table->timestamps();
+            });
+        }
     }
 
     /**
