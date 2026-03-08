@@ -328,7 +328,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
     setLoading(true);
     try {
-      const res = await terminalService.lookup(tenantSlug, deviceUid, phone, qrToken);
+      const res = await terminalService.lookup(tenantSlug, deviceUid, phone, qrToken, sessionToken);
       if (res.data && res.data.customer_exists === false) {
         setMode('VISIT_NOT_FOUND');
       } else {
