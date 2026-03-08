@@ -660,49 +660,47 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 </div>
                 <div className="space-y-3 relative z-10">
                   <h3 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">Registrar Visita</h3>
-                  <p className="text-sm font-bold text-slate-500 dark:text-slate-400 max-w-sm">Toque no botão para registrar sua visita e ganhar pontos no programa.</p>
+                  <p className="text-sm font-bold text-slate-500 dark:text-slate-400 max-w-sm">Digite seu telefone e solicite o ponto desta visita.</p>
                 </div>
                 <div className="relative z-10 w-full max-w-xs mt-4">
                   <div className="h-16 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[22px] flex items-center justify-center font-black uppercase tracking-widest group-hover:scale-105 transition-transform shadow-lg text-sm">
-                    Registrar visita
+                    GANHAR PONTO
                   </div>
                 </div>
               </div>
             )}
 
-            {/* 2 Cards de tamanho igual um ao lado do outro */}
-            <div className={`grid ${(deviceUid || qrToken) ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2'} gap-4 md:gap-8`}>
+            {/* Outros 2 Botoes - Agora em Coluna no Mobile para Hierarquia */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
               {/* Card Cadastrar no Programa */}
               <div
                 onClick={() => setMode('REGISTER')}
-                className={`group cursor-pointer bg-white dark:bg-slate-800/80 rounded-[28px] p-6 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.08)] border-2 border-transparent transition-all hover:-translate-y-1 hover:border-slate-300 hover:shadow-[0_40px_80px_rgba(0,0,0,0.15)] flex flex-col items-center justify-center text-center space-y-4 ${!(deviceUid || qrToken) ? 'md:col-span-1 py-12 md:py-20 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border-slate-100 dark:border-slate-800' : ''}`}
+                className={`group cursor-pointer bg-white dark:bg-slate-800/80 rounded-[28px] p-6 md:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.08)] border-2 border-transparent transition-all hover:border-slate-300 hover:shadow-[0_40px_80px_rgba(0,0,0,0.15)] flex flex-col items-center justify-center text-center space-y-4 ${!(deviceUid || qrToken) ? 'md:col-span-1 py-12 md:py-20 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border-slate-100 dark:border-slate-800' : ''}`}
               >
                 <div className={`${!(deviceUid || qrToken) ? 'w-20 h-20' : 'w-14 h-14'} bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform`}>
                   <UserPlus className={`${!(deviceUid || qrToken) ? 'w-10 h-10' : 'w-7 h-7'} text-slate-900 dark:text-white`} />
                 </div>
-                <div className="space-y-2 flex-grow">
-                  <h3 className={`${!(deviceUid || qrToken) ? 'text-2xl md:text-3xl' : 'text-lg'} font-black text-slate-900 dark:text-white tracking-tight leading-tight`}>Entrar no Programa de Pontos</h3>
-                  <p className={`${!(deviceUid || qrToken) ? 'text-xs md:text-sm' : 'text-[10px]'} font-bold text-slate-400 dark:text-slate-500 max-w-xs mx-auto`}>Cadastre-se para começar a acumular pontos e ganhar prêmios.</p>
+                <div className="space-y-1 flex-grow">
+                  <h3 className={`${!(deviceUid || qrToken) ? 'text-2xl md:text-3xl' : 'text-lg'} font-black text-slate-900 dark:text-white tracking-tight leading-tight`}>Participar do programa de pontos</h3>
                 </div>
-                <div className={`${!(deviceUid || qrToken) ? 'h-14 px-10' : 'h-10 w-full'} bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center font-black uppercase ${!(deviceUid || qrToken) ? 'text-xs' : 'text-[10px]'} tracking-widest group-hover:bg-slate-200 dark:group-hover:bg-slate-600 transition-colors`}>
-                  Cadastrar agora.
+                <div className={`${!(deviceUid || qrToken) ? 'h-14 px-10' : 'h-12 w-full'} bg-slate-200 dark:bg-slate-700 rounded-xl flex items-center justify-center font-black uppercase ${!(deviceUid || qrToken) ? 'text-xs' : 'text-[11px]'} tracking-widest group-hover:bg-slate-300 dark:group-hover:bg-slate-600 transition-colors text-slate-900 dark:text-white`}>
+                  CADASTRAR
                 </div>
               </div>
 
               {/* Card Consultar Saldo */}
               <div
                 onClick={() => setMode('CONSULT')}
-                className={`group cursor-pointer bg-white dark:bg-slate-800/80 rounded-[28px] p-6 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.08)] border-2 border-transparent transition-all hover:-translate-y-1 hover:border-slate-300 hover:shadow-[0_40px_80px_rgba(0,0,0,0.15)] flex flex-col items-center justify-center text-center space-y-4 ${!(deviceUid || qrToken) ? 'md:col-span-1 py-12 md:py-20' : ''}`}
+                className={`group cursor-pointer bg-white dark:bg-slate-800/80 rounded-[28px] p-6 md:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.08)] border-2 border-transparent transition-all hover:border-slate-300 hover:shadow-[0_40px_80px_rgba(0,0,0,0.15)] flex flex-col items-center justify-center text-center space-y-4 ${!(deviceUid || qrToken) ? 'md:col-span-1 py-12 md:py-20' : ''}`}
               >
                 <div className={`${!(deviceUid || qrToken) ? 'w-20 h-20' : 'w-14 h-14'} bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform`}>
                   <Search className={`${!(deviceUid || qrToken) ? 'w-10 h-10' : 'w-7 h-7'} text-slate-900 dark:text-white`} />
                 </div>
-                <div className="space-y-2 flex-grow">
+                <div className="space-y-1 flex-grow">
                   <h3 className={`${!(deviceUid || qrToken) ? 'text-2xl md:text-3xl' : 'text-lg'} font-black text-slate-900 dark:text-white tracking-tight leading-tight`}>Ver Meus Pontos</h3>
-                  <p className={`${!(deviceUid || qrToken) ? 'text-xs md:text-sm' : 'text-[10px]'} font-bold text-slate-400 dark:text-slate-500 max-w-xs mx-auto`}>Confira seu saldo de pontos, metas e prêmios disponíveis.</p>
                 </div>
-                <div className={`${!(deviceUid || qrToken) ? 'h-14 px-10' : 'h-10 w-full'} bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center font-black uppercase ${!(deviceUid || qrToken) ? 'text-xs' : 'text-[10px]'} tracking-widest group-hover:bg-slate-200 dark:group-hover:bg-slate-600 transition-colors`}>
-                  Consultar saldo
+                <div className={`${!(deviceUid || qrToken) ? 'h-14 px-10' : 'h-12 w-full'} bg-slate-200 dark:bg-slate-700 rounded-xl flex items-center justify-center font-black uppercase ${!(deviceUid || qrToken) ? 'text-xs' : 'text-[11px]'} tracking-widest group-hover:bg-slate-300 dark:group-hover:bg-slate-600 transition-colors text-slate-900 dark:text-white`}>
+                  VER MEU SALDO
                 </div>
               </div>
             </div>
@@ -717,8 +715,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               </button>
             </div>
             <div className="space-y-3 pt-6">
-              <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">Pontuar visita ⭐</h2>
-              <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Digite seu telefone para registrar sua visita.</p>
+              <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">Ganhar Ponto ⭐</h2>
+              <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Digite seu telefone e solicite o ponto desta visita.</p>
             </div>
             <form onSubmit={handlePontuarVisita} className="space-y-8 max-w-sm mx-auto w-full">
               <div className="relative group">
@@ -734,7 +732,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               </div>
               <div className="relative">
                 <Button type="submit" isLoading={loading} className="w-full h-20 text-xl font-black uppercase tracking-widest bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.2)] transition-all active:scale-95 overflow-visible">
-                  {loading ? 'Registrando...' : 'Registrar visita'}
+                  {loading ? 'Solicitando...' : 'GANHAR PONTO'}
                 </Button>
 
                 {/* Micro-animação de Estrelas */}
