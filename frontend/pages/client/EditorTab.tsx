@@ -617,18 +617,21 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
           <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2 mb-8"><Shield className="w-5 h-5 text-gray-400" /> Ações do Lojista</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Button
+              variant="outline"
               onClick={() => { setActionModal('add'); setActionData({ points: 1, reason: '' }); }}
               className="h-16 flex items-center justify-center gap-3 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-2 border-gray-100 dark:border-gray-700 hover:border-gray-900 dark:hover:border-white transition-all rounded-[18px] font-black uppercase text-[10px] tracking-widest shadow-sm"
             >
               <Plus className="w-4 h-4 text-emerald-500" /> Adicionar Pontos
             </Button>
             <Button
+              variant="outline"
               onClick={() => { setActionModal('remove'); setActionData({ points: 1, reason: '' }); }}
               className="h-16 flex items-center justify-center gap-3 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-2 border-gray-100 dark:border-gray-700 hover:border-gray-900 dark:hover:border-white transition-all rounded-[18px] font-black uppercase text-[10px] tracking-widest shadow-sm"
             >
               <Minus className="w-4 h-4 text-rose-500" /> Remover Pontos
             </Button>
             <Button
+              variant="outline"
               onClick={() => { setActionModal('visit'); setActionData({ points: 1, reason: '' }); }}
               className="h-16 flex items-center justify-center gap-3 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-2 border-gray-100 dark:border-gray-700 hover:border-gray-900 dark:hover:border-white transition-all rounded-[18px] font-black uppercase text-[10px] tracking-widest shadow-sm"
             >
