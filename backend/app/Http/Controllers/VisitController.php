@@ -19,45 +19,52 @@ class VisitController extends Controller
      */
     public function index(Request $request)
     {
-        $tenantId = auth()->user()->tenant_id;
-        $query = Visit::where('tenant_id', $tenantId);
+        try {
+            $tenantId = auth()->user()->tenant_id;
+            $query = Visit::where('tenant_id', $tenantId);
 
-        // Filters
-        if ($request->has('status') && $request->status !== 'all') {
-            $query->where('status', $request->status);
-        }
-
-        if ($request->has('period')) {
-            $now = now();
-            switch ($request->period) {
-                case 'today':
-                    $query->whereDate('visit_at', $now->toDateString());
-                    break;
-                case '7days':
-                    $query->where('visit_at', '>=', $now->subDays(7));
-                    break;
-                case '30days':
-                    $query->where('visit_at', '>=', $now->subDays(30));
-                    break;
+            // Filters
+            if ($request->has('status') && $request->status !== 'all') {
+                $query->where('status', $request->status);
             }
+
+            if ($request->has('period')) {
+                $now = now();
+                switch ($request->period) {
+                    case 'today':
+                        $query->whereDate('visit_at', $now->toDateString());
+                        break;
+                    case '7days':
+                        $query->where('visit_at', '>=', $now->subDays(7));
+                        break;
+                    case '30days':
+                        $query->where('visit_at', '>=', $now->subDays(30));
+                        break;
+                }
+            }
+
+            if ($request->has('customer')) {
+                $c = $request->customer;
+                $query->where(function($q) use ($c) {
+                    $q->where('customer_name', 'like', "%{$c}%")
+                      ->orWhere('customer_phone', 'like', "%{$c}%");
+                });
+            }
+
+            $pendingCount = Visit::where('tenant_id', $tenantId)->where('status', 'pendente')->count();
+
+            $visits = $query->orderBy('visit_at', 'desc')->paginate(20);
+
+            return ApiResponse::ok([
+                'visits' => $visits,
+                'pending_count' => $pendingCount
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Visit List Error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return ApiResponse::error('Erro ao listar visitas: ' . $e->getMessage(), 'VISIT_LIST_ERROR', 500);
         }
-
-        if ($request->has('customer')) {
-            $c = $request->customer;
-            $query->where(function($q) use ($c) {
-                $q->where('customer_name', 'like', "%{$c}%")
-                  ->orWhere('customer_phone', 'like', "%{$c}%");
-            });
-        }
-
-        $pendingCount = Visit::where('tenant_id', $tenantId)->where('status', 'pendente')->count();
-
-        $visits = $query->orderBy('visit_at', 'desc')->paginate(20);
-
-        return ApiResponse::ok([
-            'visits' => $visits,
-            'pending_count' => $pendingCount
-        ]);
     }
 
     /**
@@ -164,7 +171,7 @@ class VisitController extends Controller
                 'foto_perfil_url' => $customer->foto_perfil_url,
                 'visit_at' => now(),
                 'origin' => $request->origin,
-                'plan_type' => auth()->user()->tenant->plan,
+                'plan_type' => auth()->user()->tenant?->plan ?? 'pro',
                 'status' => 'aprovado',
                 'points_granted' => $request->points,
                 'meta' => ['reason' => $request->reason],

@@ -96,64 +96,71 @@ class ClientController extends Controller
             return ApiResponse::error('Você atingiu o limite de contatos do seu plano. Realize o upgrade para continuar cadastrando.', 'PLAN_LIMIT_REACHED', 403);
         }
 
-        return DB::transaction(function() use ($request, $phone, $initialPoints, $signupBonus) {
-            $customer = Customer::create([
-                'name' => $request->name,
-                'phone' => $phone,
-                'company_name' => $request->company_name,
-                'email' => $request->email,
-                'city' => $request->city,
-                'province' => $request->province,
-                'postal_code' => $request->postal_code,
-                'address' => $request->address,
-                'points_balance' => $initialPoints + $signupBonus,
-                'source' => $request->source ?? 'crm',
-                'last_activity_at' => now(),
-                'notes' => $request->notes,
-                'last_contacted' => $request->last_contacted,
-                'reminder_date' => $request->reminder_date,
-                'reminder_text' => $request->reminder_text,
-                'birthday' => $request->birthday,
-                'tags' => $request->tags ?? [],
-                'preferences' => $request->preferences ?? [],
-                'attendance_count' => 0,
+        try {
+            return DB::transaction(function() use ($request, $phone, $initialPoints, $signupBonus) {
+                $customer = Customer::create([
+                    'name' => $request->name,
+                    'phone' => $phone,
+                    'company_name' => $request->company_name,
+                    'email' => $request->email,
+                    'city' => $request->city,
+                    'province' => $request->province,
+                    'postal_code' => $request->postal_code,
+                    'address' => $request->address,
+                    'points_balance' => $initialPoints + $signupBonus,
+                    'source' => $request->source ?? 'crm',
+                    'last_activity_at' => now(),
+                    'notes' => $request->notes,
+                    'last_contacted' => $request->last_contacted,
+                    'reminder_date' => $request->reminder_date,
+                    'reminder_text' => $request->reminder_text,
+                    'birthday' => $request->birthday,
+                    'tags' => $request->tags ?? [],
+                    'preferences' => $request->preferences ?? [],
+                    'attendance_count' => 0,
+                ]);
+
+                if ($request->photo) {
+                    $path = $this->photoService->processAndSave($request->photo, $customer->id);
+                    $customer->update(['foto_perfil_url' => $path]);
+                }
+
+                $request->user()->tenant->verifyAndNotifyLimit();
+
+                if ($initialPoints > 0) {
+                    \App\Models\PointMovement::create([
+                        'tenant_id' => $customer->tenant_id,
+                        'customer_id' => $customer->id,
+                        'type' => 'earn',
+                        'points' => $initialPoints,
+                        'origin' => 'crm_manual',
+                        'description' => 'Saldo inicial via CRM'
+                    ]);
+                }
+
+                if ($signupBonus > 0) {
+                    \App\Models\PointMovement::create([
+                        'tenant_id' => $customer->tenant_id,
+                        'customer_id' => $customer->id,
+                        'type' => 'earn',
+                        'points' => $signupBonus,
+                        'origin' => 'crm_bonus',
+                        'description' => 'Bônus de Cadastro'
+                    ]);
+                }
+
+                $escName = TelegramService::escapeMarkdownV2($customer->name);
+                $escPhone = TelegramService::escapeMarkdownV2($customer->phone);
+                $this->telegramService->sendMessage($customer->tenant_id, "👤 *Novo Cliente Cadastrado \(CRM\)*\n\n*Nome:* {$escName}\n*Telefone:* {$escPhone}");
+
+                return ApiResponse::ok($customer, "Contato criado com sucesso");
+            });
+        } catch (\Exception $e) {
+            \Log::error('Store Contact Error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
             ]);
-
-            if ($request->photo) {
-                $path = $this->photoService->processAndSave($request->photo, $customer->id);
-                $customer->update(['foto_perfil_url' => $path]);
-            }
-
-            $request->user()->tenant->verifyAndNotifyLimit();
-
-            if ($initialPoints > 0) {
-                \App\Models\PointMovement::create([
-                    'tenant_id' => $customer->tenant_id,
-                    'customer_id' => $customer->id,
-                    'type' => 'earn',
-                    'points' => $initialPoints,
-                    'origin' => 'crm_manual',
-                    'description' => 'Saldo inicial via CRM'
-                ]);
-            }
-
-            if ($signupBonus > 0) {
-                \App\Models\PointMovement::create([
-                    'tenant_id' => $customer->tenant_id,
-                    'customer_id' => $customer->id,
-                    'type' => 'earn',
-                    'points' => $signupBonus,
-                    'origin' => 'crm_bonus',
-                    'description' => 'Bônus de Cadastro'
-                ]);
-            }
-
-            $escName = TelegramService::escapeMarkdownV2($customer->name);
-            $escPhone = TelegramService::escapeMarkdownV2($customer->phone);
-            $this->telegramService->sendMessage($customer->tenant_id, "👤 *Novo Cliente Cadastrado \(CRM\)*\n\n*Nome:* {$escName}\n*Telefone:* {$escPhone}");
-
-            return ApiResponse::ok($customer, "Contato criado com sucesso");
-        });
+            return ApiResponse::error('Erro ao cadastrar contato: ' . $e->getMessage(), 'STORE_CONTACT_ERROR', 500);
+        }
     }
 
     public function updateContact(Request $request, $id)

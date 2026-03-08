@@ -17,12 +17,12 @@ class PointRequestService
         return DB::transaction(function () use ($request) {
             $customer = Customer::withoutGlobalScopes()->findOrFail($request->customer_id);
             $meta = $request->meta ?? [];
-            $pointsToAddRaw = (get_class($request) === 'App\Models\Visit') ? $request->points_granted : $request->requested_points;
+            $isVisit = $request instanceof \App\Models\Visit;
+            $pointsToAddRaw = $isVisit ? $request->points_granted : $request->requested_points;
             $isRedemption = $meta['is_redemption'] ?? false;
 
             if ($isRedemption) {
                 $goal = $meta['goal'] ?? 0;
-                $pointsToAddRaw = (get_class($request) === 'App\Models\Visit') ? $request->points_granted : $request->requested_points;
 
                 // Determine new level and any initial bonus for it
                 $loyalty = \App\Models\LoyaltySetting::withoutGlobalScopes()->where('tenant_id', $request->tenant_id)->first();
@@ -45,7 +45,7 @@ class PointRequestService
                 $customer->last_activity_at = now();
                 $customer->save();
 
-                $source = (get_class($request) === 'App\Models\Visit') ? $request->origin : $request->source;
+                $source = $isVisit ? $request->origin : $request->source;
 
                 // Log Redemption Movement
                 PointMovement::create([
@@ -54,7 +54,7 @@ class PointRequestService
                     'type' => 'redeem',
                     'points' => -$goal,
                     'origin' => $source,
-                    'device_id' => (get_class($request) === 'App\Models\PointRequest') ? $request->device_id : null,
+                    'device_id' => ($request instanceof \App\Models\PointRequest) ? $request->device_id : null,
                     'description' => 'Resgate de prêmio via: ' . $request->id,
                     'meta' => [
                         'request_id' => $request->id,
@@ -70,11 +70,10 @@ class PointRequestService
                     'type' => 'earn',
                     'points' => $pointsToAddRaw,
                     'origin' => $source,
-                    'device_id' => (get_class($request) === 'App\Models\PointRequest') ? $request->device_id : null,
+                    'device_id' => ($request instanceof \App\Models\PointRequest) ? $request->device_id : null,
                     'description' => 'Pontos da visita (Resgate) via: ' . $request->id,
                     'meta' => [
                         'request_id' => $request->id,
-                        'bonus_applied' => $bonus,
                     ]
                 ]);
             } else {
@@ -83,7 +82,7 @@ class PointRequestService
                 $customer->increment('attendance_count');
                 $customer->update(['last_activity_at' => now()]);
 
-                $source = (get_class($request) === 'App\Models\Visit') ? $request->origin : $request->source;
+                $source = $isVisit ? $request->origin : $request->source;
 
                 PointMovement::create([
                     'tenant_id' => $request->tenant_id,
