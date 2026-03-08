@@ -292,6 +292,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
       } else {
         setFoundCustomer(res.data);
         const isAdmin = !!localStorage.getItem('auth_token');
+
+        // SEGURANÇA VISUAL: Se não for admin, NUNCA mostra LOJISTA_ACTIONS
         if (isAdmin) {
           setMode('LOJISTA_ACTIONS');
         } else if (targetToken) {
