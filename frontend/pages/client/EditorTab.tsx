@@ -619,26 +619,26 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
             <Button
               variant="secondary"
               onClick={() => { setActionModal('add'); setActionData({ points: 1, reason: '' }); }}
-              className="h-24 flex flex-col items-center justify-center gap-2 bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-700 hover:bg-gray-300 dark:hover:bg-gray-700 transition-all rounded-[20px] font-black uppercase text-[10px] tracking-widest shadow-sm leading-tight text-center px-4"
+              className="h-24 flex flex-col items-center justify-center gap-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 hover:bg-gray-300 dark:hover:bg-gray-600 transition-all rounded-[20px] shadow-sm text-center px-4"
             >
-              <Plus className="w-5 h-5 text-emerald-500" />
-              <span>Adicionar Pontos</span>
+              <Plus className="w-5 h-5 text-emerald-600" />
+              <span className="text-[10px] font-black uppercase tracking-widest leading-tight">Adicionar Pontos</span>
             </Button>
             <Button
               variant="secondary"
               onClick={() => { setActionModal('remove'); setActionData({ points: 1, reason: '' }); }}
-              className="h-24 flex flex-col items-center justify-center gap-2 bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-700 hover:bg-gray-300 dark:hover:bg-gray-700 transition-all rounded-[20px] font-black uppercase text-[10px] tracking-widest shadow-sm leading-tight text-center px-4"
+              className="h-24 flex flex-col items-center justify-center gap-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 hover:bg-gray-300 dark:hover:bg-gray-600 transition-all rounded-[20px] shadow-sm text-center px-4"
             >
-              <Minus className="w-5 h-5 text-rose-500" />
-              <span>Remover Pontos</span>
+              <Minus className="w-5 h-5 text-rose-600" />
+              <span className="text-[10px] font-black uppercase tracking-widest leading-tight">Remover Pontos</span>
             </Button>
             <Button
               variant="secondary"
               onClick={() => { setActionModal('visit'); setActionData({ points: 1, reason: '' }); }}
-              className="h-24 flex flex-col items-center justify-center gap-2 bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-700 hover:bg-gray-300 dark:hover:bg-gray-700 transition-all rounded-[20px] font-black uppercase text-[10px] tracking-widest shadow-sm leading-tight text-center px-4"
+              className="h-24 flex flex-col items-center justify-center gap-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 hover:bg-gray-300 dark:hover:bg-gray-600 transition-all rounded-[20px] shadow-sm text-center px-4"
             >
               <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
-              <span>Registrar Visita Manual</span>
+              <span className="text-[10px] font-black uppercase tracking-widest leading-tight">Registrar Visita Manual</span>
             </Button>
           </div>
         </Card>
