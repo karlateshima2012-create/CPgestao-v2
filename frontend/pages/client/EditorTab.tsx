@@ -619,21 +619,21 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
             <Button
               variant="outline"
               onClick={() => { setActionModal('add'); setActionData({ points: 1, reason: '' }); }}
-              className="h-16 flex items-center justify-center gap-3 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-2 border-gray-100 dark:border-gray-700 hover:border-gray-900 dark:hover:border-white transition-all rounded-[18px] font-black uppercase text-[10px] tracking-widest shadow-sm"
+              className="h-16 flex items-center justify-center gap-3 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all rounded-[18px] font-black uppercase text-[10px] tracking-[0.15em] shadow-sm"
             >
               <Plus className="w-4 h-4 text-emerald-500" /> Adicionar Pontos
             </Button>
             <Button
               variant="outline"
               onClick={() => { setActionModal('remove'); setActionData({ points: 1, reason: '' }); }}
-              className="h-16 flex items-center justify-center gap-3 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-2 border-gray-100 dark:border-gray-700 hover:border-gray-900 dark:hover:border-white transition-all rounded-[18px] font-black uppercase text-[10px] tracking-widest shadow-sm"
+              className="h-16 flex items-center justify-center gap-3 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all rounded-[18px] font-black uppercase text-[10px] tracking-[0.15em] shadow-sm"
             >
               <Minus className="w-4 h-4 text-rose-500" /> Remover Pontos
             </Button>
             <Button
               variant="outline"
               onClick={() => { setActionModal('visit'); setActionData({ points: 1, reason: '' }); }}
-              className="h-16 flex items-center justify-center gap-3 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-2 border-gray-100 dark:border-gray-700 hover:border-gray-900 dark:hover:border-white transition-all rounded-[18px] font-black uppercase text-[10px] tracking-widest shadow-sm"
+              className="h-16 flex items-center justify-center gap-3 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all rounded-[18px] font-black uppercase text-[10px] tracking-[0.15em] shadow-sm"
             >
               <Star className="w-4 h-4 text-amber-500 fill-amber-500" /> Registrar Visita Manual
             </Button>
