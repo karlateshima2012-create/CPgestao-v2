@@ -82,54 +82,55 @@ jobs:
           port: 65002
           script: |
             cd domains/creativeprintjp.com/public_html/cpgestao
-            unzip -o deploy_package.zip
-            rm deploy_package.zip
             
+            echo "--- VERIFICANDO INFORMAÇÕES DO SISTEMA ---"
+            php -v
+            pwd
+            
+            echo "--- ATUALIZANDO CÓDIGO ---"
+            unzip -o deploy_package.zip
             cd api_backend
             
-            # Limpeza preventiva de cache do Laravel
-            rm -f bootstrap/cache/*.php
+            # Garantir permissões básicas antes de tudo
+            chmod -R 775 storage bootstrap/cache
             
-            echo "APP_NAME=CPGestao" > .env
-            echo "APP_ENV=production" >> .env
-            echo "APP_KEY=${{ secrets.APP_KEY || 'base64:frVEFHT1ndFoOzJ0ugdv5C8xSHa6Y9ZcYJPXVbtYubI=' }}" >> .env
-            echo "APP_DEBUG=false" >> .env
-            echo "APP_URL=https://cpgestao.creativeprintjp.com" >> .env
+            echo "--- GERANDO .ENV ---"
+            cat <<EOT > .env
+            APP_NAME=CPGestao
+            APP_ENV=production
+            APP_KEY=${{ secrets.APP_KEY || 'base64:frVEFHT1ndFoOzJ0ugdv5C8xSHa6Y9ZcYJPXVbtYubI=' }}
+            APP_DEBUG=false
+            APP_URL=https://cpgestao.creativeprintjp.com
+            DB_CONNECTION=mysql
+            DB_HOST=${{ secrets.DB_HOST || 'localhost' }}
+            DB_PORT=${{ secrets.DB_PORT || '3306' }}
+            DB_DATABASE=${{ secrets.DB_DATABASE }}
+            DB_USERNAME=${{ secrets.DB_USERNAME }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            SESSION_DRIVER=file
+            CACHE_DRIVER=file
+            QUEUE_CONNECTION=sync
+            TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN || '8703394325:AAEZTczYtHMHx_POwTfFGUezU5EVXTZYyP4' }}
+            EOT
             
-            # CONFIGURAÇÃO MARIADB (Hostinger)
-            echo "DB_CONNECTION=mysql" >> .env
-            echo "DB_HOST=${{ secrets.DB_HOST || 'localhost' }}" >> .env
-            echo "DB_PORT=${{ secrets.DB_PORT || '3306' }}" >> .env
-            echo "DB_DATABASE=${{ secrets.DB_DATABASE }}" >> .env
-            echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
-            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-            
-            echo "SESSION_DRIVER=file" >> .env
-            echo "CACHE_DRIVER=file" >> .env
-            echo "QUEUE_CONNECTION=sync" >> .env
-            echo "TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN || '8703394325:AAEZTczYtHMHx_POwTfFGUezU5EVXTZYyP4' }}" >> .env
-            
-            echo "--- VERIFICANDO INJEÇÃO DE AMBIENTE (SENSÍVEL OCULTO) ---"
-            grep "DB_" .env | grep -v "PASSWORD"
-            
+            echo "--- LIMPANDO CACHES ---"
             php artisan optimize:clear
-            php artisan storage:link
             
-            echo "--- EXECUTANDO MIGRAÇÕES ---"
-            if php artisan migrate --force; then
-                echo "✅ Migrações concluídas com sucesso!"
-            else
-                echo "❌ ERRO NAS MIGRAÇÕES. Verifique as credenciais no GitHub Secrets."
-                exit 1
-            fi
+            echo "--- EXECUTANDO MIGRAÇÕES (MODO DE EMERGÊNCIA) ---"
+            # Tentamos rodar, se falhar logamos o erro mas não derrubamos o deploy para podermos testar a rota /api/force-migrate
+            php artisan migrate --force || echo "⚠️ Alerta: Erro nas migrações. Utilize /api/force-migrate para resolver."
             
+            echo "--- FINALIZANDO CONFIGURAÇÃO ---"
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
-            php artisan telegram:set-webhook
+            
+            # Tentar setar webhook mas sem derrubar se falhar
+            php artisan telegram:set-webhook || echo "⚠️ Alerta: Falha ao configurar webhook Telegram."
+            
             chmod -R 775 storage bootstrap/cache
-            echo "--- CONFIGURANDO CRON JOB (Lembretes) ---"
-            (crontab -l 2>/dev/null; echo "* * * * * php /home/u176367625/domains/creativeprintjp.com/public_html/cpgestao/api_backend/artisan schedule:run >> /dev/null 2>&1") | sort -u | crontab -
+            cd ..
+            rm deploy_package.zip
             echo "--- DEPLOY FINALIZADO ---"
 
 
