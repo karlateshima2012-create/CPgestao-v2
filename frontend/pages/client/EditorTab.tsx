@@ -585,7 +585,7 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
           <Input label="CÓDIGO POSTAL" value={formData.postalCode || ''} onChange={e => setFormData(p => ({ ...p, postalCode: e.target.value }))} />
           <Input label="PROVÍNCIA *" value={formData.province || ''} onChange={e => handleCapitalize('province', e.target.value)} />
           <Input label="CIDADE *" value={formData.city || ''} onChange={e => handleCapitalize('city', e.target.value)} />
-          <div className="md:col-span-3"><Input label="ENDEREÇO" value={formData.address || ''} onChange={e => handleCapitalize('address', e.target.value)} /></div>
+          <div className="lg:col-span-2"><Input label="ENDEREÇO" value={formData.address || ''} onChange={e => handleCapitalize('address', e.target.value)} /></div>
         </div>
       </Card>
 
