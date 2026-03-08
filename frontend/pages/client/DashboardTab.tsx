@@ -143,26 +143,6 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
       </div>
 
 
-      {/* Sugestões Inteligentes */}
-      {suggestions.length > 0 && (
-        <section className="bg-slate-50 dark:bg-slate-900/50 rounded-[32px] p-8 overflow-hidden relative border border-slate-100 dark:border-slate-800 shadow-sm">
-          <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-primary-500/5 to-transparent pointer-events-none" />
-          <SectionHeader title="Insights Estratégicos" subtitle="Sugestões baseadas em dados reais" icon={Activity} colorClass="bg-slate-900" />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {suggestions.map((s: any, i: number) => (
-              <div key={i} className="group p-6 bg-white dark:bg-slate-900/40 rounded-[24px] border border-slate-100 dark:border-slate-800 hover:shadow-md transition-all duration-300">
-                <div className="flex items-center gap-4 mb-3">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center bg-${s.color}-500/10 text-${s.color}-600 dark:text-${s.color}-400`}>
-                    <Star className="w-5 h-5 fill-current" />
-                  </div>
-                  <p className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">{s.title}</p>
-                </div>
-                <p className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-relaxed">{s.text}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* Link de Divulgação Social */}
       <section className="relative overflow-hidden group">
@@ -298,6 +278,27 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
           />
         </div>
       </section>
+
+      {/* Sugestões Inteligentes (Insights Estratégicos) - Movido abaixo de Crescimento */}
+      {suggestions.length > 0 && (
+        <section className="bg-slate-50 dark:bg-slate-900/50 rounded-[32px] p-8 overflow-hidden relative border border-slate-100 dark:border-slate-800 shadow-sm">
+          <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-primary-500/5 to-transparent pointer-events-none" />
+          <SectionHeader title="Insights Estratégicos" subtitle="Sugestões baseadas em dados reais" icon={Activity} colorClass="bg-slate-900" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {suggestions.map((s: any, i: number) => (
+              <div key={i} className="group p-6 bg-white dark:bg-slate-900/40 rounded-[24px] border border-slate-100 dark:border-slate-800 hover:shadow-md transition-all duration-300">
+                <div className="flex items-center gap-4 mb-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center bg-${s.color}-500/10 text-${s.color}-600 dark:text-${s.color}-400`}>
+                    <Star className="w-5 h-5 fill-current" />
+                  </div>
+                  <p className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">{s.title}</p>
+                </div>
+                <p className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-relaxed">{s.text}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Seção 2: Engajamento & Fidelidade */}
       <section>
