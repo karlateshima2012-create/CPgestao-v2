@@ -9,7 +9,16 @@ use Illuminate\Support\Facades\Route;
 
 // Auth
 Route::get('/version', function() {
-    return response()->json(['version' => '2.2.47', 'time' => now()->toDateTimeString()]);
+    return response()->json(['version' => '2.2.48', 'time' => now()->toDateTimeString()]);
+});
+
+Route::get('/force-migrate', function() {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate --force');
+        return response()->json(['status' => 'success', 'output' => \Illuminate\Support\Facades\Artisan::output()]);
+    } catch (\Throwable $e) {
+        return response()->json(['error' => $e->getMessage()]);
+    }
 });
 
 Route::get('/force-process-reminders', function() {
