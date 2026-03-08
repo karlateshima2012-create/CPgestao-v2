@@ -12,8 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         // 1. Remove tables
+        Schema::disableForeignKeyConstraints();
         Schema::dropIfExists('loyalty_cards');
         Schema::dropIfExists('device_batches');
+        Schema::enableForeignKeyConstraints();
 
         // 2. Remove column from customers
         Schema::table('customers', function (Blueprint $table) {
