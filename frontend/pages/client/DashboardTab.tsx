@@ -119,7 +119,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-2">
         <div>
           <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Visão Geral</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1 text-lg"></p>
+          <p className="text-gray-500 dark:text-gray-400 mt-1 text-lg">Dados convertidos em estratégia.</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
