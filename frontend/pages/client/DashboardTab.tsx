@@ -153,7 +153,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
               <Smartphone className="w-8 h-8" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Divulgação nas Redes Sociais</h3>
+              <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Link de Divulgação nas Redes Sociais</h3>
               <p className="text-sm font-bold text-slate-500 dark:text-slate-400"></p>
             </div>
           </div>
@@ -166,7 +166,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
               onClick={onCopyLink}
               className={`h-14 px-8 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all shadow-lg ${copiedLink ? 'bg-emerald-500 text-white' : 'bg-primary-500 text-white hover:bg-primary-600'}`}
             >
-              {copiedLink ? 'Link Copiado! ✅' : 'Copiar Link agora'}
+              {copiedLink ? 'copiado! ✅' : 'copiar'}
             </Button>
           </div>
         </Card>
