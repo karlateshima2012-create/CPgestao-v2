@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Button, Input, Badge, StatusModal } from '../../components/ui';
 import {
     Smartphone, Monitor, Copy,
-    MessageCircle, HelpCircle
+    MessageCircle, HelpCircle, Volume2
 } from 'lucide-react';
 import { Device, Contact, PlanType } from '../../types';
 import api from '../../services/api';
@@ -111,62 +111,65 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug }
                                 </div>
 
                                 {/* Configuration Section (Direct Edit) */}
-                                {tenantPlan === PlanType.PRO && (
-                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 pt-5 border-t border-gray-50 dark:border-gray-800 items-end">
-                                        <div className="md:col-span-4 space-y-1.5">
-                                            <div className="flex items-center justify-between ml-1">
-                                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-                                                    <MessageCircle className="w-3 h-3 text-blue-500" /> ID TELEGRAM
-                                                </label>
-                                                <a href="https://t.me/cpgestao_fidelidade_bot" target="_blank" rel="noopener noreferrer" className="text-[8px] font-bold text-blue-500 hover:underline uppercase flex items-center gap-1">
-                                                    <HelpCircle className="w-2.5 h-2.5" /> Pegar ID
-                                                </a>
-                                            </div>
-                                            <Input
-                                                placeholder="Ex: 1234567"
-                                                value={device.telegram_chat_id || ''}
-                                                onChange={e => handleUpdateLocal(device.id, 'telegram_chat_id', e.target.value)}
-                                                onBlur={() => handleSaveDevice(device.id)}
-                                                className="h-10 text-xs bg-gray-50/50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 rounded-xl"
-                                            />
-                                        </div>
-
-                                        <div className="md:col-span-4 space-y-1.5">
-                                            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">
-                                                RESPONSÁVEL
+                                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 pt-5 border-t border-gray-50 dark:border-gray-800 items-end">
+                                    <div className="md:col-span-4 space-y-1.5">
+                                        <div className="flex items-center justify-between ml-1">
+                                            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                                                <MessageCircle className="w-3 h-3 text-blue-500" /> ID TELEGRAM
                                             </label>
-                                            <Input
-                                                placeholder="Ex: João / Balcão"
-                                                value={device.responsible_name || ''}
-                                                onChange={e => handleUpdateLocal(device.id, 'responsible_name', e.target.value)}
-                                                onBlur={() => handleSaveDevice(device.id)}
-                                                className="h-10 text-xs bg-gray-50/50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 rounded-xl"
-                                            />
+                                            <a href="https://t.me/cpgestao_fidelidade_bot" target="_blank" rel="noopener noreferrer" className="text-[8px] font-bold text-blue-500 hover:underline uppercase flex items-center gap-1">
+                                                <HelpCircle className="w-2.5 h-2.5" /> Pegar ID
+                                            </a>
                                         </div>
+                                        <Input
+                                            placeholder="Ex: 1234567"
+                                            value={device.telegram_chat_id || ''}
+                                            onChange={e => handleUpdateLocal(device.id, 'telegram_chat_id', e.target.value)}
+                                            onBlur={() => handleSaveDevice(device.id)}
+                                            className="h-10 text-xs bg-gray-50/50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 rounded-xl"
+                                        />
+                                    </div>
 
-                                        <div className="md:col-span-4 pb-0.5">
-                                            <div className="flex items-center justify-between h-10 px-4 bg-blue-50/30 dark:bg-blue-900/10 rounded-xl border border-blue-100/50 dark:border-blue-900/30">
+                                    <div className="md:col-span-4 space-y-1.5">
+                                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                                            RESPONSÁVEL
+                                        </label>
+                                        <Input
+                                            placeholder="Ex: João / Balcão"
+                                            value={device.responsible_name || ''}
+                                            onChange={e => handleUpdateLocal(device.id, 'responsible_name', e.target.value)}
+                                            onBlur={() => handleSaveDevice(device.id)}
+                                            className="h-10 text-xs bg-gray-50/50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 rounded-xl"
+                                        />
+                                    </div>
+
+                                    <div className="md:col-span-4 pb-0.5">
+                                        <div className="flex items-center justify-between h-10 px-4 bg-blue-50/30 dark:bg-blue-900/10 rounded-xl border border-blue-100/50 dark:border-blue-900/30">
+                                            <div className="flex items-center gap-2.5">
+                                                <div className={`p-1.5 rounded-lg ${device.telegram_sound_points ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-400'} transition-all`}>
+                                                    <Volume2 className="w-3 h-3" />
+                                                </div>
                                                 <div className="flex flex-col">
                                                     <span className="text-[9px] font-black text-blue-700 dark:text-blue-400 uppercase tracking-widest">Aviso Sonoro</span>
                                                     <span className="text-[7px] font-bold text-blue-600/60 uppercase">Notificação no Celular</span>
                                                 </div>
-                                                <label className="relative inline-flex items-center cursor-pointer">
-                                                    <input
-                                                        type="checkbox"
-                                                        className="sr-only peer"
-                                                        checked={!!device.telegram_sound_points}
-                                                        onChange={e => {
-                                                            const val = e.target.checked;
-                                                            handleUpdateLocal(device.id, 'telegram_sound_points', val);
-                                                            handleSaveDevice(device.id, { telegram_sound_points: val });
-                                                        }}
-                                                    />
-                                                    <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-slate-600 peer-checked:bg-blue-600"></div>
-                                                </label>
                                             </div>
+                                            <label className="relative inline-flex items-center cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    className="sr-only peer"
+                                                    checked={!!device.telegram_sound_points}
+                                                    onChange={e => {
+                                                        const val = e.target.checked;
+                                                        handleUpdateLocal(device.id, 'telegram_sound_points', val);
+                                                        handleSaveDevice(device.id, { telegram_sound_points: val });
+                                                    }}
+                                                />
+                                                <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-slate-600 peer-checked:bg-blue-600"></div>
+                                            </label>
                                         </div>
                                     </div>
-                                )}
+                                </div>
                             </div>
                         ))}
                     </div>
