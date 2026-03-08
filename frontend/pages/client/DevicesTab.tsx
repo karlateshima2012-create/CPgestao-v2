@@ -83,10 +83,10 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug }
                                                 <Badge color={device.active ? 'green' : 'red'} className="text-[8px] px-1.5 py-0">
                                                     {device.active ? 'ATIVO' : 'PAUSADO'}
                                                 </Badge>
-                                                <a 
-                                                    href="https://t.me/cpgestao_fidelidade_bot" 
-                                                    target="_blank" 
-                                                    rel="noopener noreferrer" 
+                                                <a
+                                                    href="https://t.me/cpgestao_fidelidade_bot"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
                                                     className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[8px] font-black uppercase tracking-widest rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-all border border-blue-100 dark:border-blue-800"
                                                     title="Clique para pegar seu Chat ID no Telegram"
                                                 >
@@ -152,26 +152,25 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug }
                                     <div className="md:col-span-4 pb-0.5">
                                         <div className="flex items-center justify-between h-10 px-4 bg-blue-50/30 dark:bg-blue-900/10 rounded-xl border border-blue-100/50 dark:border-blue-900/30">
                                             <div className="flex items-center gap-2.5">
-                                                <div className={`p-1.5 rounded-lg ${device.telegram_sound_points ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-400'} transition-all`}>
+                                                <div className={`p-1.5 rounded-lg ${device.telegram_sound_points !== false ? 'bg-primary-500 text-white' : 'bg-gray-200 text-gray-400'} transition-all`}>
                                                     <Volume2 className="w-3 h-3" />
                                                 </div>
                                                 <div className="flex flex-col">
-                                                    <span className="text-[9px] font-black text-blue-700 dark:text-blue-400 uppercase tracking-widest">Aviso Sonoro</span>
-                                                    <span className="text-[7px] font-bold text-blue-600/60 uppercase">Notificação no Celular</span>
+                                                    <span className="text-[9px] font-black text-primary-600 dark:text-primary-400 uppercase tracking-widest">Aviso Sonoro</span>
                                                 </div>
                                             </div>
                                             <label className="relative inline-flex items-center cursor-pointer">
                                                 <input
                                                     type="checkbox"
                                                     className="sr-only peer"
-                                                    checked={!!device.telegram_sound_points}
+                                                    checked={device.telegram_sound_points !== false}
                                                     onChange={e => {
                                                         const val = e.target.checked;
                                                         handleUpdateLocal(device.id, 'telegram_sound_points', val);
                                                         handleSaveDevice(device.id, { telegram_sound_points: val });
                                                     }}
                                                 />
-                                                <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-slate-600 peer-checked:bg-blue-600"></div>
+                                                <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-slate-600 peer-checked:bg-primary-500"></div>
                                             </label>
                                         </div>
                                     </div>
