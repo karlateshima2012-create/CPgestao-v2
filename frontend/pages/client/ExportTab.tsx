@@ -11,7 +11,9 @@ import {
   Calendar,
   Filter,
   FileSpreadsheet,
-  FileCode
+  FileCode,
+  UserPlus,
+  Zap
 } from 'lucide-react';
 import { Contact } from '../../types';
 import { reportsService } from '../../services/api';
@@ -51,6 +53,22 @@ export const ExportTab: React.FC<ExportTabProps> = ({ contacts: initialContacts 
     'name', 'email', 'phone', 'city', 'points_balance', 'attendance_count'
   ]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [filterMode, setFilterMode] = useState<'all' | 'new'>('all');
+
+  const setQuickFilterNew = () => {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    setDateFrom(thirtyDaysAgo.toISOString().split('T')[0]);
+    setDateTo(new Date().toISOString().split('T')[0]);
+    setFilterMode('new');
+  };
+
+  const clearFilters = () => {
+    setSearch('');
+    setDateFrom('');
+    setDateTo('');
+    setFilterMode('all');
+  };
 
   const handleFetchExport = async () => {
     try {
@@ -97,8 +115,6 @@ export const ExportTab: React.FC<ExportTabProps> = ({ contacts: initialContacts 
     const link = document.createElement("a");
     link.href = url;
     link.download = `relatorio_clientes_${format === 'xls' ? 'excel' : 'csv'}_${new Date().toISOString().split('T')[0]}.${format === 'xls' ? 'csv' : 'csv'}`;
-    // For Excel compatibility, even CSV with BOM works well, but we can label it as csv for both if we don't have a real xls generator.
-    // The requirement asks for CSV and Excel.
     link.click();
     setShowSuccessModal(true);
   };
@@ -113,11 +129,29 @@ export const ExportTab: React.FC<ExportTabProps> = ({ contacts: initialContacts 
 
       {/* Seção de Filtros e Exportação */}
       <section className="space-y-8">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl">
-            <Database className="w-5 h-5 text-slate-600" />
+        <div className="flex flex-col gap-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl">
+              <Database className="w-5 h-5 text-slate-600" />
+            </div>
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Relatório & Exportação</h2>
           </div>
-          <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Relatório & Exportação</h2>
+
+          {/* Quick Actions / Presets */}
+          <div className="flex flex-wrap gap-4">
+            <button
+              onClick={clearFilters}
+              className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border-2 ${filterMode === 'all' ? 'bg-slate-900 text-white border-slate-900 shadow-lg' : 'bg-white text-slate-400 border-slate-100 hover:border-slate-300'}`}
+            >
+              Todos os Dados
+            </button>
+            <button
+              onClick={setQuickFilterNew}
+              className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border-2 flex items-center gap-2 ${filterMode === 'new' ? 'bg-primary-500 text-white border-primary-500 shadow-lg shadow-primary-500/20' : 'bg-white text-slate-400 border-slate-100 hover:border-primary-200'}`}
+            >
+              <UserPlus className="w-3.5 h-3.5" /> Apenas Novos (30d)
+            </button>
+          </div>
         </div>
 
         <Card className="p-8 border-none shadow-xl shadow-slate-200/50 dark:shadow-none bg-white dark:bg-slate-900">
@@ -213,7 +247,6 @@ export const ExportTab: React.FC<ExportTabProps> = ({ contacts: initialContacts 
             <FileSpreadsheet className="w-6 h-6" /> Exportar em EXCEL
           </Button>
         </div>
-
       </section>
 
       <StatusModal
