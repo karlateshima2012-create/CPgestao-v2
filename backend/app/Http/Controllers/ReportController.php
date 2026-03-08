@@ -16,48 +16,55 @@ class ReportController extends Controller
      */
     public function getInsights(Request $request)
     {
-        $tenantId = auth()->user()->tenant_id;
+        try {
+            $tenantId = auth()->user()->tenant_id;
 
-        // 1. Ranking de clientes com mais pontos
-        $topEarnerRank = Customer::where('tenant_id', $tenantId)
-            ->orderBy('points_balance', 'desc')
-            ->limit(10)
-            ->get(['id', 'name', 'phone', 'points_balance', 'loyalty_level']);
+            // 1. Ranking de clientes com mais pontos
+            $topEarnerRank = Customer::where('tenant_id', $tenantId)
+                ->orderBy('points_balance', 'desc')
+                ->limit(10)
+                ->get(['id', 'name', 'phone', 'points_balance', 'loyalty_level']);
 
-        // 2. Clientes Inativos (30, 60, 90 dias)
-        $inactive30 = Customer::where('tenant_id', $tenantId)
-            ->where('last_activity_at', '<=', now()->subDays(30))
-            ->count();
-        
-        $inactive60 = Customer::where('tenant_id', $tenantId)
-            ->where('last_activity_at', '<=', now()->subDays(60))
-            ->count();
+            // 2. Clientes Inativos (30, 60, 90 dias)
+            $inactive30 = Customer::where('tenant_id', $tenantId)
+                ->where('last_activity_at', '<=', now()->subDays(30))
+                ->count();
             
-        $inactive90 = Customer::where('tenant_id', $tenantId)
-            ->where('last_activity_at', '<=', now()->subDays(90))
-            ->count();
+            $inactive60 = Customer::where('tenant_id', $tenantId)
+                ->where('last_activity_at', '<=', now()->subDays(60))
+                ->count();
+                
+            $inactive90 = Customer::where('tenant_id', $tenantId)
+                ->where('last_activity_at', '<=', now()->subDays(90))
+                ->count();
 
-        // 3. Distribuição Geográfica (Cidades com mais clientes ativos)
-        // Ativos = atividade nos últimos 30 dias
-        $geoDistribution = Customer::where('tenant_id', $tenantId)
-            ->whereNotNull('city')
-            ->where('city', '!=', '')
-            ->where('last_activity_at', '>=', now()->subDays(30))
-            ->select('city', DB::raw('count(*) as total'))
-            ->groupBy('city')
-            ->orderBy('total', 'desc')
-            ->limit(10)
-            ->get();
+            // 3. Distribuição Geográfica (Cidades com mais clientes ativos)
+            $geoDistribution = Customer::where('tenant_id', $tenantId)
+                ->whereNotNull('city')
+                ->where('city', '!=', '')
+                ->where('last_activity_at', '>=', now()->subDays(30))
+                ->select('city', DB::raw('count(*) as total'))
+                ->groupBy('city')
+                ->orderBy('total', 'desc')
+                ->limit(10)
+                ->get();
 
-        return ApiResponse::ok([
-            'ranking' => $topEarnerRank,
-            'inactive' => [
-                'days_30' => $inactive30,
-                'days_60' => $inactive60,
-                'days_90' => $inactive90,
-            ],
-            'geo' => $geoDistribution
-        ]);
+            return ApiResponse::ok([
+                'ranking' => $topEarnerRank,
+                'inactive' => [
+                    'days_30' => $inactive30,
+                    'days_60' => $inactive60,
+                    'days_90' => $inactive90,
+                ],
+                'geo' => $geoDistribution
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Insights Error: " . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'user' => auth()->id()
+            ]);
+            return response()->json(['ok' => false, 'error' => 'Internal error', 'message' => $e->getMessage()], 500);
+        }
     }
 
     /**

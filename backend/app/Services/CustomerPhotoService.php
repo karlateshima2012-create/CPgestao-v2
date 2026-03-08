@@ -51,24 +51,18 @@ class CustomerPhotoService
         // 1. Process Main Image (400x400, WEBP, central crop)
         $image = $this->manager->read($file);
         
-        // Square crop central
-        $width = $image->width();
-        $height = $image->height();
-        $size = min($width, $height);
-        
-        $image->crop($size, $size, position: 'center');
-        $image->resize(400, 400);
+        // Square crop central and resize using cover()
+        $image->cover(400, 400); 
         
         // Convert to WebP and optimize
-        $encoded = $image->toWebp(80); // 80 quality for balancing weight/quality
+        $encoded = $image->encodeByExtension('webp', quality: 80);
         
         Storage::disk('public')->put($path, (string) $encoded);
 
         // 2. Process Thumbnail (80x80, WEBP)
         $thumb = $this->manager->read($file);
-        $thumb->crop($size, $size, position: 'center');
-        $thumb->resize(80, 80);
-        $thumbEncoded = $thumb->toWebp(70);
+        $thumb->cover(80, 80);
+        $thumbEncoded = $thumb->encodeByExtension('webp', quality: 70);
         
         Storage::disk('public')->put($thumbPath, (string) $thumbEncoded);
 

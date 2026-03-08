@@ -17,6 +17,8 @@ class CheckTenantStatus
     {
         $user = $request->user();
         
+        \Illuminate\Support\Facades\Log::debug('Checking status for tenant', ['user' => $user?->id, 'tenant' => $user?->tenant_id]);
+
         if (!$user || !$user->tenant_id || $user->role !== 'client') {
             return $next($request);
         }
@@ -55,7 +57,7 @@ class CheckTenantStatus
              if (!$request->isMethod('GET')) {
                  return response()->json([
                     'ok' => false,
-                    'status' => 'sometimes|string|in:active,warning,expired,blocked',
+                    'error' => 'Limite Atingido',
                     'code' => 'LIMIT_REACHED',
                     'current' => $count,
                     'limit' => $limit

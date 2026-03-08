@@ -145,15 +145,8 @@ class PublicTerminalController extends Controller
         $deviceType = $device ? $device->type : 'web';
 
         if ($uid && $uid !== 'null') {
-            $card = \App\Models\LoyaltyCard::withoutGlobalScopes()
-                ->where('uid', $uid)
-                ->where('tenant_id', $tenant->id)
-                ->where('status', 'linked')
-                ->first();
-            if ($card && $card->customer) {
-                $prefillPhone = $card->customer->phone;
-                $deviceType = 'premium';
-            }
+             // Physical Loyalty Cards were deprecated in v2.2
+             // We only support Totems and Web flow now.
         }
 
         return ApiResponse::ok([
@@ -283,7 +276,6 @@ class PublicTerminalController extends Controller
             'points_goal' => $goal,
             'remaining' => $remaining,
             'history' => $history,
-            'is_premium' => $customer->is_premium,
             'loyalty_level' => $customer->loyalty_level,
             'loyalty_level_name' => $customer->loyalty_level_name,
             'foto_perfil_url' => $customer->photo_url_full,
@@ -471,9 +463,7 @@ class PublicTerminalController extends Controller
                 $bonusRequest->update(['status' => 'auto_approved', 'approved_at' => now()]);
             }
 
-            $pointsToAdd = $customer->is_premium 
-                ? ($loyalty->vip_points_per_scan ?? 2) 
-                : ($loyalty->regular_points_per_scan ?? 1); 
+            $pointsToAdd = ($loyalty->regular_points_per_scan ?? 1); 
 
             if (is_array($levelsConfig)) {
                 $lvlIdx = max(0, (int)$currentLevel - 1);
@@ -651,9 +641,7 @@ class PublicTerminalController extends Controller
                 return ApiResponse::error("Saldo insuficiente para resgate no nível {$levelName} (meta: {$goal})", 'INSUFFICIENT_POINTS', 409);
             }
 
-            $pointsToAdd = $customer->is_premium 
-                ? ($loyalty->vip_points_per_scan ?? 2) 
-                : ($loyalty->regular_points_per_scan ?? 1);
+            $pointsToAdd = ($loyalty->regular_points_per_scan ?? 1);
 
             // Important: As we are redeeming and moving to the next level, the visit point
             // should follow the configuration of that next level.
@@ -664,8 +652,6 @@ class PublicTerminalController extends Controller
 
             $bonus = $loyalty->redeem_bonus_points ?? 0;
             $vipInitial = $loyalty->vip_initial_points ?? 0;
-            
-            $wasPremium = $customer->is_premium;
 
             // Create Point Request (Redeem)
             $requestRecord = $this->createPointRequest([
@@ -681,7 +667,7 @@ class PublicTerminalController extends Controller
                     'goal' => $goal,
                     'bonus' => $bonus,
                     'vip_initial' => $vipInitial,
-                    'became_premium' => !$wasPremium
+                    'became_premium' => false
                 ]
             ]);
 
@@ -884,20 +870,7 @@ class PublicTerminalController extends Controller
                 // Link Card if deviceUid is present
                 $linkMessage = "";
                 if ($deviceUid && $deviceUid !== 'null') {
-                    $card = \App\Models\LoyaltyCard::withoutGlobalScopes()
-                        ->where('tenant_id', $tenant->id)
-                        ->where('uid', $deviceUid)
-                        ->first();
-                    
-                    if ($card && !$card->linked_customer_id) {
-                        $card->update([
-                            'linked_customer_id' => $customer->id,
-                            'status' => 'linked',
-                            'active' => true
-                        ]);
-                        $customer->update(['is_premium' => true]);
-                        $linkMessage = " + Cartão Vinculado";
-                    }
+                    // Physical card linking is deprecated
                 }
 
                 // Award Points (Welcome Bonus)
@@ -944,7 +917,6 @@ class PublicTerminalController extends Controller
                     'points_goal' => $goal,
                     'id' => $customer->id,
                     'name' => $customer->name,
-                    'is_premium' => (bool)$refreshed->is_premium,
                     'foto_perfil_url' => $refreshed->photo_url_full,
                     'foto_perfil_thumb_url' => $refreshed->foto_perfil_thumb_url,
                     'message' => $successMsg

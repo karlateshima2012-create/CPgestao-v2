@@ -36,9 +36,7 @@ class ClientController extends Controller
 
     public function getContacts(Request $request)
     {
-        $query = Customer::with(['devices' => function($q) {
-                $q->where('status', 'linked')->where('type', 'premium');
-            }]);
+        $query = Customer::query();
 
         if ($request->has('search')) {
             $s = $request->search;
@@ -57,9 +55,7 @@ class ClientController extends Controller
 
     public function getContact(Request $request, $id)
     {
-        $customer = Customer::with(['devices' => function($q) {
-                $q->where('status', 'linked')->where('type', 'premium');
-            }])->findOrFail($id);
+        $customer = Customer::findOrFail($id);
             
         return ApiResponse::ok($customer);
     }
@@ -110,7 +106,6 @@ class ClientController extends Controller
                 'province' => $request->province,
                 'postal_code' => $request->postal_code,
                 'address' => $request->address,
-                'is_premium' => false,
                 'points_balance' => $initialPoints + $signupBonus,
                 'source' => $request->source ?? 'crm',
                 'last_activity_at' => now(),
@@ -156,10 +151,6 @@ class ClientController extends Controller
             $escName = TelegramService::escapeMarkdownV2($customer->name);
             $escPhone = TelegramService::escapeMarkdownV2($customer->phone);
             $this->telegramService->sendMessage($customer->tenant_id, "👤 *Novo Cliente Cadastrado \(CRM\)*\n\n*Nome:* {$escName}\n*Telefone:* {$escPhone}");
-
-            $customer->load(['devices' => function($q) {
-                $q->where('status', 'linked')->where('type', 'premium');
-            }]);
 
             return ApiResponse::ok($customer, "Contato criado com sucesso");
         });
@@ -208,9 +199,8 @@ class ClientController extends Controller
 
         $oldPoints = $customer->points_balance;
         
-        $data = $request->except(['phone', 'photo', 'is_premium']);
+        $data = $request->except(['phone', 'photo']);
         $customer->fill($data);
-        $customer->is_premium = false; // Always false now
         $customer->last_activity_at = now();
         $customer->save();
 
@@ -229,9 +219,7 @@ class ClientController extends Controller
             }
         }
 
-        $customer->load(['devices' => function($q) {
-            $q->where('status', 'linked')->where('type', 'premium');
-        }, 'reminders' => function($q) {
+        $customer->load(['reminders' => function($q) {
             $q->orderBy('reminder_date', 'desc')->orderBy('reminder_time', 'desc')->limit(3);
         }]);
 
@@ -496,27 +484,13 @@ class ClientController extends Controller
 
     public function getDevices(Request $request)
     {
-        $type = $request->query('type', 'default');
         $status = $request->query('status');
 
-        // Se o tipo for 'default' ou 'totem', estamos falando de Terminais (Totens)
-        if ($type === 'default' || $type === 'totem') {
-            $query = Device::query();
-            if ($status) {
-                $query->where('active', $status === 'active');
-            }
-            return ApiResponse::ok($query->get());
-        }
-
-        // Para cartões premium, usamos o modelo LoyaltyCard
-        $query = \App\Models\LoyaltyCard::where('type', 'premium');
-
+        $query = Device::query();
         if ($status) {
-            $query->where('status', $status);
+            $query->where('active', $status === 'active');
         }
-
-        $devices = $query->with('customer')->get();
-        return ApiResponse::ok($devices);
+        return ApiResponse::ok($query->get());
     }
 
     public function storeDevice(Request $request)

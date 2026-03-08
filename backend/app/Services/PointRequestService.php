@@ -22,10 +22,7 @@ class PointRequestService
 
             if ($isRedemption) {
                 $goal = $meta['goal'] ?? 0;
-                $bonus = $meta['bonus'] ?? 0;
-                $pointsToAdd = $pointsToAddRaw - $bonus;
-                $vipInitial = $meta['vip_initial'] ?? 0;
-                $wasPremium = $customer->is_premium;
+                $pointsToAddRaw = (get_class($request) === 'App\Models\Visit') ? $request->points_granted : $request->requested_points;
 
                 // Determine new level and any initial bonus for it
                 $loyalty = \App\Models\LoyaltySetting::withoutGlobalScopes()->where('tenant_id', $request->tenant_id)->first();
@@ -41,13 +38,8 @@ class PointRequestService
                 }
 
                 // Update customer state
-                if (!$wasPremium) {
-                    $customer->is_premium = true;
-                }
-                
-                $appliedVipInitial = (!$wasPremium) ? $vipInitial : 0;
-                // New Balance = (Remaining from previous level) + visit points + vip reward bonus + new level initial bonus
-                $customer->points_balance = ($customer->points_balance - $goal) + $pointsToAddRaw + $appliedVipInitial + $initialLevelPoints;
+                // New Balance = (Remaining from previous level) + visit points + new level initial bonus
+                $customer->points_balance = ($customer->points_balance - $goal) + $pointsToAddRaw + $initialLevelPoints;
                 $customer->loyalty_level = $nextLevel;
                 $customer->attendance_count = ($customer->attendance_count ?? 0) + 1;
                 $customer->last_activity_at = now();
