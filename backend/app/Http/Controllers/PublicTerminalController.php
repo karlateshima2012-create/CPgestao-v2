@@ -91,10 +91,8 @@ class PublicTerminalController extends Controller
             return [$tenant, null];
         }
 
-        // Clean UID (Same logic as VipCardController to support numeric UIDs with separators)
-        $uid = preg_replace('/\D/', '', $uid);
-
         // New Device structure: uid is now nfc_uid
+        // We use the raw UID to support alphanumeric totems (e.g. Str::random(12))
         $device = Device::withoutGlobalScopes()->where('nfc_uid', $uid)
             ->where('tenant_id', $tenant->id)
             ->first();
