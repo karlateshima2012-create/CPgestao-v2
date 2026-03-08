@@ -560,7 +560,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         photo: customerData.photo
       });
       const isAdmin = !!localStorage.getItem('auth_token');
-      if (isAdmin && res.data.points_balance !== undefined) {
+
+      // SÓ MOSTRA AÇÕES DE LOJISTA SE: For admin E estiver em um terminal físico (com UID)
+      if (isAdmin && deviceUid && res.data.points_balance !== undefined) {
         setFoundCustomer(res.data);
         setMode('LOJISTA_ACTIONS');
         setModal({
