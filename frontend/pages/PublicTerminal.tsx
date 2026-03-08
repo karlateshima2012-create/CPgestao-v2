@@ -293,8 +293,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         setFoundCustomer(res.data);
         const isAdmin = !!localStorage.getItem('auth_token');
 
-        // SEGURANÇA VISUAL: Se não for admin, NUNCA mostra LOJISTA_ACTIONS
-        if (isAdmin) {
+        // SÓ MOSTRA AÇÕES DE LOJISTA SE: For admin E estiver em um terminal físico (com UID)
+        // Se for o link público web (/p/slug), mostra apenas o saldo (RESULT_CLIENT)
+        if (isAdmin && deviceUid) {
           setMode('LOJISTA_ACTIONS');
         } else if (targetToken) {
           handleEarn();
