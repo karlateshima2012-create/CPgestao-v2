@@ -685,19 +685,18 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         {
           mode === 'VISIT_NOT_FOUND' && (
             <div className="p-6 md:p-12 text-center animate-fade-in space-y-8 w-full min-h-[400px] flex flex-col justify-center items-center bg-white dark:bg-gray-950">
-              <div className="w-24 h-24 bg-rose-50 dark:bg-rose-500/10 rounded-full flex items-center justify-center text-rose-500">
+              <div className="w-24 h-24 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center text-slate-900 dark:text-white">
                 <UserPlus className="w-12 h-12" />
               </div>
               <div className="space-y-4 max-w-md">
                 <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">Este número ainda não participa.</h2>
                 <p className="text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
-                  Você ainda não tem um cadastro no nosso sistema.<br />
                   Cadastre-se para começar a ganhar pontos!
                 </p>
               </div>
               <div className="flex flex-col gap-4 w-full max-w-xs">
                 <Button onClick={() => setMode('REGISTER')} className="w-full h-18 bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-2xl font-black uppercase tracking-widest shadow-xl text-sm focus:ring-4 focus:ring-gray-300">
-                  CRIAR CADASTRO EM 10 SEGUNDOS
+                  CADASTRAR
                 </Button>
                 <button onClick={() => setMode('START')} className="text-gray-400 font-bold uppercase text-[10px] tracking-widest py-2">
                   Tentar outro número
