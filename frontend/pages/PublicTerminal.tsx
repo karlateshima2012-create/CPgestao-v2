@@ -390,6 +390,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           goal: earnRes.data.points_goal
         });
 
+        // IMPORTANTE: Definir o mode ativará o useEffect de redirecionamento automático
+        setMode(isAuto ? 'AUTO_SUCCESS' : 'WAITING_APPROVAL');
+
         setShowStars(true);
         setTimeout(() => setShowStars(false), 1500);
 
