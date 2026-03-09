@@ -610,7 +610,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   if (mode === 'INVALID_DEVICE') return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 font-sans"><p className="text-gray-400 font-bold">{errorMsg || 'DISPOSITIVO INVÁLIDO OU NÃO ENCONTRADO'}</p></div>;
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] dark:bg-gray-950 font-sans flex flex-col items-center pointer-events-auto">
+    <div className="min-h-screen bg-white dark:bg-gray-950 font-sans flex flex-col items-center pointer-events-auto">
       <div className="w-full md:w-[85%] max-w-4xl bg-white dark:bg-slate-900 md:rounded-t-none md:rounded-b-[50px] shadow-2xl relative z-20 flex flex-col overflow-hidden animate-fade-in border-none">
         <div className="h-80 md:h-[500px] w-full bg-slate-200 dark:bg-slate-800 relative shrink-0 overflow-hidden">
           {storeInfo?.cover_url ? (
@@ -645,7 +645,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         </div>
 
         {mode === 'START' && (
-          <div className="p-6 md:p-12 animate-fade-in w-full space-y-8 bg-[#FAFAFA] dark:bg-gray-950">
+          <div className="p-6 md:p-12 animate-fade-in w-full space-y-8 bg-white dark:bg-gray-950">
+
             {/* Card Principal - Pontuar (Destaque) */}
             {(deviceUid || qrToken) && (
               <div
