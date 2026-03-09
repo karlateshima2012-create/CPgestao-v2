@@ -137,6 +137,13 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   const [approvedData, setApprovedData] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
   const [showStars, setShowStars] = useState(false);
+  const [rewardModal, setRewardModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    points: 0,
+    goal: 10
+  });
 
   useEffect(() => {
     console.log("CP Gestao Version: 2.3.0 - Digital First");
@@ -384,46 +391,35 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
     try {
       const res = await terminalService.earn(tenantSlug, deviceUid, phone, qrToken, sessionToken);
       const isAuto = res.data.auto_approved;
+      const points = res.data.new_balance;
+      const goal = res.data.points_goal || storeInfo?.points_goal || 10;
       setRequestId(res.data.request_id);
 
-      if (isAdmin) {
-        // Se for admin, mostra modal em vez de mudar para tela de sucesso de cliente
-        if (isAuto) {
-          setFoundCustomer(prev => {
-            if (!prev) return prev;
-            return {
-              ...prev,
-              points_balance: res.data.new_balance,
-              loyalty_level: res.data.loyalty_level ?? prev.loyalty_level,
-              loyalty_level_name: res.data.loyalty_level_name || prev.loyalty_level_name,
-              points_goal: res.data.points_goal || prev.points_goal
-            };
-          });
-        }
+      setRewardModal({
+        isOpen: true,
+        title: isAuto ? 'Ponto Adicionado!' : 'Visita registrada!',
+        message: isAuto
+          ? 'Seu ponto foi creditado com sucesso!'
+          : 'Seu ponto foi enviado para confirmação da loja.\nEm breve ele será adicionado ao seu saldo.',
+        points: points || (foundCustomer?.points_balance + (isAuto ? 1 : 0)) || 0,
+        goal: goal
+      });
 
-        setModal({
-          isOpen: true,
-          title: isAuto ? 'Ponto Adicionado!' : 'Solicitação Enviada!',
-          message: res.data.message || (isAuto
-            ? `O ponto de fidelidade foi creditado com sucesso.`
-            : `Sua solicitação foi enviada. Assim que for confirmada, você poderá ver no saldo.`),
-          type: 'success'
+      if (isAdmin && isAuto) {
+        setFoundCustomer(prev => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            points_balance: res.data.new_balance,
+            loyalty_level: res.data.loyalty_level ?? prev.loyalty_level,
+            loyalty_level_name: res.data.loyalty_level_name || prev.loyalty_level_name,
+            points_goal: res.data.points_goal || prev.points_goal
+          };
         });
-      } else if (isAuto) {
-        setApprovedData({
-          customer_name: res.data.customer_name || foundCustomer?.name,
-          points_balance: res.data.new_balance,
-          loyalty_level_name: res.data.loyalty_level_name || foundCustomer?.loyalty_level_name,
-          points_goal: res.data.points_goal || storeInfo?.points_goal,
-          tenant_name: storeInfo?.name || 'Estabelecimento',
-          is_redemption: false
-        });
-        setMode('AUTO_SUCCESS');
-      } else {
-        setMode('WAITING_APPROVAL');
       }
 
       if (qrToken) setQrToken(null);
+      reset(); // Reset the background mode
     } catch (error: any) {
       setModal({
         isOpen: true,
@@ -1062,8 +1058,82 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
       </div>
 
       {modal.isOpen && <StatusModal isOpen={modal.isOpen} title={modal.title} message={modal.message} type={modal.type} theme="neutral" confirmLabel="OK" onClose={() => setModal(prev => ({ ...prev, isOpen: false }))} />}
-    </div >
+
+      <RewardSuccessModal
+        {...rewardModal}
+        onClose={() => setRewardModal(prev => ({ ...prev, isOpen: false }))}
+      />
+    </div>
   );
 };
+
+// --- RewardSuccessModal ---
+const RewardSuccessModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  message: string;
+  points: number;
+  goal: number;
+}> = ({ isOpen, onClose, title, message, points, goal }) => {
+  React.useEffect(() => {
+    if (isOpen && navigator.vibrate) {
+      navigator.vibrate(30);
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in transition-all">
+      <div className="bg-white dark:bg-gray-900 p-8 rounded-[40px] shadow-2xl text-center space-y-7 max-w-sm w-full animate-scale-in border border-gray-100 dark:border-gray-800 relative overflow-hidden">
+
+        {/* Estrelas Animadas */}
+        <div className="absolute inset-0 pointer-events-none">
+          <Star className="absolute top-10 left-10 w-4 h-4 text-amber-400 fill-amber-400 animate-star-rise" style={{ animationDelay: '0s' }} />
+          <Star className="absolute top-14 right-14 w-6 h-6 text-amber-400 fill-amber-400 animate-star-rise" style={{ animationDelay: '0.2s' }} />
+          <Star className="absolute top-12 left-1/2 w-3 h-3 text-amber-400 fill-amber-400 animate-star-rise" style={{ animationDelay: '0.4s' }} />
+          <Star className="absolute top-20 right-10 w-5 h-5 text-amber-400 fill-amber-400 animate-star-rise" style={{ animationDelay: '0.1s' }} />
+        </div>
+
+        <div className="w-24 h-24 bg-slate-50 dark:bg-slate-800 rounded-3xl flex items-center justify-center mx-auto shadow-inner border border-slate-100 dark:border-slate-700 animate-pulse-soft">
+          <CheckCircle2 className="w-12 h-12 text-slate-800 dark:text-white" />
+        </div>
+
+        <div className="space-y-3">
+          <h3 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none">{title}</h3>
+          <p className="text-sm font-bold text-slate-500 dark:text-slate-400 leading-relaxed whitespace-pre-line px-4">{message}</p>
+        </div>
+
+        {/* Progress Display */}
+        <div className="pt-2">
+          <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-[24px] border border-slate-100 dark:border-slate-800/50 relative">
+            <div className="flex justify-between items-end mb-3 px-1">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Progresso do Cliente</span>
+              <span className="text-base font-black text-slate-900 dark:text-white">{points || 0} <span className="text-slate-400">/ {goal || 10}</span></span>
+            </div>
+            <div className="w-full h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden p-0.5">
+              <div
+                className="h-full bg-slate-900 dark:bg-white rounded-full transition-all duration-1000 ease-out"
+                style={{ width: `${Math.min(100, ((points || 0) / (goal || 10)) * 100)}%` }}
+              />
+            </div>
+          </div>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pt-4">
+            Status: {points >= goal ? 'PRÊMIO DISPONÍVEL! 🎁' : `${points} de ${goal} pontos`}
+          </p>
+        </div>
+
+        <Button
+          className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[24px] font-black uppercase tracking-[0.2em] h-16 transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-slate-400/10"
+          onClick={onClose}
+        >
+          Fechar
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 
 export default PublicTerminal;

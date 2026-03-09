@@ -69,3 +69,20 @@
   stroke-dasharray: 200;
   animation: line-draw 1s ease-out forwards;
 }
+
+@keyframes pulse-soft {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+}
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+
+@keyframes star-rise {
+  0% { transform: translateY(0) scale(0); opacity: 0; }
+  20% { opacity: 1; transform: translateY(-5px) scale(1.2); }
+  100% { transform: translateY(-25px) scale(0.8); opacity: 0; }
+}
+.animate-star-rise {
+  animation: star-rise 0.8s ease-out forwards;
+}
