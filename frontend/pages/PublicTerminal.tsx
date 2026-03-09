@@ -620,27 +620,27 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           )}
           <div className="absolute inset-0 bg-black/15 mix-blend-multiply"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-        </div>
 
-        <div className="absolute top-0 left-0 right-0 h-full flex flex-col justify-end p-8 md:p-12 z-10 text-white">
-          <div className="flex flex-col md:flex-row md:items-end gap-6 md:gap-10 w-full">
-            <div className="w-32 h-32 md:w-52 md:h-52 rounded-[32px] shadow-[0_25px_60px_rgba(0,0,0,0.6)] flex shrink-0 items-center justify-center overflow-hidden ring-4 ring-white/20 backdrop-blur-xl bg-white/5 animate-scale-in">
-              {storeInfo?.logo_url ? (
-                <img src={storeInfo?.logo_url} alt={storeInfo?.name} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-white/10 flex items-center justify-center">
-                  <DefaultLogo className="w-full h-full p-8" />
-                </div>
-              )}
-            </div>
+          <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-12 text-white">
+            <div className="flex flex-col md:flex-row md:items-end gap-6 md:gap-10 w-full">
+              <div className="w-32 h-32 md:w-52 md:h-52 rounded-[32px] shadow-[0_25px_60px_rgba(0,0,0,0.6)] flex shrink-0 items-center justify-center overflow-hidden ring-4 ring-white/20 backdrop-blur-xl bg-white/5 animate-scale-in">
+                {storeInfo?.logo_url ? (
+                  <img src={storeInfo?.logo_url} alt={storeInfo?.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-white/10 flex items-center justify-center">
+                    <DefaultLogo className="w-full h-full p-8" />
+                  </div>
+                )}
+              </div>
 
-            <div className="flex flex-col flex-1 drop-shadow-2xl" style={{ textShadow: '0 4px 15px rgba(0,0,0,0.5)' }}>
-              <h1 className="text-4xl md:text-7xl font-black tracking-tighter text-white leading-tight drop-shadow-lg uppercase">
-                {storeInfo?.name || 'Carregando...'}
-              </h1>
-              <p className="mt-2 text-base md:text-2xl text-white/90 font-bold leading-relaxed max-w-2xl drop-shadow-md">
-                {storeInfo?.description || 'Obrigado por nos visitar!'}
-              </p>
+              <div className="flex flex-col flex-1 drop-shadow-2xl" style={{ textShadow: '0 4px 15px rgba(0,0,0,0.5)' }}>
+                <h1 className="text-4xl md:text-7xl font-black tracking-tighter text-white leading-tight drop-shadow-lg uppercase">
+                  {storeInfo?.name || 'Carregando...'}
+                </h1>
+                <p className="mt-2 text-base md:text-2xl text-white/90 font-bold leading-relaxed max-w-2xl drop-shadow-md">
+                  {storeInfo?.description || 'Obrigado por nos visitar!'}
+                </p>
+              </div>
             </div>
           </div>
         </div>
