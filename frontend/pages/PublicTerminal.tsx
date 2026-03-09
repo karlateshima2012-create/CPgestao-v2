@@ -724,7 +724,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                   autoFocus
                 />
               </div>
-              <Button type="submit" isLoading={loading} className="w-full h-16 text-base font-black uppercase tracking-widest bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl shadow-xl flex items-center justify-center gap-3">
+              <Button type="submit" isLoading={loading} className="w-full h-16 text-base font-black uppercase tracking-widest bg-[#2B2B2B] text-white rounded-2xl shadow-xl flex items-center justify-center gap-3">
                 Ver meu Saldo <ArrowRight className="w-5 h-5" />
               </Button>
             </form>
@@ -773,7 +773,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 </div>
               </div>
             </div>
-            <Button onClick={reset} className="w-full h-16 font-black uppercase bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl shadow-xl flex items-center justify-center gap-3">
+            <Button onClick={reset} className="w-full h-16 font-black uppercase bg-[#2B2B2B] text-white rounded-2xl shadow-xl flex items-center justify-center gap-3">
               <X className="w-5 h-5" /> Fechar e Sair
             </Button>
           </div>
@@ -841,7 +841,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 <Button
                   onClick={() => handleAction(canRedeem ? 'redeem' : 'earn')}
                   isLoading={loading}
-                  className={`w-full h-20 ${canRedeem ? 'bg-amber-500 hover:bg-amber-600' : 'bg-slate-900 hover:bg-slate-800'} text-white rounded-[25px] font-black uppercase text-xl shadow-2xl transition-all active:scale-95`}
+                  className={`w-full h-20 ${canRedeem ? 'bg-amber-500 hover:bg-amber-600' : 'bg-[#2B2B2B] hover:bg-black'} text-white rounded-[25px] font-black uppercase text-xl shadow-2xl transition-all active:scale-95`}
+                  style={!canRedeem ? { backgroundColor: '#2B2B2B' } : undefined}
                 >
                   {canRedeem ? 'RESGATAR PRÊMIO' : 'LANÇAR PONTO'}
                 </Button>
@@ -861,7 +862,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 <Input label="Província *" value={customerData.province} onChange={e => setCustomerData({ ...customerData, province: normalizeText(e.target.value) })} required />
                 <Input label="Cidade *" value={customerData.city} onChange={e => setCustomerData({ ...customerData, city: normalizeText(e.target.value) })} required />
               </div>
-              <Button type="submit" isLoading={loading} className="w-full h-16 bg-slate-900 text-white rounded-2xl font-black uppercase">CADASTRAR E PONTUAR</Button>
+              <Button type="submit" isLoading={loading} className="w-full h-16 bg-[#2B2B2B] text-white rounded-2xl font-black uppercase">CADASTRAR E PONTUAR</Button>
               <Button variant="ghost" onClick={reset} className="w-full h-12 text-slate-400 font-bold uppercase text-xs">CANCELAR</Button>
             </form>
           </div>
@@ -931,7 +932,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 </div>
                 <Input label="Província *" value={customerData.province} onChange={e => setCustomerData({ ...customerData, province: normalizeText(e.target.value) })} required />
               </div>
-              <Button type="submit" isLoading={loading} className="w-full h-16 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[25px] font-black uppercase text-base shadow-xl tracking-widest transition-transform active:scale-95">
+              <Button type="submit" isLoading={loading} className="w-full h-16 bg-[#2B2B2B] text-white rounded-[25px] font-black uppercase text-base shadow-xl tracking-widest transition-transform active:scale-95">
                 CADASTRAR E GANHAR PONTO
               </Button>
             </form>
@@ -952,7 +953,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               </p>
             </div>
             <div className="pt-8 w-full max-w-xs mx-auto">
-              <Button onClick={reset} className="w-full h-16 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg">
+              <Button onClick={reset} className="w-full h-16 bg-[#2B2B2B] text-white rounded-2xl font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg">
                 Ok, entendi
               </Button>
             </div>
@@ -970,7 +971,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               <p className="text-[10px] font-black uppercase text-slate-300 dark:text-slate-600 mb-1">Novo Saldo</p>
               <p className="text-8xl font-black text-slate-900 dark:text-white tracking-tighter">{approvedData.points_balance} <span className="text-3xl text-slate-300 dark:text-slate-700">/ {approvedData.points_goal}</span></p>
             </div>
-            <Button onClick={reset} className="w-full h-16 font-black uppercase bg-slate-900 text-white rounded-2xl">Voltar ao Início</Button>
+            <Button onClick={reset} className="w-full h-16 font-black uppercase bg-[#2B2B2B] text-white rounded-2xl">Voltar ao Início</Button>
           </div>
         )}
       </div>
@@ -1055,7 +1056,7 @@ const RewardSuccessModal: React.FC<{
         </div>
 
         <Button
-          className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[24px] font-black uppercase tracking-[0.2em] h-16 transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-slate-400/10"
+          className="w-full bg-[#2B2B2B] text-white rounded-[24px] font-black uppercase tracking-[0.2em] h-16 transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-slate-400/10"
           onClick={onClose}
         >
           Fechar
