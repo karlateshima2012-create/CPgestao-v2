@@ -226,9 +226,20 @@ class PublicTerminalController extends Controller
             return ApiResponse::error('Sessão inválida para consulta. Por favor, reinicie o processo no totem.', 'SESSION_REQUIRED', 403);
         }
         
+        $rawPhone = preg_replace('/\D/', '', $request->phone);
         $phone = PhoneHelper::normalize($request->phone);
+        
+        // Criar variações para garantir que encontramos o cliente
+        $variations = array_unique([$phone, $rawPhone]);
+        
+        // Se começa com 0, tenta sem o zero e com 81
+        if (str_starts_with($phone, '0')) {
+            $noZero = substr($phone, 1);
+            $variations[] = '81' . $noZero;
+        }
+        
         $customer = Customer::withoutGlobalScopes()->where('tenant_id', $tenant->id)
-            ->where('phone', $phone)
+            ->whereIn('phone', $variations)
             ->first();
 
         if (!$customer) {
@@ -363,7 +374,8 @@ class PublicTerminalController extends Controller
 
             $phone = PhoneHelper::normalize($request->phone);
 
-            $customer = Customer::where('tenant_id', $tenant->id)
+            $customer = Customer::withoutGlobalScopes()
+                ->where('tenant_id', $tenant->id)
                 ->where('phone', $phone)
                 ->first();
 
@@ -390,7 +402,7 @@ class PublicTerminalController extends Controller
                 $tenant->verifyAndNotifyLimit();
 
                 $escPhone = TelegramService::escapeMarkdownV2($customer->phone);
-                $newMessage = "🆕 *Novo Cliente \(Pontuação Balcão\)*\n\n"
+                $newMessage = "🆕 *Novo Cliente \(Pontuação Balcão\)*\n"
                             . "📞 *Telefone:* {$escPhone}";
                 
                 // For New Registrations, we always use the General Chat ID (settings->telegram_chat_id)

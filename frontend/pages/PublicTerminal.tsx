@@ -367,7 +367,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
     setLoading(true);
     try {
-      const lookupRes = await terminalService.lookup(tenantSlug, phone, sessionToken);
+      const lookupRes = await terminalService.lookup(tenantSlug, deviceUid, phone, qrToken, sessionToken);
 
       if (lookupRes.data.customer_exists) {
         // Cliente existe, pontuar agora
@@ -401,12 +401,22 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
       }
     } catch (error: any) {
       const msg = error.response?.data?.message || 'Ocorreu um erro. Tente novamente.';
-      if (msg.includes('Aguarde')) {
-        setModal({ isOpen: true, title: 'Calma lá! ⏳', message: msg, type: 'warning' });
+      // Se for um erro do sistema (como cooldown ou limite), mostramos o modal.
+      // Se for apenas erro de lookup de dispositivo (404), aí sim poderíamos cair no VISIT_NOT_FOUND, 
+      // mas com os argumentos certos isso não deve acontecer para números válidos.
+
+      if (error.response?.status === 429 || error.response?.status === 403 || error.response?.status === 409) {
+        setModal({
+          isOpen: true,
+          title: 'Atenção',
+          message: msg,
+          type: 'warning'
+        });
       } else {
         setMode('VISIT_NOT_FOUND');
       }
-    } finally {
+    }
+    finally {
       setLoading(false);
     }
   };

@@ -16,13 +16,18 @@ class PhoneHelper
         $normalized = preg_replace('/\D/', '', $phone);
 
         // 2. Tratar prefixo internacional do Japão (81)
-        // Se começar com 81 e tiver 12 dígitos (81 + 90 + 8 dígitos)
-        if (str_starts_with($normalized, '81') && (strlen($normalized) === 12 || strlen($normalized) === 11)) {
-            $normalized = '0' . substr($normalized, 2);
+        // Se começar com 81 e tiver no mínimo 11 dígitos
+        if (str_starts_with($normalized, '81') && strlen($normalized) >= 11) {
+            // Se o formato for 81-0-90... (com zero a mais)
+            if (str_starts_with(substr($normalized, 2), '0')) {
+                $normalized = substr($normalized, 2);
+            } else {
+                // Formato padrão 81-90... -> 090...
+                $normalized = '0' . substr($normalized, 2);
+            }
         }
 
-        // 3. Adicionar o zero inicial se foi omitido (comum no Japão)
-        // Prefixos móveis comuns: 90, 80, 70 e IP 50
+        // 3. Adicionar o zero inicial se foi omitido em números de 10 dígitos (comum no Japão)
         if (strlen($normalized) === 10) {
             $prefix = substr($normalized, 0, 2);
             if (in_array($prefix, ['90', '80', '70', '50'])) {

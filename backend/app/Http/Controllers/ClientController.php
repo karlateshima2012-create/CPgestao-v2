@@ -40,14 +40,22 @@ class ClientController extends Controller
 
         if ($request->has('search')) {
             $s = $request->search;
-            $query->where(function($q) use ($s) {
+            $raw = preg_replace('/\D/', '', $s);
+            $normalized = PhoneHelper::normalize($s);
+            $noZero = str_starts_with($normalized, '0') ? substr($normalized, 1) : $normalized;
+            $with81 = '81' . $noZero;
+            
+            $query->where(function($q) use ($s, $raw, $normalized, $with81) {
                 $q->where('name', 'like', "%$s%")
-                  ->orWhere('phone', 'like', "%$s%");
+                  ->orWhere('phone', 'like', "%$s%")
+                  ->orWhere('phone', 'like', "%$raw%")
+                  ->orWhere('phone', 'like', "%$normalized%")
+                  ->orWhere('phone', 'like', "%$with81%");
             });
         }
 
         $contacts = $query->orderBy('created_at', 'desc')
-            ->limit(10) // Limit results for performance on terminal
+            ->limit(100)
             ->get();
             
         return ApiResponse::ok($contacts);
