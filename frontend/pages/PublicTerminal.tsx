@@ -650,7 +650,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             {(deviceUid || qrToken) && (
               <div
                 onClick={() => setMode('PONTUAR')}
-                className="group cursor-pointer bg-[#F9F9F9] dark:bg-slate-900 rounded-[36px] p-8 md:p-14 shadow-[0_30px_70px_-15px_rgba(0,0,0,0.15)] border border-white/40 transition-all hover:scale-[1.01] flex flex-col items-center justify-center text-center space-y-6 relative overflow-hidden"
+                className="group cursor-pointer bg-white dark:bg-slate-900 rounded-[32px] p-8 md:p-14 shadow-[0_30px_70px_-15px_rgba(0,0,0,0.15)] border border-white/40 transition-all hover:scale-[1.01] flex flex-col items-center justify-center text-center space-y-6 relative overflow-hidden"
               >
 
                 <div className="w-20 h-20 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner ring-1 ring-slate-100 group-hover:scale-110 transition-transform duration-500">
@@ -674,12 +674,12 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
               <div
                 onClick={() => setMode('REGISTER')}
-                className={`group cursor-pointer bg-[#F9F9F9] dark:bg-slate-900 rounded-[32px] p-8 md:p-12 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.1)] border border-white/30 transition-all hover:scale-[1.02] flex flex-col items-center justify-center text-center space-y-6 ${!(deviceUid || qrToken) ? 'md:col-span-2 py-20' : ''}`}
+                className={`group cursor-pointer bg-white dark:bg-slate-900 rounded-[32px] p-8 md:p-12 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.1)] border border-white/30 transition-all hover:scale-[1.02] flex flex-col items-center justify-center text-center space-y-6 ${!(deviceUid || qrToken) ? 'md:col-span-2 py-20' : ''}`}
               >
-                <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner ring-1 ring-slate-100 group-hover:scale-110 transition-transform">
-                  <UserPlus className="w-8 h-8 text-[#565656] dark:text-white" />
+                <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner ring-1 ring-slate-100 group-hover:scale-110 transition-transform">
+                  <UserPlus className="w-8 h-8 text-[#2B2B2B] dark:text-white" />
                 </div>
-                <div className="space-y-2 text-[#565656]">
+                <div className="space-y-2 text-[#2B2B2B]">
                   <h3 className="text-xl md:text-2xl font-black tracking-tight leading-tight uppercase">Participar do programa</h3>
                   <p className="text-xs font-bold opacity-60 uppercase tracking-widest">Novo cadastro rápido</p>
                 </div>
@@ -690,16 +690,16 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
               <div
                 onClick={() => setMode('CONSULT')}
-                className={`group cursor-pointer bg-[#F9F9F9] dark:bg-slate-900 rounded-[32px] p-8 md:p-12 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.1)] border border-white/30 transition-all hover:scale-[1.02] flex flex-col items-center justify-center text-center space-y-6 ${!(deviceUid || qrToken) ? 'md:col-span-2 py-20' : ''}`}
+                className={`group cursor-pointer bg-white dark:bg-slate-900 rounded-[32px] p-8 md:p-12 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.1)] border border-white/30 transition-all hover:scale-[1.02] flex flex-col items-center justify-center text-center space-y-6 ${!(deviceUid || qrToken) ? 'md:col-span-2 py-20' : ''}`}
               >
-                <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner ring-1 ring-slate-100 group-hover:scale-110 transition-transform">
-                  <Search className="w-8 h-8 text-[#848484] dark:text-white" />
+                <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner ring-1 ring-slate-100 group-hover:scale-110 transition-transform">
+                  <Search className="w-8 h-8 text-[#2B2B2B] dark:text-white" />
                 </div>
-                <div className="space-y-2 text-[#848484]">
+                <div className="space-y-2 text-[#2B2B2B]">
                   <h3 className="text-xl md:text-2xl font-black tracking-tight leading-tight uppercase">Ver Meus Pontos</h3>
                   <p className="text-xs font-bold opacity-60 uppercase tracking-widest">Consulta de saldo atual</p>
                 </div>
-                <div className="h-14 px-12 bg-[#848484] text-white rounded-[20px] flex items-center justify-center font-black uppercase text-xs tracking-widest transition-all group-hover:opacity-90 shadow-lg">
+                <div className="h-14 px-12 bg-[#565656] text-white rounded-[20px] flex items-center justify-center font-black uppercase text-xs tracking-widest transition-all group-hover:opacity-90 shadow-lg">
                   VER MEU SALDO
                 </div>
               </div>
