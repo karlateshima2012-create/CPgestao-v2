@@ -622,11 +622,11 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
         </div>
 
-        <div className="absolute top-0 left-0 right-0 h-72 md:h-[450px] flex flex-col justify-center p-6 z-10 text-white">
-          <div className="flex items-center gap-6 md:gap-8 w-full">
-            <div className="w-36 h-36 md:w-56 md:h-56 rounded-[20px] shadow-[0_25px_60px_rgba(0,0,0,0.6)] flex shrink-0 items-center justify-center overflow-hidden ring-2 ring-white/25 backdrop-blur-xl bg-white/10">
+        <div className="absolute top-0 left-0 right-0 h-full flex flex-col justify-end p-8 md:p-12 z-10 text-white">
+          <div className="flex flex-col md:flex-row md:items-end gap-6 md:gap-10 w-full">
+            <div className="w-32 h-32 md:w-52 md:h-52 rounded-[32px] shadow-[0_25px_60px_rgba(0,0,0,0.6)] flex shrink-0 items-center justify-center overflow-hidden ring-4 ring-white/20 backdrop-blur-xl bg-white/5 animate-scale-in">
               {storeInfo?.logo_url ? (
-                <img src={storeInfo?.logo_url} alt={storeInfo?.name} className="w-full h-full object-cover rounded-[20px]" />
+                <img src={storeInfo?.logo_url} alt={storeInfo?.name} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full bg-white/10 flex items-center justify-center">
                   <DefaultLogo className="w-full h-full p-8" />
@@ -634,73 +634,74 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               )}
             </div>
 
-            <div className="flex flex-col drop-shadow-2xl flex-1" style={{ textShadow: '0 4px 15px rgba(0,0,0,0.6)' }}>
-              <h1 className="text-4xl md:text-6xl font-black tracking-tight text-white leading-[1.1] drop-shadow-lg">{storeInfo?.name || 'Carregando...'}</h1>
+            <div className="flex flex-col flex-1 drop-shadow-2xl" style={{ textShadow: '0 4px 15px rgba(0,0,0,0.5)' }}>
+              <h1 className="text-4xl md:text-7xl font-black tracking-tighter text-white leading-tight drop-shadow-lg uppercase">
+                {storeInfo?.name || 'Carregando...'}
+              </h1>
+              <p className="mt-2 text-base md:text-2xl text-white/90 font-bold leading-relaxed max-w-2xl drop-shadow-md">
+                {storeInfo?.description || 'Obrigado por nos visitar!'}
+              </p>
             </div>
           </div>
         </div>
 
-        <div className="w-full text-center px-6 py-8 md:py-12">
-          <p className="text-sm md:text-lg text-slate-500 dark:text-slate-400 font-semibold leading-relaxed max-w-2xl mx-auto px-4">
-            {storeInfo?.description || 'Obrigado por nos visitar!'}
-          </p>
-        </div>
-
         {mode === 'START' && (
-          <div className="p-6 md:p-12 animate-fade-in w-full space-y-6">
-            {/* Card Grande (Destaque) - Pontuar Visita (Apenas Físico) */}
+          <div className="p-6 md:p-12 animate-fade-in w-full space-y-8 bg-slate-50 dark:bg-gray-950">
+            {/* Card Principal - Pontuar (Destaque) */}
             {(deviceUid || qrToken) && (
               <div
-                id="card-pontuar"
                 onClick={() => setMode('PONTUAR')}
-                className="group cursor-pointer bg-white dark:bg-slate-800/90 rounded-[32px] p-8 md:p-14 shadow-[0_25px_60px_rgba(0,0,0,0.1)] border-2 border-transparent transition-all hover:scale-[1.01] hover:border-slate-900 dark:hover:border-white hover:shadow-[0_35px_70px_rgba(0,0,0,0.15)] flex flex-col items-center justify-center text-center space-y-6 relative overflow-hidden"
+                className="group cursor-pointer bg-white dark:bg-slate-900 rounded-[40px] p-8 md:p-16 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border border-slate-100 dark:border-slate-800 transition-all hover:scale-[1.01] hover:shadow-[0_25px_80px_-15px_rgba(0,0,0,0.15)] flex flex-col items-center justify-center text-center space-y-8 relative overflow-hidden"
               >
-                <div className="absolute top-0 right-0 w-40 h-40 bg-slate-50 dark:bg-slate-900/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-                <div className="w-20 h-20 bg-slate-100 dark:bg-slate-500/10 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
-                  <Star className="w-10 h-10 text-slate-900 dark:text-white group-hover:fill-current" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-slate-50 dark:bg-slate-800/20 rounded-full -translate-y-1/2 translate-x-1/2" />
+
+                <div className="w-24 h-24 bg-slate-50 dark:bg-slate-800 rounded-3xl flex items-center justify-center shadow-inner ring-1 ring-slate-100 dark:ring-slate-700 group-hover:scale-110 transition-transform duration-500">
+                  <Star className="w-12 h-12 text-slate-800 dark:text-white group-hover:fill-current" />
                 </div>
-                <div className="space-y-3 relative z-10">
-                  <h3 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">Registrar Visita</h3>
-                  <p className="text-sm font-bold text-slate-500 dark:text-slate-400 max-w-sm">Digite seu telefone e solicite o ponto desta visita.</p>
+
+                <div className="space-y-4 relative z-10">
+                  <h3 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">Registrar Visita</h3>
+                  <p className="text-base font-bold text-slate-400 dark:text-slate-500 max-w-md mx-auto">Digite seu telefone e solicite o ponto desta visita.</p>
                 </div>
-                <div className="relative z-10 w-full max-w-xs mt-4">
-                  <div className="h-16 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[22px] flex items-center justify-center font-black uppercase tracking-widest group-hover:scale-105 transition-transform shadow-lg text-sm">
+
+                <div className="relative z-10 w-full max-w-sm">
+                  <div className="h-16 md:h-20 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[28px] flex items-center justify-center font-black uppercase tracking-[0.2em] group-hover:bg-black dark:group-hover:bg-slate-100 transition-all shadow-xl text-lg">
                     GANHAR PONTO
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Outros 2 Botoes - Agora em Coluna no Mobile para Hierarquia */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
-              {/* Card Cadastrar no Programa */}
+            {/* Ações Secundárias */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
               <div
                 onClick={() => setMode('REGISTER')}
-                className={`group cursor-pointer bg-white dark:bg-slate-800/80 rounded-[28px] p-6 md:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.08)] border-2 border-transparent transition-all hover:border-slate-300 hover:shadow-[0_40px_80px_rgba(0,0,0,0.15)] flex flex-col items-center justify-center text-center space-y-4 ${!(deviceUid || qrToken) ? 'md:col-span-1 py-12 md:py-20 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border-slate-100 dark:border-slate-800' : ''}`}
+                className={`group cursor-pointer bg-white dark:bg-slate-900 rounded-[36px] p-8 md:p-12 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.06)] border border-slate-100 dark:border-slate-800 transition-all hover:scale-[1.02] hover:shadow-[0_25px_60px_-10px_rgba(0,0,0,0.1)] flex flex-col items-center justify-center text-center space-y-6 ${!(deviceUid || qrToken) ? 'md:col-span-2 py-20' : ''}`}
               >
-                <div className={`${!(deviceUid || qrToken) ? 'w-20 h-20' : 'w-14 h-14'} bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform`}>
-                  <UserPlus className={`${!(deviceUid || qrToken) ? 'w-10 h-10' : 'w-7 h-7'} text-slate-900 dark:text-white`} />
+                <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-3xl flex items-center justify-center shadow-inner ring-1 ring-slate-100 dark:ring-slate-700 group-hover:scale-110 transition-transform">
+                  <UserPlus className="w-10 h-10 text-slate-800 dark:text-white" />
                 </div>
-                <div className="space-y-1 flex-grow">
-                  <h3 className={`${!(deviceUid || qrToken) ? 'text-2xl md:text-3xl' : 'text-lg'} font-black text-slate-900 dark:text-white tracking-tight leading-tight`}>Participar do programa de pontos</h3>
+                <div className="space-y-2">
+                  <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-tight uppercase">Participar do programa</h3>
+                  <p className="text-sm font-bold text-slate-400">Novo cadastro rápido</p>
                 </div>
-                <div className={`${!(deviceUid || qrToken) ? 'h-14 px-10' : 'h-12 w-full'} bg-slate-200 dark:bg-slate-700 rounded-xl flex items-center justify-center font-black uppercase ${!(deviceUid || qrToken) ? 'text-xs' : 'text-[11px]'} tracking-widest group-hover:bg-slate-300 dark:group-hover:bg-slate-600 transition-colors text-slate-900 dark:text-white`}>
+                <div className="h-14 px-12 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center font-black uppercase text-xs tracking-widest text-slate-900 dark:text-white transition-all group-hover:bg-slate-200 dark:group-hover:bg-slate-700">
                   CADASTRAR
                 </div>
               </div>
 
-              {/* Card Consultar Saldo */}
               <div
                 onClick={() => setMode('CONSULT')}
-                className={`group cursor-pointer bg-white dark:bg-slate-800/80 rounded-[28px] p-6 md:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.08)] border-2 border-transparent transition-all hover:border-slate-300 hover:shadow-[0_40px_80px_rgba(0,0,0,0.15)] flex flex-col items-center justify-center text-center space-y-4 ${!(deviceUid || qrToken) ? 'md:col-span-1 py-12 md:py-20' : ''}`}
+                className={`group cursor-pointer bg-white dark:bg-slate-900 rounded-[36px] p-8 md:p-12 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.06)] border border-slate-100 dark:border-slate-800 transition-all hover:scale-[1.02] hover:shadow-[0_25px_60px_-10px_rgba(0,0,0,0.1)] flex flex-col items-center justify-center text-center space-y-6 ${!(deviceUid || qrToken) ? 'md:col-span-2 py-20' : ''}`}
               >
-                <div className={`${!(deviceUid || qrToken) ? 'w-20 h-20' : 'w-14 h-14'} bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform`}>
-                  <Search className={`${!(deviceUid || qrToken) ? 'w-10 h-10' : 'w-7 h-7'} text-slate-900 dark:text-white`} />
+                <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-3xl flex items-center justify-center shadow-inner ring-1 ring-slate-100 dark:ring-slate-700 group-hover:scale-110 transition-transform">
+                  <Search className="w-10 h-10 text-slate-800 dark:text-white" />
                 </div>
-                <div className="space-y-1 flex-grow">
-                  <h3 className={`${!(deviceUid || qrToken) ? 'text-2xl md:text-3xl' : 'text-lg'} font-black text-slate-900 dark:text-white tracking-tight leading-tight`}>Ver Meus Pontos</h3>
+                <div className="space-y-2">
+                  <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-tight uppercase">Ver Meus Pontos</h3>
+                  <p className="text-sm font-bold text-slate-400">Consulta de saldo atual</p>
                 </div>
-                <div className={`${!(deviceUid || qrToken) ? 'h-14 px-10' : 'h-12 w-full'} bg-slate-200 dark:bg-slate-700 rounded-xl flex items-center justify-center font-black uppercase ${!(deviceUid || qrToken) ? 'text-xs' : 'text-[11px]'} tracking-widest group-hover:bg-slate-300 dark:group-hover:bg-slate-600 transition-colors text-slate-900 dark:text-white`}>
+                <div className="h-14 px-12 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center font-black uppercase text-xs tracking-widest text-slate-900 dark:text-white transition-all group-hover:bg-slate-200 dark:group-hover:bg-slate-700">
                   VER MEU SALDO
                 </div>
               </div>
