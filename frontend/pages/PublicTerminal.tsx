@@ -625,13 +625,10 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         {mode === 'START' && (
           <div className="p-6 md:p-12 animate-fade-in w-full space-y-12 bg-white dark:bg-gray-950 flex flex-col items-center">
 
-            <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-[40px] p-8 md:p-14 shadow-[0_45px_100px_-25px_rgba(0,0,0,0.18)] border border-gray-100/80 flex flex-col items-center text-center space-y-8">
-              <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner ring-1 ring-slate-100">
-                <Star className="w-10 h-10 text-[#2B2B2B] dark:text-white" />
-              </div>
+            <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-[40px] p-8 md:p-14 shadow-[0_45px_100px_-25px_rgba(0,0,0,0.18)] border border-gray-100/80 flex flex-col items-center text-center space-y-10">
 
-              <div className="space-y-3">
-                <h3 className="text-3xl md:text-5xl font-black tracking-tighter uppercase leading-none text-black">⭐ Ganhe 1 ponto nesta visita</h3>
+              <div className="space-y-3 pt-6">
+                <h3 className="text-3xl md:text-5xl font-black tracking-tighter uppercase leading-tight text-black">Ganhe Ponto nesta visita</h3>
                 <p className="text-[10px] md:text-sm font-bold text-gray-400 uppercase tracking-[0.2em] max-w-sm mx-auto">Digite seu telefone para pontuar.</p>
               </div>
 
@@ -652,7 +649,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                   <Button
                     type="submit"
                     isLoading={loading}
-                    className="w-full h-20 text-xl font-black uppercase tracking-[0.2em] bg-[#2B2B2B] text-white rounded-[25px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] transition-all active:scale-95 overflow-visible"
+                    className="w-full h-20 text-xl font-black uppercase tracking-[0.2em] bg-[#2B2B2B] hover:bg-black text-white rounded-[25px] shadow-[0_20px_50px_rgba(0,0,0,0.12)] transition-all active:scale-95 overflow-visible"
+                    style={{ backgroundColor: '#2B2B2B' }}
                   >
                     GANHAR PONTO
                   </Button>
