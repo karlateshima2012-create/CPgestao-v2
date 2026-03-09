@@ -656,9 +656,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                   <Star className="w-10 h-10 text-[#2B2B2B] dark:text-white group-hover:fill-current" />
                 </div>
 
-                <div className="space-y-3 relative z-10 text-[#2B2B2B]">
-                  <h3 className="text-3xl md:text-5xl font-black tracking-tighter uppercase leading-none">Registrar Visita</h3>
-                  <p className="text-sm md:text-lg font-bold opacity-60 max-w-md mx-auto">Digite seu telefone e solicite o ponto desta visita.</p>
+                <div className="space-y-2 relative z-10">
+                  <h3 className="text-3xl md:text-5xl font-black tracking-tighter uppercase leading-none text-black">Registrar Visita</h3>
+                  <p className="text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-[0.2em] max-w-md mx-auto">Digite seu telefone e solicite o ponto desta visita.</p>
                 </div>
 
                 <div className="relative z-10 w-full max-w-sm">
@@ -676,11 +676,11 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 className={`group cursor-pointer bg-white dark:bg-slate-900 rounded-[32px] p-8 md:p-12 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.1)] border border-white/30 transition-all hover:scale-[1.02] flex flex-col items-center justify-center text-center space-y-6 ${!(deviceUid || qrToken) ? 'md:col-span-2 py-20' : ''}`}
               >
                 <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner ring-1 ring-slate-100 group-hover:scale-110 transition-transform">
-                  <UserPlus className="w-8 h-8 text-[#2B2B2B] dark:text-white" />
+                  <UserPlus className="w-8 h-8 text-black dark:text-white" />
                 </div>
-                <div className="space-y-2 text-[#2B2B2B]">
-                  <h3 className="text-xl md:text-2xl font-black tracking-tight leading-tight uppercase">Participar do programa</h3>
-                  <p className="text-xs font-bold opacity-60 uppercase tracking-widest">Novo cadastro rápido</p>
+                <div className="space-y-2">
+                  <h3 className="text-xl md:text-2xl font-black tracking-tight leading-tight uppercase text-black">Participar do programa</h3>
+                  <p className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-widest">Novo cadastro rápido</p>
                 </div>
                 <div className="h-14 px-12 bg-[#565656] text-white rounded-[20px] flex items-center justify-center font-black uppercase text-xs tracking-widest transition-all group-hover:opacity-90 shadow-lg">
                   CADASTRAR
@@ -692,11 +692,11 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 className={`group cursor-pointer bg-white dark:bg-slate-900 rounded-[32px] p-8 md:p-12 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.1)] border border-white/30 transition-all hover:scale-[1.02] flex flex-col items-center justify-center text-center space-y-6 ${!(deviceUid || qrToken) ? 'md:col-span-2 py-20' : ''}`}
               >
                 <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner ring-1 ring-slate-100 group-hover:scale-110 transition-transform">
-                  <Search className="w-8 h-8 text-[#2B2B2B] dark:text-white" />
+                  <Search className="w-8 h-8 text-black dark:text-white" />
                 </div>
-                <div className="space-y-2 text-[#2B2B2B]">
-                  <h3 className="text-xl md:text-2xl font-black tracking-tight leading-tight uppercase">Ver Meus Pontos</h3>
-                  <p className="text-xs font-bold opacity-60 uppercase tracking-widest">Consulta de saldo atual</p>
+                <div className="space-y-2">
+                  <h3 className="text-xl md:text-2xl font-black tracking-tight leading-tight uppercase text-black">Ver Meus Pontos</h3>
+                  <p className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-widest">Consulta de saldo atual</p>
                 </div>
                 <div className="h-14 px-12 bg-[#565656] text-white rounded-[20px] flex items-center justify-center font-black uppercase text-xs tracking-widest transition-all group-hover:opacity-90 shadow-lg">
                   VER MEU SALDO
