@@ -694,7 +694,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                   Cadastre-se para começar a ganhar pontos!
                 </p>
               </div>
-              <div className="flex flex-col gap-4 w-full max-w-xs">
+              <div className="flex flex-col gap-4 w-full max-w-sm">
                 <Button onClick={() => setMode('REGISTER')} className="w-full h-18 bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-2xl font-black uppercase tracking-widest shadow-xl text-sm focus:ring-4 focus:ring-gray-300">
                   CADASTRAR
                 </Button>
