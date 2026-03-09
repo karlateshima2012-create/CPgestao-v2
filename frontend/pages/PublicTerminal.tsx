@@ -610,7 +610,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   if (mode === 'INVALID_DEVICE') return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 font-sans"><p className="text-gray-400 font-bold">{errorMsg || 'DISPOSITIVO INVÁLIDO OU NÃO ENCONTRADO'}</p></div>;
 
   return (
-    <div className="min-h-screen bg-[#E0E0E0] dark:bg-gray-950 font-sans flex flex-col items-center pointer-events-auto">
+    <div className="min-h-screen bg-[#F0F0F0] dark:bg-gray-950 font-sans flex flex-col items-center pointer-events-auto">
       <div className="w-full md:w-[85%] max-w-4xl bg-white dark:bg-slate-900 md:rounded-t-none md:rounded-b-[50px] shadow-2xl relative z-20 flex flex-col overflow-hidden animate-fade-in border-none">
         <div className="h-80 md:h-[500px] w-full bg-slate-200 dark:bg-slate-800 relative shrink-0 overflow-hidden">
           {storeInfo?.cover_url ? (
@@ -645,12 +645,12 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         </div>
 
         {mode === 'START' && (
-          <div className="p-6 md:p-12 animate-fade-in w-full space-y-8 bg-[#E0E0E0] dark:bg-gray-950">
+          <div className="p-6 md:p-12 animate-fade-in w-full space-y-8 bg-[#F0F0F0] dark:bg-gray-950">
             {/* Card Principal - Pontuar (Destaque) */}
             {(deviceUid || qrToken) && (
               <div
                 onClick={() => setMode('PONTUAR')}
-                className="group cursor-pointer bg-white dark:bg-slate-900 rounded-[32px] p-8 md:p-14 shadow-[0_30px_70px_-15px_rgba(0,0,0,0.15)] border border-white/40 transition-all hover:scale-[1.01] flex flex-col items-center justify-center text-center space-y-6 relative overflow-hidden"
+                className="group cursor-pointer bg-white dark:bg-slate-900 rounded-[32px] p-8 md:p-14 shadow-[0_45px_100px_-25px_rgba(0,0,0,0.25)] border border-white transition-all hover:scale-[1.01] flex flex-col items-center justify-center text-center space-y-6 relative overflow-hidden"
               >
                 <div className="w-20 h-20 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner ring-1 ring-slate-100 group-hover:scale-110 transition-transform duration-500">
                   <Star className="w-10 h-10 text-[#2B2B2B] dark:text-white group-hover:fill-current" />
@@ -673,7 +673,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
               <div
                 onClick={() => setMode('REGISTER')}
-                className={`group cursor-pointer bg-white dark:bg-slate-900 rounded-[32px] p-8 md:p-12 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.1)] border border-white/30 transition-all hover:scale-[1.02] flex flex-col items-center justify-center text-center space-y-6 ${!(deviceUid || qrToken) ? 'md:col-span-2 py-20' : ''}`}
+                className={`group cursor-pointer bg-white dark:bg-slate-900 rounded-[32px] p-8 md:p-12 shadow-[0_30px_70px_-15px_rgba(0,0,0,0.18)] border border-white transition-all hover:scale-[1.02] flex flex-col items-center justify-center text-center space-y-6 ${!(deviceUid || qrToken) ? 'md:col-span-2 py-20' : ''}`}
               >
                 <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner ring-1 ring-slate-100 group-hover:scale-110 transition-transform">
                   <UserPlus className="w-8 h-8 text-black dark:text-white" />
@@ -689,7 +689,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
               <div
                 onClick={() => setMode('CONSULT')}
-                className={`group cursor-pointer bg-white dark:bg-slate-900 rounded-[32px] p-8 md:p-12 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.1)] border border-white/30 transition-all hover:scale-[1.02] flex flex-col items-center justify-center text-center space-y-6 ${!(deviceUid || qrToken) ? 'md:col-span-2 py-20' : ''}`}
+                className={`group cursor-pointer bg-white dark:bg-slate-900 rounded-[32px] p-8 md:p-12 shadow-[0_30px_70px_-15px_rgba(0,0,0,0.18)] border border-white transition-all hover:scale-[1.02] flex flex-col items-center justify-center text-center space-y-6 ${!(deviceUid || qrToken) ? 'md:col-span-2 py-20' : ''}`}
               >
                 <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner ring-1 ring-slate-100 group-hover:scale-110 transition-transform">
                   <Search className="w-8 h-8 text-black dark:text-white" />
