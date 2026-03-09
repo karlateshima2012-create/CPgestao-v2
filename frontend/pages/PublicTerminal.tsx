@@ -622,37 +622,37 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         </div>
 
         {mode === 'START' && (
-          <div className="p-6 md:p-12 animate-fade-in w-full space-y-12 bg-white dark:bg-gray-950 flex flex-col items-center">
+          <div className="p-6 md:p-12 animate-fade-in w-full space-y-8 bg-slate-50/50 dark:bg-gray-950 flex flex-col items-center">
 
-            <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-[40px] p-8 md:p-14 shadow-[0_45px_100px_-25px_rgba(0,0,0,0.18)] border border-gray-100/80 flex flex-col items-center text-center space-y-10">
-
-              <div className="w-20 h-20 bg-amber-50 rounded-3xl flex items-center justify-center animate-pulse-soft">
-                <Star className="w-10 h-10 text-amber-400 fill-amber-400" />
+            {/* Main Action Card: Registrar Visita */}
+            <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-[40px] p-10 md:p-14 shadow-[0_45px_100px_-25px_rgba(0,0,0,0.1)] border border-gray-100/50 flex flex-col items-center text-center space-y-10">
+              <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner border border-slate-100 dark:border-slate-700">
+                <Star className="w-8 h-8 text-slate-900 dark:text-white" />
               </div>
 
-              <div className="space-y-3 pt-6">
-                <h3 className="text-3xl md:text-5xl font-black tracking-tighter uppercase leading-tight text-black">Ganhe Ponto nesta visita</h3>
-                <p className="text-[10px] md:text-sm font-bold text-gray-400 uppercase tracking-[0.2em] max-w-sm mx-auto">Digite seu telefone para pontuar.</p>
+              <div className="space-y-3">
+                <h3 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter uppercase leading-tight">Registrar Visita</h3>
+                <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Digite seu telefone e solicite o ponto desta visita.</p>
               </div>
 
               <form onSubmit={handleEarn} className="w-full space-y-8">
-                <div className="relative group">
-                  <Smartphone className="absolute left-6 top-1/2 -translate-y-1/2 w-7 h-7 text-slate-200 group-focus-within:text-black transition-colors" />
+                <div className="relative group max-w-sm mx-auto">
+                  <Smartphone className="absolute left-6 top-1/2 -translate-y-1/2 w-7 h-7 text-slate-200 group-focus-within:text-slate-900 transition-colors" />
                   <input
                     type="tel"
                     placeholder="090-0000-0000"
-                    className="w-full pl-16 pr-8 py-6 bg-slate-50 dark:bg-slate-800/50 border-2 border-slate-100 focus:border-black rounded-3xl text-3xl font-black tracking-widest text-black outline-none transition-all placeholder:text-slate-200"
+                    className="w-full pl-16 pr-8 py-6 bg-slate-50 dark:bg-slate-800/50 border-2 border-slate-100 focus:border-slate-900 rounded-3xl text-2xl font-black tracking-widest text-slate-900 outline-none transition-all placeholder:text-slate-200"
                     value={phone}
                     onChange={e => setPhone(formatJapanesePhone(e.target.value))}
                     autoFocus
                   />
                 </div>
 
-                <div className="relative">
+                <div className="relative max-w-sm mx-auto">
                   <Button
                     type="submit"
                     isLoading={loading}
-                    className="w-full h-20 text-xl font-black uppercase tracking-[0.2em] bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-[25px] shadow-[0_20px_50px_rgba(0,0,0,0.12)] transition-all active:scale-95 overflow-visible focus:ring-4 focus:ring-gray-300"
+                    className="w-full h-18 text-base font-black uppercase tracking-widest bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-2xl shadow-xl transition-all active:scale-95 overflow-visible focus:ring-4 focus:ring-gray-300"
                   >
                     GANHAR PONTO
                   </Button>
@@ -672,10 +672,23 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               </form>
             </div>
 
-            <div className="flex gap-4">
-              <button onClick={() => setMode('CONSULT')} className="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-black transition-colors">Ver meu saldo</button>
-              <span className="text-gray-200">•</span>
-              <button onClick={() => setMode('REGISTER')} className="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-black transition-colors">Criar cadastro</button>
+            {/* Bottom Grid: Cadastrar & Consultar */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
+              <div className="bg-white dark:bg-slate-900 p-8 md:p-10 rounded-[40px] border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col items-center text-center space-y-6">
+                <div className="w-14 h-14 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner">
+                  <UserPlus className="w-7 h-7 text-slate-900 dark:text-white" />
+                </div>
+                <h4 className="font-black text-slate-900 dark:text-white tracking-tight">Participar do programa de pontos</h4>
+                <Button onClick={() => setMode('REGISTER')} className="w-full py-4 text-[10px] font-black tracking-widest uppercase bg-slate-100 text-slate-900 hover:bg-slate-200 border-none shadow-none">CADASTRAR</Button>
+              </div>
+
+              <div className="bg-white dark:bg-slate-900 p-8 md:p-10 rounded-[40px] border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col items-center text-center space-y-6">
+                <div className="w-14 h-14 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner">
+                  <Search className="w-7 h-7 text-slate-900 dark:text-white" />
+                </div>
+                <h4 className="font-black text-slate-900 dark:text-white tracking-tight">Ver Meus Pontos</h4>
+                <Button onClick={() => setMode('CONSULT')} className="w-full py-4 text-[10px] font-black tracking-widest uppercase bg-slate-100 text-slate-900 hover:bg-slate-200 border-none shadow-none">VER MEU SALDO</Button>
+              </div>
             </div>
           </div>
         )}
