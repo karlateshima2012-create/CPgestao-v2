@@ -12,7 +12,9 @@ const animationStyles = `
 }
 button:focus, a:focus, input:focus {
   outline: none !important;
-  box-shadow: none !important;
+}
+.focus-ring-gray {
+  box-shadow: 0 0 0 4px rgba(209, 213, 219, 0.5) !important;
 }
 `;
 import {
@@ -624,6 +626,10 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
             <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-[40px] p-8 md:p-14 shadow-[0_45px_100px_-25px_rgba(0,0,0,0.18)] border border-gray-100/80 flex flex-col items-center text-center space-y-10">
 
+              <div className="w-20 h-20 bg-amber-50 rounded-3xl flex items-center justify-center animate-pulse-soft">
+                <Star className="w-10 h-10 text-amber-400 fill-amber-400" />
+              </div>
+
               <div className="space-y-3 pt-6">
                 <h3 className="text-3xl md:text-5xl font-black tracking-tighter uppercase leading-tight text-black">Ganhe Ponto nesta visita</h3>
                 <p className="text-[10px] md:text-sm font-bold text-gray-400 uppercase tracking-[0.2em] max-w-sm mx-auto">Digite seu telefone para pontuar.</p>
@@ -646,8 +652,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                   <Button
                     type="submit"
                     isLoading={loading}
-                    className="w-full h-20 text-xl font-black uppercase tracking-[0.2em] bg-[#2B2B2B] hover:bg-[#3D3D3D] text-white rounded-[25px] shadow-[0_20px_50px_rgba(0,0,0,0.12)] transition-all active:scale-95 overflow-visible focus:ring-4 focus:ring-gray-200"
-                    style={{ backgroundColor: '#2B2B2B' }}
+                    className="w-full h-20 text-xl font-black uppercase tracking-[0.2em] bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-[25px] shadow-[0_20px_50px_rgba(0,0,0,0.12)] transition-all active:scale-95 overflow-visible focus:ring-4 focus:ring-gray-300"
                   >
                     GANHAR PONTO
                   </Button>
@@ -691,7 +696,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 </p>
               </div>
               <div className="flex flex-col gap-4 w-full max-w-xs">
-                <Button onClick={() => setMode('REGISTER')} className="w-full h-18 bg-[#2B2B2B] hover:bg-[#3D3D3D] text-white rounded-2xl font-black uppercase tracking-widest shadow-xl text-sm focus:ring-4 focus:ring-gray-200">
+                <Button onClick={() => setMode('REGISTER')} className="w-full h-18 bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-2xl font-black uppercase tracking-widest shadow-xl text-sm focus:ring-4 focus:ring-gray-300">
                   CRIAR CADASTRO EM 10 SEGUNDOS
                 </Button>
                 <button onClick={() => setMode('START')} className="text-gray-400 font-bold uppercase text-[10px] tracking-widest py-2">
@@ -724,7 +729,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                     autoFocus
                   />
                 </div>
-                <Button type="submit" isLoading={loading} className="w-full h-16 text-base font-black uppercase tracking-widest bg-[#2B2B2B] hover:bg-[#3D3D3D] text-white rounded-2xl shadow-xl flex items-center justify-center gap-3 focus:ring-4 focus:ring-gray-200">
+                <Button type="submit" isLoading={loading} className="w-full h-16 text-base font-black uppercase tracking-widest bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-2xl shadow-xl flex items-center justify-center gap-3 focus:ring-4 focus:ring-gray-300">
                   Ver meu Saldo <ArrowRight className="w-5 h-5" />
                 </Button>
               </form>
@@ -775,7 +780,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                   </div>
                 </div>
               </div>
-              <Button onClick={reset} className="w-full h-16 font-black uppercase bg-[#2B2B2B] hover:bg-[#3D3D3D] text-white rounded-2xl shadow-xl flex items-center justify-center gap-3 focus:ring-4 focus:ring-gray-200">
+              <Button onClick={reset} className="w-full h-16 font-black uppercase bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-2xl shadow-xl flex items-center justify-center gap-3 focus:ring-4 focus:ring-gray-300">
                 <X className="w-5 h-5" /> Fechar e Sair
               </Button>
             </div>
@@ -845,8 +850,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                   <Button
                     onClick={() => handleAction(canRedeem ? 'redeem' : 'earn')}
                     isLoading={loading}
-                    className={`w-full h-20 ${canRedeem ? 'bg-amber-500 hover:bg-amber-600' : 'bg-[#2B2B2B] hover:bg-[#3D3D3D]'} text-white rounded-[25px] font-black uppercase text-xl shadow-2xl transition-all active:scale-95 focus:ring-4 focus:ring-gray-200`}
-                    style={!canRedeem ? { backgroundColor: '#2B2B2B' } : undefined}
+                    className={`w-full h-20 ${canRedeem ? 'bg-amber-500 hover:bg-amber-600' : 'bg-[#2B2B2B] hover:bg-[#444444]'} text-white rounded-[25px] font-black uppercase text-xl shadow-2xl transition-all active:scale-95 focus:ring-4 focus:ring-gray-300`}
                   >
                     {canRedeem ? 'RESGATAR PRÊMIO' : 'LANÇAR PONTO'}
                   </Button>
@@ -868,7 +872,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                   <Input label="Província *" value={customerData.province} onChange={e => setCustomerData({ ...customerData, province: normalizeText(e.target.value) })} required className="focus:ring-gray-200 focus:border-gray-400" />
                   <Input label="Cidade *" value={customerData.city} onChange={e => setCustomerData({ ...customerData, city: normalizeText(e.target.value) })} required className="focus:ring-gray-200 focus:border-gray-400" />
                 </div>
-                <Button type="submit" isLoading={loading} className="w-full h-16 bg-[#2B2B2B] hover:bg-[#3D3D3D] text-white rounded-2xl font-black uppercase focus:ring-4 focus:ring-gray-200">CADASTRAR E PONTUAR</Button>
+                <Button type="submit" isLoading={loading} className="w-full h-16 bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-2xl font-black uppercase focus:ring-4 focus:ring-gray-300">CADASTRAR E PONTUAR</Button>
                 <Button variant="ghost" onClick={reset} className="w-full h-12 text-slate-400 font-bold uppercase text-xs">CANCELAR</Button>
               </form>
             </div>
@@ -940,7 +944,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                   </div>
                   <Input label="Província *" value={customerData.province} onChange={e => setCustomerData({ ...customerData, province: normalizeText(e.target.value) })} required className="focus:ring-gray-200 focus:border-gray-400" />
                 </div>
-                <Button type="submit" isLoading={loading} className="w-full h-16 bg-[#2B2B2B] hover:bg-[#3D3D3D] text-white rounded-[25px] font-black uppercase text-base shadow-xl tracking-widest transition-transform active:scale-95 focus:ring-4 focus:ring-gray-200">
+                <Button type="submit" isLoading={loading} className="w-full h-16 bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-[25px] font-black uppercase text-base shadow-xl tracking-widest transition-transform active:scale-95 focus:ring-4 focus:ring-gray-300">
                   CADASTRAR E GANHAR PONTO
                 </Button>
               </form>
@@ -963,7 +967,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 </p>
               </div>
               <div className="pt-8 w-full max-w-xs mx-auto">
-                <Button onClick={reset} className="w-full h-16 bg-[#2B2B2B] hover:bg-[#3D3D3D] text-white rounded-2xl font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg focus:ring-4 focus:ring-gray-200">
+                <Button onClick={reset} className="w-full h-16 bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-2xl font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg focus:ring-4 focus:ring-gray-300">
                   Ok, entendi
                 </Button>
               </div>
@@ -983,7 +987,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 <p className="text-[10px] font-black uppercase text-slate-300 dark:text-slate-600 mb-1">Novo Saldo</p>
                 <p className="text-8xl font-black text-slate-900 dark:text-white tracking-tighter">{approvedData.points_balance} <span className="text-3xl text-slate-300 dark:text-slate-700">/ {approvedData.points_goal}</span></p>
               </div>
-              <Button onClick={reset} className="w-full h-16 font-black uppercase bg-[#2B2B2B] hover:bg-[#3D3D3D] text-white rounded-2xl focus:ring-4 focus:ring-gray-200">Voltar ao Início</Button>
+              <Button onClick={reset} className="w-full h-16 font-black uppercase bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-2xl focus:ring-4 focus:ring-gray-300">Voltar ao Início</Button>
             </div>
           )
         }
@@ -1069,7 +1073,7 @@ const RewardSuccessModal: React.FC<{
         </div>
 
         <Button
-          className="w-full bg-[#2B2B2B] hover:bg-[#3D3D3D] text-white rounded-[24px] font-black uppercase tracking-[0.2em] h-16 transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-slate-400/10 focus:ring-4 focus:ring-gray-200"
+          className="w-full bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-[24px] font-black uppercase tracking-[0.2em] h-16 transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-slate-400/10 focus:ring-4 focus:ring-gray-300"
           onClick={onClose}
         >
           Fechar
