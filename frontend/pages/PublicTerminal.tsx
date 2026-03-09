@@ -1054,7 +1054,15 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         )}
       </div>
 
-      <div className="w-full md:w-[80%] max-w-3xl flex flex-col items-center pb-8 p-4">
+      <div className="w-full md:w-[80%] max-w-4xl flex flex-col items-center pb-12 p-6 space-y-8">
+        {storeInfo?.rules_text && (
+          <div className="w-full bg-white dark:bg-slate-900/50 p-8 rounded-[30px] border border-gray-100 dark:border-slate-800 shadow-sm">
+            <h4 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 mb-4 text-center">Regras do Programa</h4>
+            <div className="text-xs md:text-sm text-slate-500 dark:text-slate-400 leading-relaxed whitespace-pre-line text-justify">
+              {storeInfo.rules_text}
+            </div>
+          </div>
+        )}
         <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">CP System &copy; 2026</p>
       </div>
 
