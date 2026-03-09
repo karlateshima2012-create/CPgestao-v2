@@ -327,30 +327,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   };
 
   const handlePontuarVisita = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!phone || phone.replace(/\D/g, '').length < 8) {
-      setModal({ isOpen: true, title: 'Atenção', message: 'Informe seu telefone corretamente.', type: 'info' });
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await terminalService.lookup(tenantSlug, deviceUid, phone, qrToken, sessionToken);
-      if (res.data && res.data.customer_exists === false) {
-        setMode('VISIT_NOT_FOUND');
-      } else {
-        setFoundCustomer(res.data);
-        await handleEarn();
-      }
-    } catch (error: any) {
-      if (error.response?.status === 404) {
-        setMode('VISIT_NOT_FOUND');
-      } else {
-        setModal({ isOpen: true, title: 'Erro', message: 'Erro ao processar visita.', type: 'error' });
-      }
-    } finally {
-      setLoading(false);
-    }
+    handleEarn(e);
   };
 
   const handleConsult = (e?: React.FormEvent) => {
@@ -376,61 +353,62 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
     handleLookup();
   };
 
-  const handleEarn = async () => {
-    if (!tenantSlug) return;
-    const isAdmin = !!localStorage.getItem('auth_token');
 
-    // Feedback Tátil e Micro-Animação
+  const handleEarn = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!phone || phone.length < 8) return;
+
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
-      navigator.vibrate(40);
+      navigator.vibrate(30);
     }
-    setShowStars(true);
-    setTimeout(() => setShowStars(false), 1000);
 
     setLoading(true);
     try {
-      const res = await terminalService.earn(tenantSlug, deviceUid, phone, qrToken, sessionToken);
-      const isAuto = res.data.auto_approved;
-      const points = res.data.new_balance;
-      const goal = res.data.points_goal || storeInfo?.points_goal || 10;
-      setRequestId(res.data.request_id);
+      const lookupRes = await terminalService.lookup(tenantSlug, phone, sessionToken);
 
-      setRewardModal({
-        isOpen: true,
-        title: isAuto ? 'Ponto Adicionado!' : 'Visita registrada!',
-        message: isAuto
-          ? 'Seu ponto foi creditado com sucesso!'
-          : 'Seu ponto foi enviado para confirmação da loja.\nEm breve ele será adicionado ao seu saldo.',
-        points: points || (foundCustomer?.points_balance + (isAuto ? 1 : 0)) || 0,
-        goal: goal
-      });
+      if (lookupRes.data.customer_exists) {
+        // Cliente existe, pontuar agora
+        const earnRes = await terminalService.earn(tenantSlug, deviceUid, phone, qrToken, sessionToken);
+        const isAuto = earnRes.data.auto_approved;
 
-      if (isAdmin && isAuto) {
-        setFoundCustomer(prev => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            points_balance: res.data.new_balance,
-            loyalty_level: res.data.loyalty_level ?? prev.loyalty_level,
-            loyalty_level_name: res.data.loyalty_level_name || prev.loyalty_level_name,
-            points_goal: res.data.points_goal || prev.points_goal
-          };
+        setApprovedData({
+          points_balance: earnRes.data.new_balance,
+          points_goal: earnRes.data.points_goal,
+          customer_name: earnRes.data.customer_name
         });
-      }
 
-      if (qrToken) setQrToken(null);
-      reset(); // Reset the background mode
+        setRewardModal({
+          isOpen: true,
+          title: isAuto ? 'Ponto Adicionado! 🎉' : 'Ponto solicitado! ✅',
+          message: isAuto
+            ? 'Seu ponto foi creditado com sucesso!'
+            : 'A loja vai confirmar em instantes.',
+          points: earnRes.data.new_balance,
+          goal: earnRes.data.points_goal
+        });
+
+        setShowStars(true);
+        setTimeout(() => setShowStars(false), 1500);
+
+        if (qrToken) setQrToken(null);
+        setPhone('');
+      } else {
+        // Cliente não existe
+        setMode('VISIT_NOT_FOUND');
+      }
     } catch (error: any) {
-      setModal({
-        isOpen: true,
-        title: 'Erro ao Pontuar',
-        message: error.response?.data?.message || 'Ocorreu um erro ao processar sua pontuação.',
-        type: 'error'
-      });
+      const msg = error.response?.data?.message || 'Ocorreu um erro. Tente novamente.';
+      if (msg.includes('Aguarde')) {
+        setModal({ isOpen: true, title: 'Calma lá! ⏳', message: msg, type: 'warning' });
+      } else {
+        setMode('VISIT_NOT_FOUND');
+      }
     } finally {
       setLoading(false);
     }
   };
+
+
 
   const handleRedeem = async (confirmed = false) => {
     const isAdmin = !!localStorage.getItem('auth_token');
@@ -645,139 +623,84 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         </div>
 
         {mode === 'START' && (
-          <div className="p-6 md:p-12 animate-fade-in w-full space-y-8 bg-white dark:bg-gray-950">
+          <div className="p-6 md:p-12 animate-fade-in w-full space-y-12 bg-white dark:bg-gray-950 flex flex-col items-center">
 
-            {/* Card Principal - Pontuar (Destaque) */}
-            {(deviceUid || qrToken) && (
-              <div
-                onClick={() => setMode('PONTUAR')}
-                id="card-pontuar"
-                className="group cursor-pointer bg-white dark:bg-slate-900 rounded-[32px] p-8 md:p-14 shadow-[0_30px_80px_-15px_rgba(0,0,0,0.22)] border border-gray-100/80 transition-all hover:scale-[1.01] flex flex-col items-center justify-center text-center space-y-6 relative overflow-hidden"
-              >
-                <div className="w-20 h-20 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner ring-1 ring-slate-100 group-hover:scale-110 transition-transform duration-500">
-                  <Star className="w-10 h-10 text-[#2B2B2B] dark:text-white group-hover:fill-current" />
+            <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-[40px] p-8 md:p-14 shadow-[0_45px_100px_-25px_rgba(0,0,0,0.18)] border border-gray-100/80 flex flex-col items-center text-center space-y-8">
+              <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner ring-1 ring-slate-100">
+                <Star className="w-10 h-10 text-[#2B2B2B] dark:text-white" />
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="text-3xl md:text-5xl font-black tracking-tighter uppercase leading-none text-black">⭐ Ganhe 1 ponto nesta visita</h3>
+                <p className="text-[10px] md:text-sm font-bold text-gray-400 uppercase tracking-[0.2em] max-w-sm mx-auto">Digite seu telefone para pontuar.</p>
+              </div>
+
+              <form onSubmit={handleEarn} className="w-full space-y-8">
+                <div className="relative group">
+                  <Smartphone className="absolute left-6 top-1/2 -translate-y-1/2 w-7 h-7 text-slate-200 group-focus-within:text-black transition-colors" />
+                  <input
+                    type="tel"
+                    placeholder="090-0000-0000"
+                    className="w-full pl-16 pr-8 py-6 bg-slate-50 dark:bg-slate-800/50 border-2 border-slate-100 focus:border-black rounded-3xl text-3xl font-black tracking-widest text-black outline-none transition-all placeholder:text-slate-200"
+                    value={phone}
+                    onChange={e => setPhone(formatJapanesePhone(e.target.value))}
+                    autoFocus
+                  />
                 </div>
 
-                <div className="space-y-2 relative z-10">
-                  <h3 className="text-3xl md:text-5xl font-black tracking-tighter uppercase leading-none text-black">Registrar Visita</h3>
-                  <p className="text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-[0.2em] max-w-md mx-auto">Digite seu telefone e solicite o ponto desta visita.</p>
-                </div>
-
-                <div className="relative z-10 w-full max-w-sm">
-                  <div className="h-14 md:h-18 bg-[#2B2B2B] text-white rounded-[20px] flex items-center justify-center font-black uppercase tracking-[0.2em] group-hover:bg-black transition-all shadow-xl text-lg">
+                <div className="relative">
+                  <Button
+                    type="submit"
+                    isLoading={loading}
+                    className="w-full h-20 text-xl font-black uppercase tracking-[0.2em] bg-[#2B2B2B] text-white rounded-[25px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] transition-all active:scale-95 overflow-visible"
+                  >
                     GANHAR PONTO
-                  </div>
-                </div>
-              </div>
-            )}
+                  </Button>
 
-            {/* Ações Secundárias */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
-              <div
-                onClick={() => setMode('REGISTER')}
-                className={`group cursor-pointer bg-white dark:bg-slate-900 rounded-[32px] p-8 md:p-12 shadow-[0_20px_60px_-10px_rgba(0,0,0,0.15)] border border-gray-100/60 transition-all hover:scale-[1.02] flex flex-col items-center justify-center text-center space-y-6 ${!(deviceUid || qrToken) ? 'md:col-span-2 py-20' : ''}`}
-              >
-                <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner ring-1 ring-slate-100 group-hover:scale-110 transition-transform">
-                  <UserPlus className="w-8 h-8 text-black dark:text-white" />
+                  {showStars && (
+                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                      {[...Array(8)].map((_, i) => (
+                        <div key={i} className="absolute animate-star-burst"
+                          style={{ '--star-angle': `${(360 / 8) * i}deg`, '--star-dist': '60px', '--star-delay': `${i * 0.05}s` } as any}
+                        >
+                          <Star className="w-6 h-6 text-amber-400 fill-amber-400" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <div className="space-y-2">
-                  <h3 className="text-xl md:text-2xl font-black tracking-tight leading-tight uppercase text-black">Participar do programa</h3>
-                  <p className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-widest">Novo cadastro rápido</p>
-                </div>
-                <div className="h-14 px-12 bg-[#565656] text-white rounded-[20px] flex items-center justify-center font-black uppercase text-xs tracking-widest transition-all group-hover:opacity-90 shadow-lg">
-                  CADASTRAR
-                </div>
-              </div>
+              </form>
+            </div>
 
-              <div
-                onClick={() => setMode('CONSULT')}
-                className={`group cursor-pointer bg-white dark:bg-slate-900 rounded-[32px] p-8 md:p-12 shadow-[0_20px_60px_-10px_rgba(0,0,0,0.15)] border border-gray-100/60 transition-all hover:scale-[1.02] flex flex-col items-center justify-center text-center space-y-6 ${!(deviceUid || qrToken) ? 'md:col-span-2 py-20' : ''}`}
-              >
-                <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner ring-1 ring-slate-100 group-hover:scale-110 transition-transform">
-                  <Search className="w-8 h-8 text-black dark:text-white" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-xl md:text-2xl font-black tracking-tight leading-tight uppercase text-black">Ver Meus Pontos</h3>
-                  <p className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-widest">Consulta de saldo atual</p>
-                </div>
-                <div className="h-14 px-12 bg-[#565656] text-white rounded-[20px] flex items-center justify-center font-black uppercase text-xs tracking-widest transition-all group-hover:opacity-90 shadow-lg">
-                  VER MEU SALDO
-                </div>
-              </div>
+            <div className="flex gap-4">
+              <button onClick={() => setMode('CONSULT')} className="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-black transition-colors">Ver meu saldo</button>
+              <span className="text-gray-200">•</span>
+              <button onClick={() => setMode('REGISTER')} className="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-black transition-colors">Criar cadastro</button>
             </div>
           </div>
         )}
 
-        {mode === 'PONTUAR' && (
-          <div className="p-6 md:p-12 text-center relative overflow-hidden animate-fade-in space-y-10 w-full min-h-[400px] flex flex-col justify-center bg-white dark:bg-gray-950">
-            <div className="flex items-center justify-start absolute top-8 left-8">
-              <button type="button" onClick={() => setMode('START')} className="p-3 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-            </div>
-            <div className="space-y-3 pt-6">
-              <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">Ganhar Ponto ⭐</h2>
-              <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Digite seu telefone e solicite o ponto desta visita.</p>
-            </div>
-            <form onSubmit={handlePontuarVisita} className="space-y-8 max-w-sm mx-auto w-full">
-              <div className="relative group">
-                <Smartphone className="absolute left-6 top-1/2 -translate-y-1/2 w-7 h-7 text-slate-300 group-focus-within:text-slate-900 dark:group-focus-within:text-white transition-colors" />
-                <input
-                  type="tel"
-                  placeholder="090-0000-0000"
-                  className="w-full pl-16 pr-8 py-6 bg-slate-50 dark:bg-slate-800/50 border-2 border-slate-100 dark:border-slate-800 focus:border-slate-900 dark:focus:border-white rounded-3xl text-3xl font-black tracking-widest text-slate-900 dark:text-white outline-none transition-all placeholder:text-slate-200 dark:placeholder:text-slate-700"
-                  value={phone}
-                  onChange={e => setPhone(formatJapanesePhone(e.target.value))}
-                  autoFocus
-                />
-              </div>
-              <div className="relative">
-                <Button type="submit" isLoading={loading} className="w-full h-20 text-xl font-black uppercase tracking-widest bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.2)] transition-all active:scale-95 overflow-visible">
-                  {loading ? 'Solicitando...' : 'GANHAR PONTO'}
-                </Button>
 
-                {/* Micro-animação de Estrelas */}
-                {showStars && (
-                  <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-visible">
-                    {[...Array(8)].map((_, i) => (
-                      <div
-                        key={i}
-                        className="absolute animate-star-burst"
-                        style={{
-                          '--star-angle': `${(360 / 8) * i}deg`,
-                          '--star-dist': `${30 + Math.random() * 20}px`,
-                          '--star-delay': `${Math.random() * 0.1}s`
-                        } as React.CSSProperties}
-                      >
-                        <Star className="w-6 h-6 text-amber-400 fill-amber-400 opacity-0" />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </form>
-          </div>
-        )}
 
         {mode === 'VISIT_NOT_FOUND' && (
           <div className="p-6 md:p-12 text-center animate-fade-in space-y-8 w-full min-h-[400px] flex flex-col justify-center items-center bg-white dark:bg-gray-950">
-            <div className="w-24 h-24 bg-rose-50 dark:bg-rose-500/10 rounded-full flex items-center justify-center text-rose-500 animate-pulse">
-              <AlertCircle className="w-12 h-12" />
+            <div className="w-24 h-24 bg-rose-50 dark:bg-rose-500/10 rounded-full flex items-center justify-center text-rose-500">
+              <UserPlus className="w-12 h-12" />
             </div>
             <div className="space-y-4 max-w-md">
-              <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">Telefone não encontrado.</h2>
+              <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">Este número ainda não participa.</h2>
               <p className="text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
-                Parece que você ainda não tem um cadastro no nosso sistema.<br />
-                Cadastre-se primeiro para participar do programa de pontos.
+                Você ainda não tem um cadastro no nosso sistema.<br />
+                Cadastre-se para começar a ganhar pontos!
               </p>
             </div>
             <div className="flex flex-col gap-4 w-full max-w-xs">
-              <Button onClick={() => setMode('REGISTER')} className="w-full h-16 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest shadow-lg">
-                Cadastrar agora
+              <Button onClick={() => setMode('REGISTER')} className="w-full h-18 bg-[#2B2B2B] text-white rounded-2xl font-black uppercase tracking-widest shadow-xl text-sm">
+                CRIAR CADASTRO EM 10 SEGUNDOS
               </Button>
-              <Button variant="ghost" onClick={() => setMode('START')} className="w-full text-slate-400 font-bold uppercase text-[10px] tracking-widest">
+              <button onClick={() => setMode('START')} className="text-gray-400 font-bold uppercase text-[10px] tracking-widest py-2">
                 Tentar outro número
-              </Button>
+              </button>
             </div>
           </div>
         )}
