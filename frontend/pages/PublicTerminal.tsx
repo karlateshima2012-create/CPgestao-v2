@@ -652,7 +652,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               <div
                 onClick={() => setMode('PONTUAR')}
                 id="card-pontuar"
-                className="group cursor-pointer bg-white dark:bg-slate-900 rounded-[32px] p-8 md:p-14 shadow-[0_50px_120px_-30px_rgba(0,0,0,0.18)] border border-white transition-all hover:scale-[1.01] flex flex-col items-center justify-center text-center space-y-6 relative overflow-hidden"
+                className="group cursor-pointer bg-white dark:bg-slate-900 rounded-[32px] p-8 md:p-14 shadow-[0_30px_80px_-15px_rgba(0,0,0,0.22)] border border-gray-100/80 transition-all hover:scale-[1.01] flex flex-col items-center justify-center text-center space-y-6 relative overflow-hidden"
               >
                 <div className="w-20 h-20 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner ring-1 ring-slate-100 group-hover:scale-110 transition-transform duration-500">
                   <Star className="w-10 h-10 text-[#2B2B2B] dark:text-white group-hover:fill-current" />
@@ -675,7 +675,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
               <div
                 onClick={() => setMode('REGISTER')}
-                className={`group cursor-pointer bg-white dark:bg-slate-900 rounded-[32px] p-8 md:p-12 shadow-[0_35px_80px_-20px_rgba(0,0,0,0.12)] border border-white transition-all hover:scale-[1.02] flex flex-col items-center justify-center text-center space-y-6 ${!(deviceUid || qrToken) ? 'md:col-span-2 py-20' : ''}`}
+                className={`group cursor-pointer bg-white dark:bg-slate-900 rounded-[32px] p-8 md:p-12 shadow-[0_20px_60px_-10px_rgba(0,0,0,0.15)] border border-gray-100/60 transition-all hover:scale-[1.02] flex flex-col items-center justify-center text-center space-y-6 ${!(deviceUid || qrToken) ? 'md:col-span-2 py-20' : ''}`}
               >
                 <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner ring-1 ring-slate-100 group-hover:scale-110 transition-transform">
                   <UserPlus className="w-8 h-8 text-black dark:text-white" />
@@ -691,7 +691,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
               <div
                 onClick={() => setMode('CONSULT')}
-                className={`group cursor-pointer bg-white dark:bg-slate-900 rounded-[32px] p-8 md:p-12 shadow-[0_35px_80px_-20px_rgba(0,0,0,0.12)] border border-white transition-all hover:scale-[1.02] flex flex-col items-center justify-center text-center space-y-6 ${!(deviceUid || qrToken) ? 'md:col-span-2 py-20' : ''}`}
+                className={`group cursor-pointer bg-white dark:bg-slate-900 rounded-[32px] p-8 md:p-12 shadow-[0_20px_60px_-10px_rgba(0,0,0,0.15)] border border-gray-100/60 transition-all hover:scale-[1.02] flex flex-col items-center justify-center text-center space-y-6 ${!(deviceUid || qrToken) ? 'md:col-span-2 py-20' : ''}`}
               >
                 <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner ring-1 ring-slate-100 group-hover:scale-110 transition-transform">
                   <Search className="w-8 h-8 text-black dark:text-white" />

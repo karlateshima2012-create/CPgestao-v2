@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 
 // Auth
 Route::get('/version', function() {
-    return response()->json(['version' => '2.4.2', 'time' => now()->toDateTimeString()]);
+    return response()->json(['version' => '2.4.3', 'time' => now()->toDateTimeString()]);
 });
 
 Route::get('/force-migrate', function() {
