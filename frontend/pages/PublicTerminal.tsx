@@ -610,7 +610,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   if (mode === 'INVALID_DEVICE') return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 font-sans"><p className="text-gray-400 font-bold">{errorMsg || 'DISPOSITIVO INVÁLIDO OU NÃO ENCONTRADO'}</p></div>;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-gray-950 font-sans flex flex-col items-center pointer-events-auto">
+    <div className="min-h-screen bg-[#B3B3B3] dark:bg-gray-950 font-sans flex flex-col items-center pointer-events-auto">
       <div className="w-full md:w-[85%] max-w-4xl bg-white dark:bg-slate-900 md:rounded-t-none md:rounded-b-[50px] shadow-2xl relative z-20 flex flex-col overflow-hidden animate-fade-in border-none">
         <div className="h-72 md:h-[450px] w-full bg-slate-200 dark:bg-slate-800 relative shrink-0 overflow-hidden">
           {storeInfo?.cover_url ? (
@@ -618,12 +618,11 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           ) : (
             <div className="w-full h-full bg-gradient-to-r from-gray-700 to-gray-900" />
           )}
-          <div className="absolute inset-0 bg-black/15 mix-blend-multiply"></div>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/40 to-black/30"></div>
 
-          <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-12 text-white">
-            <div className="flex flex-col md:flex-row md:items-end gap-6 md:gap-10 w-full">
-              <div className="w-32 h-32 md:w-52 md:h-52 rounded-[32px] shadow-[0_25px_60px_rgba(0,0,0,0.6)] flex shrink-0 items-center justify-center overflow-hidden ring-4 ring-white/20 backdrop-blur-xl bg-white/5 animate-scale-in">
+          <div className="absolute inset-0 flex flex-col items-center justify-start py-20 px-10 text-white text-center">
+            <div className="flex flex-col items-center gap-6 w-full">
+              <div className="w-28 h-28 md:w-36 md:h-36 rounded-[32px] shadow-[0_25px_60px_rgba(0,0,0,0.6)] flex shrink-0 items-center justify-center overflow-hidden ring-4 ring-white/20 backdrop-blur-xl bg-white/5 animate-scale-in">
                 {storeInfo?.logo_url ? (
                   <img src={storeInfo?.logo_url} alt={storeInfo?.name} className="w-full h-full object-cover" />
                 ) : (
@@ -633,11 +632,11 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 )}
               </div>
 
-              <div className="flex flex-col flex-1 drop-shadow-2xl" style={{ textShadow: '0 4px 15px rgba(0,0,0,0.5)' }}>
-                <h1 className="text-4xl md:text-7xl font-black tracking-tighter text-white leading-tight drop-shadow-lg uppercase">
+              <div className="flex flex-col drop-shadow-2xl max-w-2xl" style={{ textShadow: '0 4px 15px rgba(0,0,0,0.5)' }}>
+                <h1 className="text-3xl md:text-5xl font-black tracking-tighter text-white leading-tight drop-shadow-xl uppercase">
                   {storeInfo?.name || 'Carregando...'}
                 </h1>
-                <p className="mt-2 text-base md:text-2xl text-white/90 font-bold leading-relaxed max-w-2xl drop-shadow-md">
+                <p className="mt-4 text-base md:text-xl text-white/90 font-bold leading-relaxed drop-shadow-lg">
                   {storeInfo?.description || 'Obrigado por nos visitar!'}
                 </p>
               </div>
@@ -646,12 +645,12 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         </div>
 
         {mode === 'START' && (
-          <div className="p-6 md:p-12 animate-fade-in w-full space-y-8 bg-slate-50 dark:bg-gray-950">
+          <div className="p-6 md:p-12 animate-fade-in w-full space-y-10 bg-[#B3B3B3] dark:bg-gray-950">
             {/* Card Principal - Pontuar (Destaque) */}
             {(deviceUid || qrToken) && (
               <div
                 onClick={() => setMode('PONTUAR')}
-                className="group cursor-pointer bg-white dark:bg-slate-900 rounded-[40px] p-8 md:p-16 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border border-slate-100 dark:border-slate-800 transition-all hover:scale-[1.01] hover:shadow-[0_25px_80px_-15px_rgba(0,0,0,0.15)] flex flex-col items-center justify-center text-center space-y-8 relative overflow-hidden"
+                className="group cursor-pointer bg-[#E0E0E0] dark:bg-slate-900 rounded-[44px] p-10 md:p-20 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.3)] border border-white/40 transition-all hover:scale-[1.01] flex flex-col items-center justify-center text-center space-y-10 relative overflow-hidden"
               >
                 <div className="absolute top-0 right-0 w-64 h-64 bg-slate-50 dark:bg-slate-800/20 rounded-full -translate-y-1/2 translate-x-1/2" />
 
@@ -659,13 +658,13 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                   <Star className="w-12 h-12 text-slate-800 dark:text-white group-hover:fill-current" />
                 </div>
 
-                <div className="space-y-4 relative z-10">
-                  <h3 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">Registrar Visita</h3>
-                  <p className="text-base font-bold text-slate-400 dark:text-slate-500 max-w-md mx-auto">Digite seu telefone e solicite o ponto desta visita.</p>
+                <div className="space-y-4 relative z-10 text-[#2B2B2B]">
+                  <h3 className="text-4xl md:text-6xl font-black tracking-tighter uppercase leading-none">Registrar Visita</h3>
+                  <p className="text-base md:text-xl font-bold opacity-60 max-w-md mx-auto">Digite seu telefone e solicite o ponto desta visita.</p>
                 </div>
 
-                <div className="relative z-10 w-full max-w-sm">
-                  <div className="h-16 md:h-20 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[28px] flex items-center justify-center font-black uppercase tracking-[0.2em] group-hover:bg-black dark:group-hover:bg-slate-100 transition-all shadow-xl text-lg">
+                <div className="relative z-10 w-full max-w-md mt-4">
+                  <div className="h-16 md:h-24 bg-[#2B2B2B] text-white rounded-[32px] flex items-center justify-center font-black uppercase tracking-[0.2em] group-hover:bg-black transition-all shadow-2xl text-xl">
                     GANHAR PONTO
                   </div>
                 </div>
@@ -673,35 +672,35 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             )}
 
             {/* Ações Secundárias */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
               <div
                 onClick={() => setMode('REGISTER')}
-                className={`group cursor-pointer bg-white dark:bg-slate-900 rounded-[36px] p-8 md:p-12 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.06)] border border-slate-100 dark:border-slate-800 transition-all hover:scale-[1.02] hover:shadow-[0_25px_60px_-10px_rgba(0,0,0,0.1)] flex flex-col items-center justify-center text-center space-y-6 ${!(deviceUid || qrToken) ? 'md:col-span-2 py-20' : ''}`}
+                className={`group cursor-pointer bg-[#E0E0E0] dark:bg-slate-900 rounded-[40px] p-10 md:p-14 shadow-[0_25px_60px_-10px_rgba(0,0,0,0.2)] border border-white/30 transition-all hover:scale-[1.02] flex flex-col items-center justify-center text-center space-y-6 ${!(deviceUid || qrToken) ? 'md:col-span-2 py-24' : ''}`}
               >
-                <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-3xl flex items-center justify-center shadow-inner ring-1 ring-slate-100 dark:ring-slate-700 group-hover:scale-110 transition-transform">
-                  <UserPlus className="w-10 h-10 text-slate-800 dark:text-white" />
+                <div className="w-20 h-20 bg-white/40 dark:bg-slate-800 rounded-3xl flex items-center justify-center shadow-inner ring-1 ring-white/50 group-hover:scale-110 transition-transform">
+                  <UserPlus className="w-10 h-10 text-[#565656] dark:text-white" />
                 </div>
-                <div className="space-y-2">
-                  <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-tight uppercase">Participar do programa</h3>
-                  <p className="text-sm font-bold text-slate-400">Novo cadastro rápido</p>
+                <div className="space-y-2 text-[#565656]">
+                  <h3 className="text-xl md:text-3xl font-black tracking-tight leading-tight uppercase">Participar do programa</h3>
+                  <p className="text-sm font-bold opacity-60 uppercase tracking-widest">Novo cadastro rápido</p>
                 </div>
-                <div className="h-14 px-12 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center font-black uppercase text-xs tracking-widest text-slate-900 dark:text-white transition-all group-hover:bg-slate-200 dark:group-hover:bg-slate-700">
+                <div className="h-16 px-16 bg-[#565656] text-white rounded-[24px] flex items-center justify-center font-black uppercase text-sm tracking-widest transition-all group-hover:opacity-90 shadow-lg">
                   CADASTRAR
                 </div>
               </div>
 
               <div
                 onClick={() => setMode('CONSULT')}
-                className={`group cursor-pointer bg-white dark:bg-slate-900 rounded-[36px] p-8 md:p-12 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.06)] border border-slate-100 dark:border-slate-800 transition-all hover:scale-[1.02] hover:shadow-[0_25px_60px_-10px_rgba(0,0,0,0.1)] flex flex-col items-center justify-center text-center space-y-6 ${!(deviceUid || qrToken) ? 'md:col-span-2 py-20' : ''}`}
+                className={`group cursor-pointer bg-[#E0E0E0] dark:bg-slate-900 rounded-[40px] p-10 md:p-14 shadow-[0_25px_60px_-10px_rgba(0,0,0,0.2)] border border-white/30 transition-all hover:scale-[1.02] flex flex-col items-center justify-center text-center space-y-6 ${!(deviceUid || qrToken) ? 'md:col-span-2 py-24' : ''}`}
               >
-                <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-3xl flex items-center justify-center shadow-inner ring-1 ring-slate-100 dark:ring-slate-700 group-hover:scale-110 transition-transform">
-                  <Search className="w-10 h-10 text-slate-800 dark:text-white" />
+                <div className="w-20 h-20 bg-white/40 dark:bg-slate-800 rounded-3xl flex items-center justify-center shadow-inner ring-1 ring-white/50 group-hover:scale-110 transition-transform">
+                  <Search className="w-10 h-10 text-[#848484] dark:text-white" />
                 </div>
-                <div className="space-y-2">
-                  <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-tight uppercase">Ver Meus Pontos</h3>
-                  <p className="text-sm font-bold text-slate-400">Consulta de saldo atual</p>
+                <div className="space-y-2 text-[#848484]">
+                  <h3 className="text-xl md:text-3xl font-black tracking-tight leading-tight uppercase">Ver Meus Pontos</h3>
+                  <p className="text-sm font-bold opacity-60 uppercase tracking-widest">Consulta de saldo atual</p>
                 </div>
-                <div className="h-14 px-12 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center font-black uppercase text-xs tracking-widest text-slate-900 dark:text-white transition-all group-hover:bg-slate-200 dark:group-hover:bg-slate-700">
+                <div className="h-16 px-14 bg-[#848484] text-white rounded-[24px] flex items-center justify-center font-black uppercase text-xs tracking-widest transition-all group-hover:opacity-90 shadow-lg">
                   VER MEU SALDO
                 </div>
               </div>
@@ -1064,7 +1063,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         {...rewardModal}
         onClose={() => setRewardModal(prev => ({ ...prev, isOpen: false }))}
       />
-    </div>
+    </div >
   );
 };
 
