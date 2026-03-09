@@ -333,7 +333,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         setMode('VISIT_NOT_FOUND');
       } else {
         setFoundCustomer(res.data);
-        handleEarn();
+        await handleEarn();
       }
     } catch (error: any) {
       if (error.response?.status === 404) {
@@ -386,22 +386,27 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
       const isAuto = res.data.auto_approved;
       setRequestId(res.data.request_id);
 
-      if (isAdmin && isAuto) {
-        setFoundCustomer(prev => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            points_balance: res.data.new_balance,
-            loyalty_level: res.data.loyalty_level ?? prev.loyalty_level,
-            loyalty_level_name: res.data.loyalty_level_name || prev.loyalty_level_name,
-            points_goal: res.data.points_goal || prev.points_goal
-          };
-        });
+      if (isAdmin) {
+        // Se for admin, mostra modal em vez de mudar para tela de sucesso de cliente
+        if (isAuto) {
+          setFoundCustomer(prev => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              points_balance: res.data.new_balance,
+              loyalty_level: res.data.loyalty_level ?? prev.loyalty_level,
+              loyalty_level_name: res.data.loyalty_level_name || prev.loyalty_level_name,
+              points_goal: res.data.points_goal || prev.points_goal
+            };
+          });
+        }
 
         setModal({
           isOpen: true,
-          title: 'Ponto Adicionado!',
-          message: res.data.message || `Lançamento de ponto realizado com sucesso para ${res.data.customer_name || foundCustomer?.name}.`,
+          title: isAuto ? 'Ponto Adicionado!' : 'Solicitação Enviada!',
+          message: res.data.message || (isAuto
+            ? `O ponto de fidelidade foi creditado com sucesso.`
+            : `Sua solicitação foi enviada. Assim que for confirmada, você poderá ver no saldo.`),
           type: 'success'
         });
       } else if (isAuto) {
@@ -1022,10 +1027,10 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               <Smartphone className="w-10 h-10 text-slate-500 animate-bounce" />
             </div>
             <div className="space-y-4">
-              <h2 className="text-4xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">Visita registrada ✅</h2>
+              <h2 className="text-4xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">Ponto solicitado! ✅</h2>
               <p className="text-base text-slate-600 dark:text-slate-400 font-bold max-w-[320px] mx-auto leading-relaxed">
-                Sua visita foi enviada para validação.<br />
-                O ponto será confirmado em instantes.
+                Sua solicitação de ponto foi enviada com sucesso.<br />
+                Assim que for confirmada, você poderá ver no saldo.
               </p>
             </div>
             <div className="pt-8 w-full max-w-xs mx-auto">
