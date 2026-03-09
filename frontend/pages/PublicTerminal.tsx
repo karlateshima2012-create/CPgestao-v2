@@ -180,15 +180,19 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
     return () => clearInterval(interval);
   }, [mode, requestId, tenantSlug, deviceUid]);
 
-  // Auto-Reset after success
+  // Auto-Redirect/Reset after success
   useEffect(() => {
-    if (mode === 'SUCCESS' || mode === 'AUTO_SUCCESS') {
+    if (mode === 'SUCCESS' || mode === 'AUTO_SUCCESS' || mode === 'WAITING_APPROVAL') {
       const timer = setTimeout(() => {
-        reset();
-      }, 20000); // 20 seconds
+        if (tenantSlug) {
+          window.location.href = `/p/${tenantSlug}`;
+        } else {
+          reset();
+        }
+      }, 5000); // 5 seconds redirect
       return () => clearTimeout(timer);
     }
-  }, [mode]);
+  }, [mode, tenantSlug]);
 
   const formatJapanesePhone = (val: string) => {
     const digits = val.replace(/\D/g, '').slice(0, 11);
@@ -380,8 +384,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           isOpen: true,
           title: isAuto ? 'Ponto Adicionado! 🎉' : 'Ponto solicitado! ✅',
           message: isAuto
-            ? 'Seu ponto foi creditado com sucesso!'
-            : 'A loja vai confirmar em instantes.',
+            ? 'Seu ponto foi creditado com sucesso!\nVocê será redirecionado para acompanhar seu saldo.'
+            : 'A loja vai confirmar em instantes.\nVocê será redirecionado para acompanhar seu saldo.',
           points: earnRes.data.new_balance,
           goal: earnRes.data.points_goal
         });
@@ -962,7 +966,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 <h2 className="text-4xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">Ponto solicitado! ✅</h2>
                 <p className="text-base text-slate-600 dark:text-slate-400 font-bold max-w-[320px] mx-auto leading-relaxed">
                   Sua solicitação de ponto foi enviada com sucesso.<br />
-                  Assim que for confirmada, você poderá ver no saldo.
+                  Você será redirecionado para acompanhar seu saldo.
                 </p>
               </div>
               <div className="pt-8 w-full max-w-xs mx-auto">
@@ -981,6 +985,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 <CheckCircle2 className="w-12 h-12 text-green-500" />
               </div>
               <h2 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">Visita registrada!<br />Seu ponto já foi adicionado.</h2>
+              <p className="text-sm text-slate-500 font-bold mt-2">Você será redirecionado para acompanhar seu saldo.</p>
               <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-8 mb-8 mt-8 border-2 border-slate-100 dark:border-slate-800 shadow-inner">
                 <p className="text-[11px] font-black uppercase text-slate-400 dark:text-slate-500 mb-2 tracking-widest">Obrigado pela visita!</p>
                 <p className="text-[10px] font-black uppercase text-slate-300 dark:text-slate-600 mb-1">Novo Saldo</p>
