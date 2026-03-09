@@ -709,7 +709,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         )}
 
         {mode === 'PONTUAR' && (
-          <div className="p-6 md:p-12 text-center relative overflow-hidden animate-fade-in space-y-10 w-full min-h-[400px] flex flex-col justify-center">
+          <div className="p-6 md:p-12 text-center relative overflow-hidden animate-fade-in space-y-10 w-full min-h-[400px] flex flex-col justify-center bg-white dark:bg-gray-950">
             <div className="flex items-center justify-start absolute top-8 left-8">
               <button type="button" onClick={() => setMode('START')} className="p-3 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                 <ChevronLeft className="w-6 h-6" />
@@ -760,7 +760,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         )}
 
         {mode === 'VISIT_NOT_FOUND' && (
-          <div className="p-6 md:p-12 text-center animate-fade-in space-y-8 w-full min-h-[400px] flex flex-col justify-center items-center">
+          <div className="p-6 md:p-12 text-center animate-fade-in space-y-8 w-full min-h-[400px] flex flex-col justify-center items-center bg-white dark:bg-gray-950">
             <div className="w-24 h-24 bg-rose-50 dark:bg-rose-500/10 rounded-full flex items-center justify-center text-rose-500 animate-pulse">
               <AlertCircle className="w-12 h-12" />
             </div>
@@ -783,7 +783,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         )}
 
         {mode === 'CONSULT' && (
-          <div className="p-6 md:p-10 text-center relative overflow-hidden animate-fade-in space-y-8 w-full">
+          <div className="p-6 md:p-10 text-center relative overflow-hidden animate-fade-in space-y-8 w-full bg-white dark:bg-gray-950">
             <div className="flex items-center justify-start absolute top-6 left-6">
               <button type="button" onClick={() => setMode('START')} className="p-3 bg-slate-50 dark:bg-slate-800 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"><ChevronLeft className="w-5 h-5" /></button>
             </div>
@@ -811,7 +811,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         )}
 
         {mode === 'RESULT_CLIENT' && foundCustomer && (
-          <div className="p-6 md:p-8 relative overflow-hidden animate-fade-in space-y-6 w-full flex flex-col items-center">
+          <div className="p-6 md:p-8 relative overflow-hidden animate-fade-in space-y-6 w-full flex flex-col items-center bg-white dark:bg-gray-950">
             <button onClick={reset} className="absolute top-6 right-6 p-2.5 bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-md text-slate-500 hover:text-slate-900 rounded-full z-20 border border-slate-200/50 shadow-sm active:scale-90"><X className="w-5 h-5" /></button>
 
             {/* Foto de Perfil */}
@@ -863,7 +863,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           const goal = Number(foundCustomer.points_goal || storeInfo?.points_goal || 10);
           const canRedeem = balance >= goal;
           return (
-            <div className="p-6 md:p-8 relative overflow-hidden animate-fade-in space-y-6 w-full flex flex-col items-center">
+            <div className="p-6 md:p-8 relative overflow-hidden animate-fade-in space-y-6 w-full flex flex-col items-center bg-white dark:bg-gray-950">
               <button onClick={reset} className="absolute top-6 right-6 p-2.5 bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-md text-slate-500 hover:text-slate-900 rounded-full z-20 border border-slate-200/50 shadow-sm active:scale-90"><X className="w-5 h-5" /></button>
 
               {/* Foto de Perfil */}
@@ -931,7 +931,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         })()}
 
         {mode === 'LOJISTA_QUICK_REGISTER' && (
-          <div className="p-6 md:p-10 text-center animate-fade-in space-y-8 w-full">
+          <div className="p-6 md:p-10 text-center animate-fade-in space-y-8 w-full bg-white dark:bg-gray-950">
             <h2 className="text-2xl font-black uppercase tracking-tighter">Cadastro Rápido</h2>
             <form onSubmit={handleRegister} className="space-y-4 text-left">
               <Input label="Nome Completo *" value={customerData.name} onChange={e => setCustomerData({ ...customerData, name: normalizeText(e.target.value) })} required />
@@ -947,7 +947,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         )}
 
         {mode === 'REGISTER' && (
-          <div className="p-6 md:p-8 relative overflow-hidden animate-fade-in space-y-6 w-full max-w-lg mx-auto">
+          <div className="p-6 md:p-8 relative overflow-hidden animate-fade-in space-y-6 w-full max-w-lg mx-auto bg-white dark:bg-gray-950">
             <form onSubmit={handleRegister} className="space-y-6">
               <div className="flex items-center justify-start">
                 <button type="button" onClick={() => setMode('START')} className="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 hover:bg-slate-200 transition-colors">
@@ -1018,7 +1018,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         )}
 
         {mode === 'WAITING_APPROVAL' && (
-          <div className="p-6 md:p-8 text-center py-12 animate-fade-in space-y-8 w-full">
+          <div className="p-6 md:p-8 text-center py-12 animate-fade-in space-y-8 w-full bg-white dark:bg-gray-950">
+
             <div className="relative mx-auto w-24 h-24 flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded-full border-4 border-slate-100 dark:border-slate-700">
               <Smartphone className="w-10 h-10 text-slate-500 animate-bounce" />
             </div>
@@ -1038,7 +1039,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         )}
 
         {(mode === 'SUCCESS' || mode === 'AUTO_SUCCESS') && approvedData && (
-          <div className="p-6 md:p-8 text-center py-10 animate-fade-in w-full">
+          <div className="p-6 md:p-8 text-center py-10 animate-fade-in w-full bg-white dark:bg-gray-950">
             <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 bg-green-50 border-4 border-green-100">
               <CheckCircle2 className="w-12 h-12 text-green-500" />
             </div>
@@ -1063,7 +1064,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         {...rewardModal}
         onClose={() => setRewardModal(prev => ({ ...prev, isOpen: false }))}
       />
-    </div >
+    </div>
   );
 };
 
