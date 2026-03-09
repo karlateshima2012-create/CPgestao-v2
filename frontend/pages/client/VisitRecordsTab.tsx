@@ -79,7 +79,7 @@ export const VisitRecordsTab: React.FC = () => {
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             {/* Header com Filtros */}
-            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+            <div className="flex flex-col gap-8">
                 <div>
                     <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-3">
                         Registros de Visitas
@@ -99,8 +99,8 @@ export const VisitRecordsTab: React.FC = () => {
                                 key={p}
                                 onClick={() => setPeriod(p)}
                                 className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${period === p
-                                        ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20'
-                                        : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'
+                                    ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20'
+                                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'
                                     }`}
                             >
                                 {p === 'all' ? 'Todos' : p === 'today' ? 'Hoje' : p === '7days' ? '7 Dias' : '30 Dias'}
@@ -122,7 +122,7 @@ export const VisitRecordsTab: React.FC = () => {
                     {pendingCount > 0 && (
                         <Button
                             onClick={handleApproveAll}
-                            className="h-11 px-6 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white text-[11px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20"
+                            className="h-11 px-8 rounded-2xl bg-sky-500 hover:bg-sky-600 text-white text-[11px] font-black uppercase tracking-widest shadow-lg shadow-sky-500/20 transition-all hover:scale-105 active:scale-95"
                         >
                             Aprovar Todas
                         </Button>
@@ -199,12 +199,12 @@ export const VisitRecordsTab: React.FC = () => {
                                         <td className="px-6 py-5">
                                             <div className="flex justify-center">
                                                 <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 ${v.status === 'aprovado' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10' :
-                                                        v.status === 'negado' ? 'bg-red-50 text-red-600 dark:bg-red-500/10' :
-                                                            'bg-amber-50 text-amber-600 dark:bg-amber-500/10'
+                                                    v.status === 'negado' ? 'bg-red-50 text-red-600 dark:bg-red-500/10' :
+                                                        'bg-amber-50 text-amber-600 dark:bg-amber-500/10'
                                                     }`}>
                                                     <div className={`w-1 h-1 rounded-full ${v.status === 'aprovado' ? 'bg-emerald-500' :
-                                                            v.status === 'negado' ? 'bg-red-500' :
-                                                                'bg-amber-500 animate-pulse'
+                                                        v.status === 'negado' ? 'bg-red-500' :
+                                                            'bg-amber-500 animate-pulse'
                                                         }`} />
                                                     {v.status}
                                                 </span>
