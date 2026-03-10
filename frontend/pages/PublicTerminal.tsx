@@ -145,7 +145,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   });
 
   useEffect(() => {
-    console.log("CP Gestao Version: 2.3.0 - Digital First");
+    console.log("CP Gestao Version: 2.7.2 - Digital Ready");
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
     if (token) setQrToken(token);
