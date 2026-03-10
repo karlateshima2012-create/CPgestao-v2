@@ -606,8 +606,10 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   if (mode === 'LOADING') return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 font-sans"><p className="text-gray-400 font-bold animate-pulse">CARREGANDO TERMINAL...</p></div>;
   if (mode === 'INVALID_DEVICE') return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 font-sans"><p className="text-gray-400 font-bold">{errorMsg || 'DISPOSITIVO INVÁLIDO OU NÃO ENCONTRADO'}</p></div>;
 
+  const isTerminalMode = !!(deviceUid || qrToken);
+
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 font-sans flex flex-col items-center pointer-events-auto">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 font-sans selection:bg-slate-900 selection:text-white pb-20 overflow-x-hidden flex flex-col items-center">
       <div className="w-full md:w-[85%] max-w-4xl bg-white dark:bg-slate-900 md:rounded-t-none md:rounded-b-[50px] shadow-2xl relative z-20 flex flex-col overflow-hidden animate-fade-in border-none">
         <div className="h-80 md:h-[500px] w-full bg-slate-200 dark:bg-slate-800 relative shrink-0 overflow-hidden">
           {storeInfo?.cover_url ? (
@@ -644,59 +646,105 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         {mode === 'START' && (
           <div className="p-6 md:p-12 animate-fade-in w-full space-y-12 bg-white dark:bg-gray-950 flex flex-col items-center">
 
-            <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-[40px] p-8 md:p-14 shadow-[0_45px_100px_-25px_rgba(0,0,0,0.18)] border border-gray-100/80 flex flex-col items-center text-center space-y-10">
+            {isTerminalMode ? (
+              /* =========================================================================
+                 IN-STORE TERMINAL MODE: Single Card - Register Visit
+                 ========================================================================= */
+              <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-[40px] p-8 md:p-14 shadow-[0_45px_100px_-25px_rgba(0,0,0,0.18)] border border-gray-100/80 flex flex-col items-center text-center space-y-10">
 
-              <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-3xl flex items-center justify-center shadow-inner border border-slate-100 dark:border-slate-700">
-                <Star className="w-10 h-10 text-slate-900 dark:text-white" />
-              </div>
-
-              <div className="space-y-3 pt-6">
-                <h3 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter uppercase leading-tight">Registrar Visita</h3>
-                <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Digite seu telefone e solicite o ponto desta visita.</p>
-              </div>
-
-              <form onSubmit={handleEarn} className="w-full space-y-8">
-                <div className="relative group">
-                  <Smartphone className="absolute left-6 top-1/2 -translate-y-1/2 w-7 h-7 text-slate-200 group-focus-within:text-slate-900 transition-colors" />
-                  <input
-                    type="tel"
-                    placeholder="090-0000-0000"
-                    className="w-full pl-16 pr-8 py-6 bg-slate-50 dark:bg-slate-800/50 border-2 border-slate-100 focus:border-slate-900 rounded-3xl text-2xl font-black tracking-widest text-slate-900 outline-none transition-all placeholder:text-slate-200"
-                    value={phone}
-                    onChange={e => setPhone(formatJapanesePhone(e.target.value))}
-                    autoFocus
-                  />
+                <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-3xl flex items-center justify-center shadow-inner border border-slate-100 dark:border-slate-700">
+                  <Star className="w-10 h-10 text-slate-900 dark:text-white" />
                 </div>
 
-                <div className="relative">
+                <div className="space-y-3 pt-6">
+                  <h3 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter uppercase leading-tight">Registrar Visita</h3>
+                  <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Digite seu telefone e solicite o ponto desta visita.</p>
+                </div>
+
+                <form onSubmit={handleEarn} className="w-full space-y-8">
+                  <div className="relative group">
+                    <Smartphone className="absolute left-6 top-1/2 -translate-y-1/2 w-7 h-7 text-slate-200 group-focus-within:text-slate-900 transition-colors" />
+                    <input
+                      type="tel"
+                      placeholder="090-0000-0000"
+                      className="w-full pl-16 pr-8 py-6 bg-slate-50 dark:bg-slate-800/50 border-2 border-slate-100 focus:border-slate-900 rounded-3xl text-2xl font-black tracking-widest text-slate-900 outline-none transition-all placeholder:text-slate-200"
+                      value={phone}
+                      onChange={e => setPhone(formatJapanesePhone(e.target.value))}
+                      autoFocus
+                    />
+                  </div>
+
+                  <div className="relative">
+                    <Button
+                      type="submit"
+                      isLoading={loading}
+                      className="w-full h-20 text-xl font-black uppercase tracking-[0.2em] bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-[25px] shadow-[0_20px_50px_rgba(0,0,0,0.12)] transition-all active:scale-95 overflow-visible focus:ring-4 focus:ring-gray-300"
+                    >
+                      GANHAR PONTO
+                    </Button>
+
+                    {showStars && (
+                      <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                        {[...Array(8)].map((_, i) => (
+                          <div key={i} className="absolute animate-star-burst"
+                            style={{ '--star-angle': `${(360 / 8) * i}deg`, '--star-dist': '60px', '--star-delay': `${i * 0.05}s` } as any}
+                          >
+                            <Star className="w-6 h-6 text-amber-400 fill-amber-400" />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </form>
+              </div>
+            ) : (
+              /* =========================================================================
+                 PUBLIC PAGE MODE (SOCIAL MEDIA): Dual Card - Register & Check Balance
+                 ========================================================================= */
+              <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Card: Participar do Programa (REGISTER) */}
+                <div className="bg-white dark:bg-slate-900 rounded-[40px] p-8 md:p-12 shadow-[0_45px_100px_-25px_rgba(0,0,0,0.18)] border border-gray-100/80 flex flex-col items-center text-center space-y-8 group hover:scale-[1.02] transition-all duration-300">
+                  <div className="w-16 h-16 bg-blue-50 dark:bg-blue-500/10 rounded-2xl flex items-center justify-center shadow-inner border border-blue-100 dark:border-blue-900/50">
+                    <UserPlus className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Participar do programa</h3>
+                    <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Cadastre-se agora e comece a ganhar benefícios exclusivos!</p>
+                  </div>
                   <Button
-                    type="submit"
-                    isLoading={loading}
-                    className="w-full h-20 text-xl font-black uppercase tracking-[0.2em] bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-[25px] shadow-[0_20px_50px_rgba(0,0,0,0.12)] transition-all active:scale-95 overflow-visible focus:ring-4 focus:ring-gray-300"
+                    onClick={() => setMode('REGISTER')}
+                    className="w-full h-20 text-base font-black uppercase tracking-widest bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-2xl shadow-lg transition-all active:scale-95 focus:ring-4 focus:ring-gray-300"
                   >
-                    GANHAR PONTO
+                    CADASTRAR JÁ
                   </Button>
-
-                  {showStars && (
-                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                      {[...Array(8)].map((_, i) => (
-                        <div key={i} className="absolute animate-star-burst"
-                          style={{ '--star-angle': `${(360 / 8) * i}deg`, '--star-dist': '60px', '--star-delay': `${i * 0.05}s` } as any}
-                        >
-                          <Star className="w-6 h-6 text-amber-400 fill-amber-400" />
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
-              </form>
-            </div>
 
-            <div className="flex gap-4">
-              <button onClick={() => setMode('CONSULT')} className="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-black transition-colors">Ver meu saldo</button>
-              <span className="text-gray-200">•</span>
-              <button onClick={() => setMode('REGISTER')} className="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-black transition-colors">Criar cadastro</button>
-            </div>
+                {/* Card: Ver Meus Pontos (CONSULT) */}
+                <div className="bg-white dark:bg-slate-900 rounded-[40px] p-8 md:p-12 shadow-[0_45px_100px_-25px_rgba(0,0,0,0.18)] border border-gray-100/80 flex flex-col items-center text-center space-y-8 group hover:scale-[1.02] transition-all duration-300">
+                  <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner border border-slate-100 dark:border-slate-700">
+                    <Smartphone className="w-8 h-8 text-slate-900 dark:text-white" />
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Ver meus pontos</h3>
+                    <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Consulte seu saldo, histórico e veja quanto falta para seu prêmio.</p>
+                  </div>
+                  <Button
+                    onClick={() => setMode('CONSULT')}
+                    className="w-full h-20 text-base font-black uppercase tracking-widest bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-2xl shadow-lg transition-all active:scale-95 focus:ring-4 focus:ring-gray-300"
+                  >
+                    CONSULTAR SALDO
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {isTerminalMode && (
+              <div className="flex gap-4">
+                <button onClick={() => setMode('CONSULT')} className="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-black transition-colors">Ver meu saldo</button>
+                <span className="text-gray-200">•</span>
+                <button onClick={() => setMode('REGISTER')} className="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-black transition-colors">Criar cadastro</button>
+              </div>
+            )}
           </div>
         )}
 
