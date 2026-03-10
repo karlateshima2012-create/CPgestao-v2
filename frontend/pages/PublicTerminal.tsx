@@ -183,6 +183,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   // Auto-Redirect/Reset after success
   useEffect(() => {
     if (mode === 'SUCCESS' || mode === 'AUTO_SUCCESS' || mode === 'WAITING_APPROVAL') {
+      const isAdmin = !!localStorage.getItem('auth_token');
+      if (isAdmin) return; // Admins don't get redirected
+
       const timer = setTimeout(() => {
         if (tenantSlug) {
           window.location.href = `/p/${tenantSlug}`;
@@ -567,14 +570,14 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           type: 'success'
         });
       } else {
-        setModal({
-          isOpen: true,
-          title: 'Cadastro Realizado!',
-          message: res.data.message || 'Seu cadastro foi concluído com sucesso.',
-          type: 'success'
+        setApprovedData({
+          customer_name: res.data.name,
+          points_balance: res.data.points_balance,
+          points_goal: res.data.points_goal,
+          tenant_name: storeInfo?.name
         });
         setQrToken(null);
-        await handleLookup();
+        setMode('AUTO_SUCCESS');
       }
     } catch (error: any) {
       let msg = error.response?.data?.message || 'Não foi possível completar seu cadastro agora.';
