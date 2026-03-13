@@ -377,18 +377,15 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         const earnRes = await terminalService.earn(tenantSlug, deviceUid, phone, qrToken, sessionToken);
         const isAuto = earnRes.data.auto_approved;
 
-        setApprovedData({
-          points_balance: earnRes.data.new_balance,
-          points_goal: earnRes.data.points_goal,
-          customer_name: earnRes.data.customer_name
-        });
-
+        const reachedGoal = earnRes.data.new_balance >= earnRes.data.points_goal;
         setRewardModal({
           isOpen: true,
-          title: isAuto ? 'Ponto Adicionado! 🎉' : 'Ponto solicitado! ✅',
-          message: isAuto
-            ? 'Seu ponto foi creditado com sucesso!\nVocê será redirecionado para acompanhar seu saldo.'
-            : 'A loja vai confirmar em instantes.\nVocê será redirecionado para acompanhar seu saldo.',
+          title: reachedGoal ? 'Meta Atingida! 🎉' : (isAuto ? 'Ponto Adicionado! 🎉' : 'Ponto solicitado! ✅'),
+          message: reachedGoal
+            ? 'Parabéns! Você acaba de atingir sua meta.\nResgate seu prêmio na próxima visita.'
+            : (isAuto
+              ? 'Seu ponto foi creditado com sucesso!\nVocê será redirecionado para acompanhar seu saldo.'
+              : 'A loja vai confirmar em instantes.\nVocê será redirecionado para acompanhar seu saldo.'),
           points: earnRes.data.new_balance,
           goal: earnRes.data.points_goal
         });
@@ -828,8 +825,15 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               <div className="text-center space-y-2">
                 <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em]">Área do Cliente</h3>
                 <p className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter leading-tight px-4">{foundCustomer?.name || 'Cliente'}</p>
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl border-2 bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-700 dark:text-slate-300">
-                  <span className="text-[12px] font-black uppercase tracking-widest text-center">{foundCustomer.loyalty_level_name || 'Bronze'}</span>
+                <div className="flex flex-col items-center gap-2">
+                  <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl border-2 bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                    <span className="text-[12px] font-black uppercase tracking-widest text-center">{foundCustomer.loyalty_level_name || 'Bronze'}</span>
+                  </div>
+                  {foundCustomer.days_to_downgrade > 0 && (
+                    <p className="text-[10px] font-black text-amber-500 uppercase tracking-tighter text-center max-w-[200px]">
+                      Mantenha seu nível! Pontue a cada {foundCustomer.days_to_downgrade} dias.
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="bg-white dark:bg-slate-800 rounded-[30px] p-8 text-slate-900 dark:text-white border border-slate-100 dark:border-slate-800 shadow-xl relative overflow-hidden">
@@ -845,7 +849,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                   <div className="pt-2 border-t border-slate-50 dark:border-slate-700/50">
                     <p className="text-sm font-bold text-slate-600 dark:text-slate-400 italic">
                       {foundCustomer.remaining <= 0
-                        ? `Parabéns! Você já pode resgatar seu prêmio ${foundCustomer.reward_name || 'especial'}! 🎉`
+                        ? `Meta Atingida! Resgate seu prêmio na próxima visita. 🎁`
                         : foundCustomer.remaining === 1
                           ? `Falta apenas 1 ponto para o seu prêmio ${foundCustomer.reward_name || 'especial'}! ✨`
                           : `Faltam ${foundCustomer.remaining} pontos para o prêmio ${foundCustomer.reward_name || 'especial'}!`}
@@ -921,7 +925,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                     <div className="pt-3 border-t border-slate-50 dark:border-slate-700/50">
                       <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 italic">
                         {balance >= goal
-                          ? `Pronto para resgate: ${foundCustomer.reward_name || 'prêmio'}! 🎉`
+                          ? `Disponível para Resgate: ${foundCustomer.reward_name || 'prêmio'}! 🎁`
                           : (goal - balance) === 1
                             ? `Falta apenas 1 ponto para o prêmio: ${foundCustomer.reward_name || 'prêmio'} ✨`
                             : `Faltam ${goal - balance} pontos para o prêmio: ${foundCustomer.reward_name || 'prêmio'}`}
@@ -1068,12 +1072,16 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               <h2 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
                 {approvedData.is_registration
                   ? "Obrigado por participar,\nvocê já recebeu seu primeiro ponto!"
-                  : <>Solicitação enviada!<br />Seu ponto foi adicionado.</>}
+                  : (approvedData.points_balance >= approvedData.points_goal)
+                    ? "Meta Atingida!\nResgate na próxima visita."
+                    : <>Solicitação enviada!<br />Seu ponto foi adicionado.</>}
               </h2>
               <p className="text-sm text-slate-500 font-bold mt-2">
                 {approvedData.is_registration
                   ? "Consulte seu saldo clicando no botão ver meus pontos."
-                  : "Você será redirecionado para acompanhar seu saldo."}
+                  : (approvedData.points_balance >= approvedData.points_goal)
+                    ? "Parabéns! Você atingiu a pontuação necessária."
+                    : "Você será redirecionado para acompanhar seu saldo."}
               </p>
               <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-8 mb-8 mt-8 border-2 border-slate-100 dark:border-slate-800 shadow-inner">
                 <p className="text-[11px] font-black uppercase text-slate-400 dark:text-slate-500 mb-2 tracking-widest">Obrigado pela visita!</p>
