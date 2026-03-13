@@ -49,6 +49,7 @@ type TerminalMode =
   | 'INVALID_DEVICE'
   | 'REGISTER'
   | 'PONTUAR'
+  | 'LEVEL_UP'
   | 'VISIT_NOT_FOUND'
   | 'WAITING_APPROVAL';
 
@@ -312,6 +313,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           setMode('LOJISTA_ACTIONS');
         } else if (targetToken) {
           handleEarn();
+        } else if (res.data.show_level_up) {
+          setMode('LEVEL_UP');
         } else {
           setMode('RESULT_CLIENT');
         }
@@ -791,6 +794,43 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                   Ver meu Saldo <ArrowRight className="w-5 h-5" />
                 </Button>
               </form>
+            </div>
+          )
+        }
+        {
+          mode === 'LEVEL_UP' && foundCustomer && (
+            <div className="p-8 md:p-12 text-center relative overflow-hidden animate-fade-in space-y-10 w-full max-w-lg mx-auto bg-white dark:bg-gray-950 flex flex-col items-center">
+              <div className="relative">
+                <div className="absolute inset-0 animate-ping bg-amber-400/20 rounded-full scale-150"></div>
+                <div className="w-32 h-32 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center text-white shadow-2xl relative z-10 border-4 border-white">
+                  <Trophy className="w-16 h-16 animate-bounce" />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter uppercase leading-tight">
+                  Parabéns, {foundCustomer.name.split(' ')[0]}!
+                </h2>
+                <p className="text-xl font-bold text-slate-600 dark:text-slate-400">
+                  Você conquistou o nível:
+                </p>
+                <div className="inline-flex items-center gap-3 px-8 py-4 rounded-3xl bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400">
+                  <span className="text-3xl font-black uppercase tracking-tighter">
+                    {foundCustomer.loyalty_level_name}
+                  </span>
+                </div>
+              </div>
+
+              <p className="text-slate-500 font-medium leading-relaxed max-w-sm">
+                Seus benefícios foram atualizados! Agora você ganha pontos mais rápido e tem novos prêmios para conquistar.
+              </p>
+
+              <Button
+                onClick={() => setMode('RESULT_CLIENT')}
+                className="w-full h-20 bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-2xl font-black uppercase tracking-widest shadow-xl text-lg flex items-center justify-center gap-3 group focus:ring-4 focus:ring-gray-300"
+              >
+                Ver Meus Pontos <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+              </Button>
             </div>
           )
         }
