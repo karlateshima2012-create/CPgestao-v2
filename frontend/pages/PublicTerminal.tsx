@@ -253,7 +253,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
       const res = await terminalService.getInfo(slug, uid, token);
       setStoreInfo(res.data);
-      if (res.data.session_token) setSessionToken(res.data.session_token);
+      const newSessionToken = res.data.session_token;
+      if (newSessionToken) setSessionToken(newSessionToken);
 
       if (token && res.data.token_valid === false) {
         setModal({
@@ -273,9 +274,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
       if (phoneParam) {
         const formatted = formatJapanesePhone(phoneParam);
         setPhone(formatted);
-        // We delay lookup a bit to ensure sessionToken state is committed relative to our call
+        // Important: use the NEW session token directly to avoid state race condition
         setTimeout(() => {
-          handleLookup(phoneParam, slug, uid, token);
+          handleLookup(phoneParam, slug, uid, token, newSessionToken);
         }, 100);
       } else if (acao === 'pontuar') {
         setTimeout(() => {
@@ -295,17 +296,18 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   };
 
 
-  const handleLookup = async (overridePhone?: string, overrideSlug?: string, overrideUid?: string | null, overrideToken?: string | null) => {
+  const handleLookup = async (overridePhone?: string, overrideSlug?: string, overrideUid?: string | null, overrideToken?: string | null, overrideSession?: string | null) => {
     const targetPhone = overridePhone || phone;
     const targetSlug = overrideSlug || tenantSlug;
     const targetUid = overrideUid === undefined ? deviceUid : overrideUid;
     const targetToken = overrideToken || qrToken;
+    const targetSession = overrideSession || sessionToken;
 
     if (!targetPhone || !targetSlug) return;
     if (overridePhone) setPhone(overridePhone);
     setLoading(true);
     try {
-      const res = await terminalService.lookup(targetSlug, targetUid, targetPhone, targetToken, sessionToken);
+      const res = await terminalService.lookup(targetSlug, targetUid, targetPhone, targetToken, targetSession);
       if (res.data && res.data.customer_exists === false) {
         const isAdmin = !!localStorage.getItem('auth_token');
         if (isAdmin) {
