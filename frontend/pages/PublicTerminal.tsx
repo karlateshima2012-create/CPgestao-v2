@@ -398,7 +398,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             ? 'Parabéns! Você acaba de atingir sua meta.\nResgate seu prêmio na próxima visita.'
             : (isAuto
               ? 'Seu ponto foi creditado com sucesso!\nVocê será redirecionado para acompanhar seu saldo.'
-              : 'A loja vai confirmar em instantes.\nVocê será redirecionado para acompanhar seu saldo.'),
+              : `${storeInfo?.name || 'A loja'} vai confirmar em instantes.\nVocê será redirecionado para acompanhar seu saldo.`),
           points: earnRes.data.new_balance,
           goal: earnRes.data.points_goal
         });
