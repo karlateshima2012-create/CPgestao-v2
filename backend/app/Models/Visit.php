@@ -48,7 +48,7 @@ class Visit extends Model
             ->take(2)
             ->join('');
         
-        return "https://ui-avatars.com/api/?name=" . urlencode($initials) . "&background=random&color=fff&size=400&rounded=true";
+        return "https://ui-avatars.com/api/?name=" . urlencode($initials ?: $this->customer_name) . "&background=random&color=fff&size=300&rounded=true";
     }
 
     /**

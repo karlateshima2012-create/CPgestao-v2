@@ -128,20 +128,13 @@ class TelegramWebhookController extends Controller
         $this->telegramService->answerCallbackQuery($callbackQueryId);
 
         if ($action === 'approved') {
-            DB::transaction(function() use ($visit) {
+            \Illuminate\Support\Facades\DB::transaction(function() use ($visit) {
                 $customer = $visit->customer;
-                $customer->increment('points_balance', $visit->points_granted);
-                $customer->increment('attendance_count');
-
-                \App\Models\PointMovement::create([
-                    'tenant_id' => $visit->tenant_id,
-                    'customer_id' => $visit->customer_id,
-                    'type' => 'earn',
-                    'points' => $visit->points_granted,
-                    'origin' => $visit->origin,
-                    'description' => 'Visita aprovada via Telegram',
-                    'meta' => ['visit_id' => $visit->id]
-                ]);
+                
+                // Use the PointRequestService to apply points consistently
+                // This handles level upgrades, movements, and correctly respects points_granted
+                $service = app(\App\Services\PointRequestService::class);
+                $service->applyPoints($visit);
 
                 $visit->update([
                     'status' => 'aprovado',

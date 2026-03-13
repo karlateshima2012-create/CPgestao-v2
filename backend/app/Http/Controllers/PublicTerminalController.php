@@ -560,7 +560,7 @@ class PublicTerminalController extends Controller
                     $replyMarkup = [
                         'inline_keyboard' => [
                             [
-                                ['text' => '✅ Aprovar +1 ponto', 'callback_data' => "approve_visit:{$visit->id}"],
+                                ['text' => '✅ APROVAR PONTO', 'callback_data' => "approve_visit:{$visit->id}"],
                                 ['text' => '❌ Negar', 'callback_data' => "reject_visit:{$visit->id}"]
                             ]
                         ]

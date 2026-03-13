@@ -73,7 +73,7 @@ class Customer extends Model
             ->take(2)
             ->join('');
         
-        return "https://ui-avatars.com/api/?name=" . urlencode($initials) . "&background=random&color=fff&size=400&rounded=true";
+        return "https://ui-avatars.com/api/?name=" . urlencode($initials ?: $this->name) . "&background=random&color=fff&size=300&rounded=true";
     }
 
     public function getLoyaltyLevelNameAttribute()
