@@ -189,7 +189,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
       const timer = setTimeout(() => {
         if (tenantSlug) {
-          window.location.href = `/p/${tenantSlug}`;
+          const cleanPhone = phone.replace(/\D/g, '');
+          window.location.href = `/p/${tenantSlug}${cleanPhone ? `?phone=${cleanPhone}` : ''}`;
         } else {
           reset();
         }
@@ -267,7 +268,16 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
       // Auto-trigger actions from URL
       const acao = urlParams.get('acao');
-      if (acao === 'pontuar') {
+      const phoneParam = urlParams.get('phone');
+
+      if (phoneParam) {
+        const formatted = formatJapanesePhone(phoneParam);
+        setPhone(formatted);
+        // We delay lookup a bit to ensure sessionToken state is committed relative to our call
+        setTimeout(() => {
+          handleLookup(phoneParam, slug, uid, token);
+        }, 100);
+      } else if (acao === 'pontuar') {
         setTimeout(() => {
           const element = document.getElementById('card-pontuar');
           if (element) {
@@ -1155,7 +1165,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         onClose={() => {
           setRewardModal(prev => ({ ...prev, isOpen: false }));
           if (tenantSlug) {
-            window.location.href = `/p/${tenantSlug}`;
+            const cleanPhone = phone.replace(/\D/g, '');
+            window.location.href = `/p/${tenantSlug}${cleanPhone ? `?phone=${cleanPhone}` : ''}`;
           }
         }}
       />
