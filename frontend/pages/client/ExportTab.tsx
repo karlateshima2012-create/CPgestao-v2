@@ -1,19 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Button, Badge, StatusModal } from '../../components/ui';
+import React, { useState } from 'react';
+import { Card, Button, StatusModal } from '../../components/ui';
 import {
-  Download,
-  UploadCloud,
-  ListFilter,
   Database,
   Settings2,
   CheckSquare,
   Search,
   Calendar,
-  Filter,
   FileSpreadsheet,
   FileCode,
-  UserPlus,
-  Zap
+  UserPlus
 } from 'lucide-react';
 import { Contact } from '../../types';
 import { reportsService } from '../../services/api';
@@ -37,6 +32,8 @@ const EXPORT_OPTIONS = [
   { key: 'created_at', label: 'Data de Cadastro' },
 ];
 
+const PREVIEW_LIMIT = 5;
+
 interface ExportTabProps {
   contacts: Contact[];
   onExportSuccess?: (ids: string[]) => void;
@@ -54,6 +51,12 @@ export const ExportTab: React.FC<ExportTabProps> = ({ contacts: initialContacts 
   ]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [filterMode, setFilterMode] = useState<'all' | 'new'>('all');
+  const [modalConfig, setModalConfig] = useState<{ isOpen: boolean, title: string, message: string, type: any }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'info'
+  });
 
   const setQuickFilterNew = () => {
     const thirtyDaysAgo = new Date();
@@ -70,19 +73,54 @@ export const ExportTab: React.FC<ExportTabProps> = ({ contacts: initialContacts 
     setFilterMode('all');
   };
 
+  const filteredContacts = initialContacts.filter(c => {
+    const matchesSearch = !search ||
+      (c.name?.toLowerCase().includes(search.toLowerCase())) ||
+      (c.email?.toLowerCase().includes(search.toLowerCase())) ||
+      (c.phone?.includes(search)) ||
+      (c.city?.toLowerCase().includes(search.toLowerCase()));
+
+    const createdAt = new Date(c.created_at);
+    // Add 1 day to dateTo to include the whole day
+    const matchesDateFrom = !dateFrom || createdAt >= new Date(dateFrom);
+    const matchesDateTo = !dateTo || createdAt <= new Date(new Date(dateTo).setHours(23, 59, 59, 999));
+
+    return matchesSearch && matchesDateFrom && matchesDateTo;
+  });
+
+  const filteredCount = filteredContacts.length;
+  const previewList = filteredContacts.slice(0, PREVIEW_LIMIT);
+
   const handleFetchExport = async () => {
     try {
       setLoadingExport(true);
       const params = {
-        search,
+        search: search.trim(),
         date_from: dateFrom,
         date_to: dateTo
       };
       const res = await reportsService.getExport(params);
-      setExportData(res.data);
-      return res.data;
+      const data = res.data || [];
+
+      if (data.length === 0) {
+        setModalConfig({
+          isOpen: true,
+          title: 'Nenhum contato encontrado',
+          message: 'Tente ajustar seus filtros. Não há dados para exportar com a seleção atual.',
+          type: 'warning'
+        });
+        return [];
+      }
+      setExportData(data);
+      return data;
     } catch (error) {
       console.error('Erro ao buscar dados para exportação:', error);
+      setModalConfig({
+        isOpen: true,
+        title: 'Erro na Exportação',
+        message: 'Ocorreu um erro ao processar os dados no servidor. Tente novamente.',
+        type: 'error'
+      });
       return [];
     } finally {
       setLoadingExport(false);
@@ -90,44 +128,59 @@ export const ExportTab: React.FC<ExportTabProps> = ({ contacts: initialContacts 
   };
 
   const generateDownload = async (format: 'csv' | 'xls') => {
-    const data = await handleFetchExport();
-    if (data.length === 0) return;
+    if (selectedFields.length === 0) {
+      setModalConfig({
+        isOpen: true,
+        title: 'Selecione os Campos',
+        message: 'Por favor, selecione ao menos um campo para incluir no relatório.',
+        type: 'info'
+      });
+      return;
+    }
 
-    const fieldsToExport = selectedFields;
+    const data = await handleFetchExport();
+    if (!data || data.length === 0) return;
+
+    const separator = format === 'xls' ? '\t' : ',';
+
     const header = EXPORT_OPTIONS
-      .filter(o => fieldsToExport.includes(o.key))
+      .filter(o => selectedFields.includes(o.key))
       .map(o => o.label)
-      .join(',');
+      .join(separator);
 
     const rows = data.map((c: any) =>
       EXPORT_OPTIONS
-        .filter(o => fieldsToExport.includes(o.key))
+        .filter(o => selectedFields.includes(o.key))
         .map(o => {
-          let v = c[o.key] || '';
-          return `"${String(v).replace(/"/g, '""')}"`;
+          let v = c[o.key] ?? '';
+          if (typeof v === 'string') {
+            v = v.replace(/[\n\r\t,]/g, ' ');
+          }
+          return format === 'csv' ? `"${String(v).replace(/"/g, '""')}"` : String(v);
         })
-        .join(',')
+        .join(separator)
     ).join('\n');
 
     const content = `\uFEFF${header}\n${rows}`;
-    const blob = new Blob([content], { type: 'text/csv;charset=utf-8' });
+    const blob = new Blob([content], { type: format === 'xls' ? 'application/vnd.ms-excel' : 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `relatorio_clientes_${format === 'xls' ? 'excel' : 'csv'}_${new Date().toISOString().split('T')[0]}.${format === 'xls' ? 'csv' : 'csv'}`;
+    const extension = format === 'xls' ? 'xls' : 'csv';
+    link.download = `relatorio_clientes_${new Date().toISOString().split('T')[0]}.${extension}`;
     link.click();
+
+    setTimeout(() => URL.revokeObjectURL(url), 500);
     setShowSuccessModal(true);
   };
 
   return (
     <div className="max-w-6xl mx-auto py-8 px-4 animate-fade-in space-y-12">
-      {/* Header */}
       <div>
         <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Exportação & Inteligência</h1>
         <p className="text-lg text-slate-500 dark:text-slate-400 mt-2 font-medium">Relatórios estratégicos sincronizados em tempo real com seu CRM.</p>
       </div>
 
-      {/* Seção de Filtros e Exportação */}
       <section className="space-y-8">
         <div className="flex flex-col gap-6">
           <div className="flex items-center gap-3">
@@ -137,20 +190,44 @@ export const ExportTab: React.FC<ExportTabProps> = ({ contacts: initialContacts 
             <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Relatório & Exportação</h2>
           </div>
 
-          {/* Quick Actions / Presets */}
           <div className="flex flex-wrap gap-4">
             <button
               onClick={clearFilters}
-              className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border-2 ${filterMode === 'all' ? 'bg-slate-900 text-white border-slate-900 shadow-lg' : 'bg-white text-slate-400 border-slate-100 hover:border-slate-300'}`}
+              className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border-2 ${filterMode === 'all' ? 'bg-slate-900 text-white border-slate-900 shadow-lg' : 'bg-white text-slate-400 border-slate-100 hover:border-slate-300 dark:bg-slate-900 dark:border-slate-800'}`}
             >
               Todos os Dados
             </button>
             <button
               onClick={setQuickFilterNew}
-              className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border-2 flex items-center gap-2 ${filterMode === 'new' ? 'bg-primary-500 text-white border-primary-500 shadow-lg shadow-primary-500/20' : 'bg-white text-slate-400 border-slate-100 hover:border-primary-200'}`}
+              className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border-2 flex items-center gap-2 ${filterMode === 'new' ? 'bg-primary-500 text-white border-primary-500 shadow-lg shadow-primary-500/20' : 'bg-white text-slate-400 border-slate-100 hover:border-primary-200 dark:bg-slate-900 dark:border-slate-800'}`}
             >
               <UserPlus className="w-3.5 h-3.5" /> Apenas Novos (30d)
             </button>
+          </div>
+
+          <div className="flex flex-col md:flex-row items-center gap-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-3xl border border-slate-100 dark:border-slate-800">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Seleção Atual:</span>
+              <span className={`text-lg font-black ${filteredCount > 0 ? 'text-primary-600' : 'text-red-500'}`}>
+                {filteredCount} {filteredCount === 1 ? 'Contato' : 'Contatos'}
+              </span>
+            </div>
+
+            {filteredCount > 0 && (
+              <div className="flex-1 overflow-x-auto w-full">
+                <div className="flex items-center gap-2 min-w-max">
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest bg-slate-200 dark:bg-slate-700 px-2 py-1 rounded-md">Vista Prévia:</span>
+                  {previewList.map(c => (
+                    <span key={c.id} className="text-[11px] font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-3 py-1 rounded-full whitespace-nowrap">
+                      {c.name}
+                    </span>
+                  ))}
+                  {filteredCount > PREVIEW_LIMIT && (
+                    <span className="text-[10px] font-bold text-slate-400">+{filteredCount - PREVIEW_LIMIT} mais...</span>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -257,6 +334,16 @@ export const ExportTab: React.FC<ExportTabProps> = ({ contacts: initialContacts 
         message="Seu download foi iniciado. Verifique sua pasta de transferências."
         confirmLabel="OK"
         theme="accent"
+      />
+
+      <StatusModal
+        isOpen={modalConfig.isOpen}
+        onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+        type={modalConfig.type}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        confirmLabel="FECHAR"
+        theme="neutral"
       />
     </div>
   );
