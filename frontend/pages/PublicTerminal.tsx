@@ -197,7 +197,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
       }, 5000); // 5 seconds redirect
       return () => clearTimeout(timer);
     }
-  }, [mode, tenantSlug]);
+  }, [mode, tenantSlug, phone]);
 
   const formatJapanesePhone = (val: string) => {
     const digits = val.replace(/\D/g, '').slice(0, 11);
@@ -410,7 +410,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         setTimeout(() => setShowStars(false), 1500);
 
         if (qrToken) setQrToken(null);
-        setPhone('');
+        // We do NOT clear the phone here anymore, to allow redirection ?phone= to work.
+        // It will be cleared when the user lands on the next page or clicks 'Reset'.
       } else {
         // Cliente não existe
         setMode('VISIT_NOT_FOUND');
