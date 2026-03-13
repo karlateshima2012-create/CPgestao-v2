@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Button, StatusModal } from '../../components/ui';
+import { Card, Button, StatusModal, Badge } from '../../components/ui';
 import {
   Database,
   Settings2,
@@ -217,7 +217,7 @@ export const ExportTab: React.FC<ExportTabProps> = ({ contacts: initialContacts 
                 <Badge color="blue" className="text-[9px] font-black uppercase px-3 py-1">Vista Prévia</Badge>
               )}
             </div>
-            
+
             {filteredCount > 0 ? (
               <div className="space-y-2">
                 <div className="grid grid-cols-1 gap-1">
@@ -228,7 +228,7 @@ export const ExportTab: React.FC<ExportTabProps> = ({ contacts: initialContacts 
                     </div>
                   ))}
                 </div>
-                
+
                 {filteredCount > PREVIEW_LIMIT && (
                   <div className="flex items-center gap-2 pt-2">
                     <div className="h-px bg-slate-200 dark:bg-slate-700 flex-1" />
@@ -240,9 +240,9 @@ export const ExportTab: React.FC<ExportTabProps> = ({ contacts: initialContacts 
                 )}
               </div>
             ) : (
-                <div className="py-4 text-center">
-                    <p className="text-sm font-bold text-slate-400 italic">Nenhum cliente atende aos filtros atuais.</p>
-                </div>
+              <div className="py-4 text-center">
+                <p className="text-sm font-bold text-slate-400 italic">Nenhum cliente atende aos filtros atuais.</p>
+              </div>
             )}
           </div>
         </div>
