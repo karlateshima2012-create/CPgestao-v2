@@ -43,6 +43,12 @@ class PointRequestService
                 $customer->loyalty_level = $nextLevel;
                 $customer->attendance_count = ($customer->attendance_count ?? 0) + 1;
                 $customer->last_activity_at = now();
+                
+                // Flag for frontend notification
+                $prefs = $customer->preferences ?? [];
+                $prefs['pending_level_up_announcement'] = true;
+                $customer->preferences = $prefs;
+                
                 $customer->save();
 
                 $source = $isVisit ? $request->origin : $request->source;

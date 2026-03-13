@@ -256,10 +256,12 @@ class PublicTerminalController extends Controller
         
         $goal = $tenant->points_goal;
         $reward = "prêmio";
+        $daysToDowngrade = 0;
         $lvlIdx = max(0, (int)$currentLevel - 1); // 1-indexed to 0-indexed
         if (is_array($levelsConfig) && isset($levelsConfig[$lvlIdx])) {
             $goal = (int)($levelsConfig[$lvlIdx]['goal'] ?? $goal);
             $reward = $levelsConfig[$lvlIdx]['reward'] ?? $reward;
+            $daysToDowngrade = (int)($levelsConfig[$lvlIdx]['days_to_downgrade'] ?? 0);
         }
         $remaining = max(0, $goal - $balance);
 
@@ -279,6 +281,15 @@ class PublicTerminalController extends Controller
                 ];
             });
 
+        // Check for pending announcements and clear
+        $prefs = $customer->preferences ?? [];
+        $showLevelUp = $prefs['pending_level_up_announcement'] ?? false;
+        if ($showLevelUp) {
+            unset($prefs['pending_level_up_announcement']);
+            $customer->preferences = $prefs;
+            $customer->save();
+        }
+
         return ApiResponse::ok([
             'customer_exists' => true,
             'id' => $customer->id,
@@ -287,6 +298,8 @@ class PublicTerminalController extends Controller
             'points_goal' => $goal,
             'reward_name' => $reward,
             'remaining' => $remaining,
+            'days_to_downgrade' => $daysToDowngrade,
+            'show_level_up' => $showLevelUp, // Pass to frontend
             'history' => $history,
             'loyalty_level' => $customer->loyalty_level,
             'loyalty_level_name' => $customer->loyalty_level_name,
