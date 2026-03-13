@@ -382,7 +382,7 @@ class PublicTerminalController extends Controller
             $isNew = false;
             if (!$customer) {
                 if ($tenant->isLimitReached()) {
-                    $this->telegramService->sendMessage($tenant->id, "🚫 *Limite Atingido\!* O cadastro de novos clientes foi pausado\.");
+                    $this->telegramService->sendMessage($tenant->id, "🚫 <b>Limite Atingido!</b> O cadastro de novos clientes foi pausado.");
                     return ApiResponse::error('Limite de clientes atingido para esta loja.', 'PLAN_LIMIT_REACHED', 403);
                 }
                 $isNew = true;
@@ -402,8 +402,8 @@ class PublicTerminalController extends Controller
                 $tenant->verifyAndNotifyLimit();
 
                 $escPhone = TelegramService::escapeMarkdownV2($customer->phone);
-                $newMessage = "🆕 *Novo Cliente \(Pontuação Balcão\)*\n"
-                            . "📞 *Telefone:* {$escPhone}";
+                $newMessage = "🆕 <b>Novo Cliente (Pontuação Balcão)</b>\n"
+                            . "📞 <b>Telefone:</b> {$escPhone}";
                 
                 // For New Registrations, we always use the General Chat ID (settings->telegram_chat_id)
                 $this->telegramService->sendMessage($tenant->id, $newMessage, 'registration');
@@ -829,7 +829,7 @@ class PublicTerminalController extends Controller
 
                 // Limit Check
                 if ($tenant->isLimitReached()) {
-                    $this->telegramService->sendMessage($tenant->id, "🚫 *Limite Atingido\!* O cadastro de novos clientes foi pausado\.");
+                    $this->telegramService->sendMessage($tenant->id, "🚫 <b>Limite Atingido!</b> O cadastro de novos clientes foi pausado.");
                     return ApiResponse::error('Limite de clientes atingido para esta loja.', 'PLAN_LIMIT_REACHED', 403);
                 }
 
@@ -858,11 +858,26 @@ class PublicTerminalController extends Controller
 
                 $tenant->verifyAndNotifyLimit();
 
+                $loyalty = \App\Models\LoyaltySetting::withoutGlobalScopes()->firstOrCreate(['tenant_id' => $tenant->id]);
+                $levels = $loyalty->levels_config;
+                
+                // Award Points (Welcome Bonus)
+                // If it's a "Web Join" (no device), give exactly 1 point as requested.
+                // If it's at the totem/card, give the level points.
+                $visitPts = 1; 
+                if ($device || $token) {
+                    // Prioritize level-specific signup points (maps to "Ponto por cadastro" in UI)
+                    $visitPts = (is_array($levels) && count($levels) > 0 && isset($levels[0]['points_per_signup'])) 
+                        ? (int)$levels[0]['points_per_signup'] 
+                        : (int)($loyalty->signup_bonus_points ?? 1);
+                }
+
                 $escName = TelegramService::escapeMarkdownV2($customer->name);
                 $escPhone = TelegramService::escapeMarkdownV2($customer->phone);
-                $regMessage = "✨ *Novo Cliente Cadastrado \(Totem\)*\n\n"
-                            . "👤 *Nome:* {$escName}\n"
-                            . "📞 *Telefone:* {$escPhone}";
+                $regMessage = "✨ <b>Novo Cliente Cadastrado (Totem)</b>\n\n"
+                            . "👤 <b>Nome:</b> {$escName}\n"
+                            . "📞 <b>Telefone:</b> {$escPhone}\n"
+                            . "💰 <b>Ponto de cadastro recebido:</b> {$visitPts}";
 
                 try {
                     if ($device && $device->telegram_chat_id) {
@@ -874,23 +889,10 @@ class PublicTerminalController extends Controller
                     \Illuminate\Support\Facades\Log::warning("Registration Telegram alert failed: " . $te->getMessage());
                 }
 
-                $loyalty = \App\Models\LoyaltySetting::withoutGlobalScopes()->firstOrCreate(['tenant_id' => $tenant->id]);
-                $levels = $loyalty->levels_config;
-                
                 // Link Card if deviceUid is present
                 $linkMessage = "";
                 if ($deviceUid && $deviceUid !== 'null') {
                     // Physical card linking is deprecated
-                }
-
-                // Award Points (Welcome Bonus)
-                // If it's a "Web Join" (no device), give exactly 1 point as requested.
-                // If it's at the totem/card, give the level points.
-                $visitPts = 1; 
-                if ($device || $token) {
-                    $visitPts = (is_array($levels) && count($levels) > 0 && isset($levels[0]['points_per_visit'])) 
-                        ? (int)$levels[0]['points_per_visit'] 
-                        : (int)($loyalty->regular_points_per_scan ?? 1);
                 }
 
                 $bonusMessage = "";

@@ -28,11 +28,11 @@ class TelegramService
             $disableNotification = false;
             if ($settings) {
                 if ($type === 'registration') {
-                    $disableNotification = !$settings->telegram_sound_registration;
+                    $disableNotification = $settings->telegram_sound_registration === false;
                 } elseif ($type === 'points') {
-                    $disableNotification = !$settings->telegram_sound_points;
+                    $disableNotification = $settings->telegram_sound_points === false;
                 } elseif ($type === 'reminder') {
-                    $disableNotification = !$settings->telegram_sound_reminders;
+                    $disableNotification = $settings->telegram_sound_reminders === false;
                 }
             }
 
@@ -76,7 +76,7 @@ class TelegramService
             
             $disableNotification = false;
             if ($settings && $type === 'points') {
-                $disableNotification = !$settings->telegram_sound_points;
+                $disableNotification = $settings->telegram_sound_points === false;
             }
 
             $payload = [

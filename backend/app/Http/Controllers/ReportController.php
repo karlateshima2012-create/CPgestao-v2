@@ -75,7 +75,7 @@ class ReportController extends Controller
         $tenantId = auth()->user()->tenant_id;
         $query = Customer::where('tenant_id', $tenantId);
 
-        if ($request->has('search')) {
+        if ($request->filled('search')) {
             $s = $request->search;
             $query->where(function($q) use ($s) {
                 $q->where('name', 'like', "%$s%")
@@ -85,11 +85,11 @@ class ReportController extends Controller
             });
         }
 
-        if ($request->has('date_from')) {
+        if ($request->filled('date_from')) {
             $query->where('created_at', '>=', $request->date_from);
         }
 
-        if ($request->has('date_to')) {
+        if ($request->filled('date_to')) {
             $query->where('created_at', '<=', $request->date_to);
         }
 
