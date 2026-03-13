@@ -669,7 +669,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
                 <div className="space-y-3 pt-6">
                   <h3 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter uppercase leading-tight">Solicitar Ponto</h3>
-                  <p className="text-sm font-bold text-slate-500 dark:text-slate-400 italic">Informe seu telefone para registrar sua visita na loja.</p>
+                  <p className="text-sm font-bold text-slate-500 dark:text-slate-400 italic">Informe seu telefone para registrar sua visita.</p>
                 </div>
 
                 <form onSubmit={handleEarn} className="w-full space-y-8">
