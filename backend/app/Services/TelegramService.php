@@ -11,7 +11,7 @@ class TelegramService
     /**
      * Send a notification to the tenant's Telegram chat or a specific chat ID.
      */
-    public function sendMessage(string $tenantId, string $message, string $type = 'registration', ?string $chatId = null): void
+    public function sendMessage(string $tenantId, string $message, string $type = 'registration', ?string $chatId = null, $replyMarkup = null): void
     {
         $settings = TenantSetting::withoutGlobalScopes()->where('tenant_id', $tenantId)->first();
         $botToken = config('services.telegram.bot_token');
@@ -36,12 +36,18 @@ class TelegramService
                 }
             }
 
-            $response = Http::post($url, [
+            $payload = [
                 'chat_id' => $targetChatId,
                 'text' => $message,
                 'parse_mode' => 'HTML',
                 'disable_notification' => (bool)$disableNotification,
-            ]);
+            ];
+
+            if ($replyMarkup) {
+                $payload['reply_markup'] = json_encode($replyMarkup);
+            }
+
+            $response = Http::post($url, $payload);
 
             if ($response->failed()) {
                 Log::error("Telegram notification failed for tenant {$tenantId} (Target: {$targetChatId}): " . $response->body());
@@ -68,7 +74,7 @@ class TelegramService
         try {
             // Fallback for photo
             if (!$photoUrl) {
-                $this->sendMessage($tenantId, $caption, $type, $targetChatId);
+                $this->sendMessage($tenantId, $caption, $type, $targetChatId, $replyMarkup);
                 return;
             }
 
@@ -95,7 +101,7 @@ class TelegramService
 
             if ($response->failed()) {
                 // If photo fails, try sending as text
-                $this->sendMessage($tenantId, $caption, $type, $targetChatId);
+                $this->sendMessage($tenantId, $caption, $type, $targetChatId, $replyMarkup);
                 Log::error("Telegram photo notification failed for tenant {$tenantId} (Target: {$targetChatId}): " . $response->body());
             }
         } catch (\Exception $e) {
