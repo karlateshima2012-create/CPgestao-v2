@@ -704,34 +704,34 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                  ========================================================================= */
               <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Card: Participar do Programa (REGISTER) */}
-                <div className="bg-white dark:bg-slate-900 rounded-[40px] p-8 md:p-12 shadow-[0_45px_100px_-25px_rgba(0,0,0,0.18)] border border-gray-100/80 flex flex-col items-center text-center space-y-8 group hover:scale-[1.02] transition-all duration-300">
-                  <div className="w-16 h-16 bg-blue-50 dark:bg-blue-500/10 rounded-2xl flex items-center justify-center shadow-inner border border-blue-100 dark:border-blue-900/50">
+                <div className="bg-white dark:bg-slate-900 rounded-[40px] p-8 md:p-12 shadow-[0_45px_100px_-25px_rgba(0,0,0,0.18)] border border-gray-100/80 flex flex-col items-center text-center group hover:scale-[1.02] transition-all duration-300">
+                  <div className="w-16 h-16 bg-blue-50 dark:bg-blue-500/10 rounded-2xl flex items-center justify-center shadow-inner border border-blue-100 dark:border-blue-900/50 mb-8">
                     <UserPlus className="w-8 h-8 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <div className="space-y-3">
-                    <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Participar do programa</h3>
-                    <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Cadastre-se agora e comece a ganhar benefícios exclusivos!</p>
+                  <div className="space-y-3 flex-1 mb-8">
+                    <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Quero Participar</h3>
+                    <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Crie sua conta e comece a acumular pontos.</p>
                   </div>
                   <Button
                     onClick={() => setMode('REGISTER')}
-                    className="w-full h-20 text-base font-black uppercase tracking-widest bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-2xl shadow-lg transition-all active:scale-95 focus:ring-4 focus:ring-gray-300"
+                    className="w-full h-20 text-base font-black uppercase tracking-widest bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-2xl shadow-lg transition-all active:scale-95 focus:ring-4 focus:ring-gray-300 mt-auto"
                   >
-                    CADASTRAR JÁ
+                    CADASTRAR
                   </Button>
                 </div>
 
                 {/* Card: Ver Meus Pontos (CONSULT) */}
-                <div className="bg-white dark:bg-slate-900 rounded-[40px] p-8 md:p-12 shadow-[0_45px_100px_-25px_rgba(0,0,0,0.18)] border border-gray-100/80 flex flex-col items-center text-center space-y-8 group hover:scale-[1.02] transition-all duration-300">
-                  <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner border border-slate-100 dark:border-slate-700">
+                <div className="bg-white dark:bg-slate-900 rounded-[40px] p-8 md:p-12 shadow-[0_45px_100px_-25px_rgba(0,0,0,0.18)] border border-gray-100/80 flex flex-col items-center text-center group hover:scale-[1.02] transition-all duration-300">
+                  <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner border border-slate-100 dark:border-slate-700 mb-8">
                     <Smartphone className="w-8 h-8 text-slate-900 dark:text-white" />
                   </div>
-                  <div className="space-y-3">
-                    <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Ver meus pontos</h3>
-                    <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Consulte seu saldo, histórico e veja quanto falta para seu prêmio.</p>
+                  <div className="space-y-3 flex-1 mb-8">
+                    <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Já Sou Cliente</h3>
+                    <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Consulte seu saldo e histórico.</p>
                   </div>
                   <Button
                     onClick={() => setMode('CONSULT')}
-                    className="w-full h-20 text-base font-black uppercase tracking-widest bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-2xl shadow-lg transition-all active:scale-95 focus:ring-4 focus:ring-gray-300"
+                    className="w-full h-20 text-base font-black uppercase tracking-widest bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-2xl shadow-lg transition-all active:scale-95 focus:ring-4 focus:ring-gray-300 mt-auto"
                   >
                     VER MEUS PONTOS
                   </Button>
