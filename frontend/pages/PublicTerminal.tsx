@@ -770,7 +770,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
         {
           mode === 'CONSULT' && (
-            <div className="p-6 md:p-10 text-center relative overflow-hidden animate-fade-in space-y-8 w-full bg-white dark:bg-gray-950">
+            <div className="p-6 md:p-12 text-center relative overflow-hidden animate-fade-in space-y-10 w-full max-w-lg mx-auto bg-white dark:bg-gray-950">
               <div className="flex items-center justify-start absolute top-6 left-6">
                 <button type="button" onClick={() => setMode('START')} className="p-3 bg-slate-50 dark:bg-slate-800 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"><ChevronLeft className="w-5 h-5" /></button>
               </div>
@@ -800,7 +800,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
         {
           mode === 'RESULT_CLIENT' && foundCustomer && (
-            <div className="p-6 md:p-8 relative overflow-hidden animate-fade-in space-y-6 w-full flex flex-col items-center bg-white dark:bg-gray-950">
+            <div className="p-6 md:p-12 relative overflow-hidden animate-fade-in space-y-10 w-full max-w-lg mx-auto flex flex-col items-center bg-white dark:bg-gray-950">
               <button onClick={reset} className="absolute top-6 right-6 p-2.5 bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-md text-slate-500 hover:text-slate-900 rounded-full z-20 border border-slate-200/50 shadow-sm active:scale-90"><X className="w-5 h-5" /></button>
 
               {/* Foto de Perfil */}
@@ -854,7 +854,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             const goal = Number(foundCustomer.points_goal || storeInfo?.points_goal || 10);
             const canRedeem = balance >= goal;
             return (
-              <div className="p-6 md:p-8 relative overflow-hidden animate-fade-in space-y-6 w-full flex flex-col items-center bg-white dark:bg-gray-950">
+              <div className="p-6 md:p-10 relative overflow-hidden animate-fade-in space-y-8 w-full max-w-lg mx-auto flex flex-col items-center bg-white dark:bg-gray-950">
                 <button onClick={reset} className="absolute top-6 right-6 p-2.5 bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-md text-slate-500 hover:text-slate-900 rounded-full z-20 border border-slate-200/50 shadow-sm active:scale-90"><X className="w-5 h-5" /></button>
 
                 {/* Foto de Perfil */}
