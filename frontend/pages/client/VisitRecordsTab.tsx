@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Check, X, Clock, Smartphone, Globe, UserCheck, Filter, ChevronLeft, ChevronRight, Search, Activity, Trash2, CheckCircle2 } from 'lucide-react';
-import { Button } from '../../components/ui';
+import { Button, StatusModal } from '../../components/ui';
 import { Visit } from '../../types';
 import api from '../../services/api';
 
@@ -18,6 +18,20 @@ export const VisitRecordsTab: React.FC = () => {
     const [period, setPeriod] = useState('all');
     const [status, setStatus] = useState('all');
     const [customerFilter, setCustomerFilter] = useState('');
+    const [modal, setModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'success' | 'error' | 'info' | 'warning';
+        onConfirm?: () => void;
+        confirmLabel?: string;
+        cancelLabel?: string;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info'
+    });
 
     const fetchVisits = async (page = 1) => {
         setIsLoading(true);
@@ -53,18 +67,32 @@ export const VisitRecordsTab: React.FC = () => {
             fetchVisits(pagination.current_page);
         } catch (error: any) {
             console.error(`Error ${action}ing visit:`, error);
-            alert(error.response?.data?.message || 'Erro ao processar ação.');
+            setModal({
+                isOpen: true,
+                title: 'Erro',
+                message: error.response?.data?.message || 'Erro ao processar ação.',
+                type: 'error'
+            });
         }
     };
 
-    const handleApproveAll = async () => {
-        if (!confirm('Deseja aprovar todas as solicitações pendentes deste filtro?')) return;
-        try {
-            await api.post('/client/visits/approve-all');
-            fetchVisits(1);
-        } catch (error) {
-            console.error('Error approving all:', error);
-        }
+    const handleApproveAll = () => {
+        setModal({
+            isOpen: true,
+            title: 'Confirmar Ação',
+            message: 'Deseja aprovar todas as solicitações pendentes deste filtro?',
+            type: 'warning',
+            confirmLabel: 'SIM, APROVAR TODAS',
+            cancelLabel: 'CANCELAR',
+            onConfirm: async () => {
+                try {
+                    await api.post('/client/visits/approve-all');
+                    fetchVisits(1);
+                } catch (error) {
+                    console.error('Error approving all:', error);
+                }
+            }
+        });
     };
 
     const getOriginIcon = (origin: string) => {
@@ -283,6 +311,16 @@ export const VisitRecordsTab: React.FC = () => {
                     </div>
                 </div>
             </div>
+            <StatusModal
+                isOpen={modal.isOpen}
+                onClose={() => setModal({ ...modal, isOpen: false })}
+                onConfirm={modal.onConfirm}
+                title={modal.title}
+                message={modal.message}
+                type={modal.type}
+                confirmLabel={modal.confirmLabel}
+                cancelLabel={modal.cancelLabel}
+            />
         </div>
     );
 };
