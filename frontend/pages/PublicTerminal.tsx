@@ -1152,7 +1152,12 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
       <RewardSuccessModal
         {...rewardModal}
-        onClose={() => setRewardModal(prev => ({ ...prev, isOpen: false }))}
+        onClose={() => {
+          setRewardModal(prev => ({ ...prev, isOpen: false }));
+          if (tenantSlug) {
+            window.location.href = `/p/${tenantSlug}`;
+          }
+        }}
       />
     </div >
   );
@@ -1196,30 +1201,12 @@ const RewardSuccessModal: React.FC<{
           <p className="text-sm font-bold text-slate-500 dark:text-slate-400 leading-relaxed whitespace-pre-line px-4">{message}</p>
         </div>
 
-        {/* Progress Display */}
-        <div className="pt-2">
-          <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-[24px] border border-slate-100 dark:border-slate-800/50 relative">
-            <div className="flex justify-between items-end mb-3 px-1">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Progresso do Cliente</span>
-              <span className="text-base font-black text-slate-900 dark:text-white">{points || 0} <span className="text-slate-400">/ {goal || 10}</span></span>
-            </div>
-            <div className="w-full h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden p-0.5">
-              <div
-                className="h-full bg-slate-900 dark:bg-white rounded-full transition-all duration-1000 ease-out"
-                style={{ width: `${Math.min(100, ((points || 0) / (goal || 10)) * 100)}%` }}
-              />
-            </div>
-          </div>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pt-4">
-            Status: {points >= goal ? 'PRÊMIO DISPONÍVEL! 🎁' : `${points} de ${goal} pontos`}
-          </p>
-        </div>
 
         <Button
           className="w-full bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-[24px] font-black uppercase tracking-[0.2em] h-16 transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-slate-400/10 focus:ring-4 focus:ring-gray-300"
           onClick={onClose}
         >
-          Fechar
+          OK, ENTENDI
         </Button>
       </div>
     </div>
