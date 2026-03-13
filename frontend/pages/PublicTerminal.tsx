@@ -574,7 +574,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
           customer_name: res.data.name,
           points_balance: res.data.points_balance,
           points_goal: res.data.points_goal,
-          tenant_name: storeInfo?.name
+          tenant_name: storeInfo?.name,
+          is_registration: true
         });
         setQrToken(null);
         setMode('AUTO_SUCCESS');
@@ -732,7 +733,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                     onClick={() => setMode('CONSULT')}
                     className="w-full h-20 text-base font-black uppercase tracking-widest bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-2xl shadow-lg transition-all active:scale-95 focus:ring-4 focus:ring-gray-300"
                   >
-                    CONSULTAR SALDO
+                    VER MEUS PONTOS
                   </Button>
                 </div>
               </div>
@@ -1048,14 +1049,24 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 bg-green-50 border-4 border-green-100">
                 <CheckCircle2 className="w-12 h-12 text-green-500" />
               </div>
-              <h2 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">Visita registrada!<br />Seu ponto já foi adicionado.</h2>
-              <p className="text-sm text-slate-500 font-bold mt-2">Você será redirecionado para acompanhar seu saldo.</p>
+              <h2 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
+                {approvedData.is_registration
+                  ? "Obrigado por participar,\nvocê já recebeu seu primeiro ponto!"
+                  : <>Visita registrada!<br />Seu ponto já foi adicionado.</>}
+              </h2>
+              <p className="text-sm text-slate-500 font-bold mt-2">
+                {approvedData.is_registration
+                  ? "Consulte seu saldo clicando no botão ver meus pontos."
+                  : "Você será redirecionado para acompanhar seu saldo."}
+              </p>
               <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-8 mb-8 mt-8 border-2 border-slate-100 dark:border-slate-800 shadow-inner">
                 <p className="text-[11px] font-black uppercase text-slate-400 dark:text-slate-500 mb-2 tracking-widest">Obrigado pela visita!</p>
                 <p className="text-[10px] font-black uppercase text-slate-300 dark:text-slate-600 mb-1">Novo Saldo</p>
                 <p className="text-8xl font-black text-slate-900 dark:text-white tracking-tighter">{approvedData.points_balance} <span className="text-3xl text-slate-300 dark:text-slate-700">/ {approvedData.points_goal}</span></p>
               </div>
-              <Button onClick={reset} className="w-full h-20 font-black uppercase bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-2xl focus:ring-4 focus:ring-gray-300">Voltar ao Início</Button>
+              <Button onClick={reset} className="w-full h-20 font-black uppercase bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-2xl focus:ring-4 focus:ring-gray-300">
+                {approvedData.is_registration ? "Ver Meus Pontos" : "Voltar ao Início"}
+              </Button>
             </div>
           )
         }
