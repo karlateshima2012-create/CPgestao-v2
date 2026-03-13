@@ -658,8 +658,8 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 </div>
 
                 <div className="space-y-3 pt-6">
-                  <h3 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter uppercase leading-tight">Registrar Visita</h3>
-                  <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Digite seu telefone e solicite o ponto desta visita.</p>
+                  <h3 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter uppercase leading-tight">Solicitar Ponto</h3>
+                  <p className="text-sm font-bold text-slate-500 dark:text-slate-400 italic">Informe seu telefone para registrar sua visita na loja.</p>
                 </div>
 
                 <form onSubmit={handleEarn} className="w-full space-y-8">
@@ -739,13 +739,6 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               </div>
             )}
 
-            {isTerminalMode && (
-              <div className="flex gap-4">
-                <button onClick={() => setMode('CONSULT')} className="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-black transition-colors">Ver meu saldo</button>
-                <span className="text-gray-200">•</span>
-                <button onClick={() => setMode('REGISTER')} className="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-black transition-colors">Criar cadastro</button>
-              </div>
-            )}
           </div>
         )}
 
@@ -1052,7 +1045,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               <h2 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
                 {approvedData.is_registration
                   ? "Obrigado por participar,\nvocê já recebeu seu primeiro ponto!"
-                  : <>Visita registrada!<br />Seu ponto já foi adicionado.</>}
+                  : <>Solicitação enviada!<br />Seu ponto foi adicionado.</>}
               </h2>
               <p className="text-sm text-slate-500 font-bold mt-2">
                 {approvedData.is_registration
