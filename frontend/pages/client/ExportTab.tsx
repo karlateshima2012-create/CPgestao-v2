@@ -205,46 +205,6 @@ export const ExportTab: React.FC<ExportTabProps> = ({ contacts: initialContacts 
             </button>
           </div>
 
-          <div className="flex flex-col gap-4 bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-slate-800">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Seleção para Exportação:</span>
-                <span className={`text-xl font-black ${filteredCount > 0 ? 'text-primary-600' : 'text-red-500'}`}>
-                  {filteredCount} {filteredCount === 1 ? 'Contato' : 'Contatos'}
-                </span>
-              </div>
-              {filteredCount > 0 && (
-                <Badge color="blue" className="text-[9px] font-black uppercase px-3 py-1">Vista Prévia</Badge>
-              )}
-            </div>
-
-            {filteredCount > 0 ? (
-              <div className="space-y-2">
-                <div className="grid grid-cols-1 gap-1">
-                  {previewList.map(c => (
-                    <div key={c.id} className="flex items-center justify-between py-2 px-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm animate-fade-in">
-                      <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{c.name}</span>
-                      <span className="text-[10px] font-medium text-slate-400">{c.phone}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {filteredCount > PREVIEW_LIMIT && (
-                  <div className="flex items-center gap-2 pt-2">
-                    <div className="h-px bg-slate-200 dark:bg-slate-700 flex-1" />
-                    <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest italic text-center px-4">
-                      + {filteredCount - PREVIEW_LIMIT} outros contatos serão exportados no total
-                    </span>
-                    <div className="h-px bg-slate-200 dark:bg-slate-700 flex-1" />
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="py-4 text-center">
-                <p className="text-sm font-bold text-slate-400 italic">Nenhum cliente atende aos filtros atuais.</p>
-              </div>
-            )}
-          </div>
         </div>
 
         <Card className="p-8 border-none shadow-xl shadow-slate-200/50 dark:shadow-none bg-white dark:bg-slate-900">
@@ -323,6 +283,48 @@ export const ExportTab: React.FC<ExportTabProps> = ({ contacts: initialContacts 
             </div>
           </div>
         </Card>
+
+        {/* Vista Prévia (Relocated) */}
+        <div className="flex flex-col gap-4 bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-slate-800 animate-fade-in">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Seleção para Exportação:</span>
+              <span className={`text-xl font-black ${filteredCount > 0 ? 'text-primary-600' : 'text-red-500'}`}>
+                {filteredCount} {filteredCount === 1 ? 'Contato' : 'Contatos'}
+              </span>
+            </div>
+            {filteredCount > 0 && (
+              <Badge color="blue" className="text-[9px] font-black uppercase px-3 py-1">Vista Prévia</Badge>
+            )}
+          </div>
+
+          {filteredCount > 0 ? (
+            <div className="space-y-2">
+              <div className="grid grid-cols-1 gap-1">
+                {previewList.map(c => (
+                  <div key={c.id} className="flex items-center justify-between py-2 px-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{c.name}</span>
+                    <span className="text-[10px] font-medium text-slate-400">{c.phone}</span>
+                  </div>
+                ))}
+              </div>
+
+              {filteredCount > PREVIEW_LIMIT && (
+                <div className="flex items-center gap-2 pt-2">
+                  <div className="h-px bg-slate-200 dark:bg-slate-700 flex-1" />
+                  <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest italic text-center px-4 leading-relaxed">
+                    + {filteredCount - PREVIEW_LIMIT} outros contatos serão exportados no total
+                  </span>
+                  <div className="h-px bg-slate-200 dark:bg-slate-700 flex-1" />
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="py-4 text-center">
+              <p className="text-sm font-bold text-slate-400 italic">Nenhum cliente atende aos filtros atuais.</p>
+            </div>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Button
