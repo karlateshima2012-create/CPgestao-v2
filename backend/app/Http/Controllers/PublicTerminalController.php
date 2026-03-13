@@ -255,9 +255,11 @@ class PublicTerminalController extends Controller
         $currentLevel = $customer->loyalty_level ?? 1; // Default to level 1 (Bronze) if null
         
         $goal = $tenant->points_goal;
+        $reward = "prêmio";
         $lvlIdx = max(0, (int)$currentLevel - 1); // 1-indexed to 0-indexed
         if (is_array($levelsConfig) && isset($levelsConfig[$lvlIdx])) {
             $goal = (int)($levelsConfig[$lvlIdx]['goal'] ?? $goal);
+            $reward = $levelsConfig[$lvlIdx]['reward'] ?? $reward;
         }
         $remaining = max(0, $goal - $balance);
 
@@ -283,6 +285,7 @@ class PublicTerminalController extends Controller
             'name' => $customer->name,
             'points_balance' => $balance,
             'points_goal' => $goal,
+            'reward_name' => $reward,
             'remaining' => $remaining,
             'history' => $history,
             'loyalty_level' => $customer->loyalty_level,
