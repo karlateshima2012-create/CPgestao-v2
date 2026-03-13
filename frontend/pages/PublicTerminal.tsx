@@ -152,9 +152,11 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
     if (token) setQrToken(token);
   }, []);
 
-  // Polling for Approval
+  // Polling for Approval & Balance Updates
   useEffect(() => {
     let interval: any;
+
+    // 1. Polling for a SPECIFIC request approval
     if (mode === 'WAITING_APPROVAL' && requestId && tenantSlug && deviceUid) {
       interval = setInterval(async () => {
         try {
@@ -174,12 +176,27 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             clearInterval(interval);
           }
         } catch (error) {
-          console.error('Polling error:', error);
+          console.error('Polling error (Approval):', error);
         }
       }, 3000);
     }
+    // 2. Polling for GENERAL balance updates (Real-time feeling when merchant approves via Telegram/Admin)
+    else if (mode === 'RESULT_CLIENT' && foundCustomer && tenantSlug && phone) {
+      interval = setInterval(async () => {
+        try {
+          const res = await terminalService.lookup(tenantSlug, deviceUid, phone, qrToken, sessionToken);
+          if (res.data && res.data.points_balance !== foundCustomer.points_balance) {
+            console.log("Real-time balance update detected!");
+            setFoundCustomer(res.data);
+          }
+        } catch (error) {
+          // Silent fail for background polling
+        }
+      }, 5000); // Check every 5s for balance changes
+    }
+
     return () => clearInterval(interval);
-  }, [mode, requestId, tenantSlug, deviceUid]);
+  }, [mode, requestId, tenantSlug, deviceUid, foundCustomer, phone, qrToken, sessionToken]);
 
   // Auto-Redirect/Reset after success
   useEffect(() => {
