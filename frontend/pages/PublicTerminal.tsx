@@ -833,11 +833,23 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 </div>
               </div>
               <div className="bg-white dark:bg-slate-800 rounded-[30px] p-8 text-slate-900 dark:text-white border border-slate-100 dark:border-slate-800 shadow-xl relative overflow-hidden">
-                <div className="text-center space-y-2">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Saldo Disponível</p>
-                  <div className="flex items-baseline justify-center gap-2">
-                    <span className="text-7xl font-black tracking-tighter tabular-nums text-slate-900 dark:text-white">{foundCustomer?.points_balance}</span>
-                    <span className="text-2xl font-black text-slate-300 dark:text-slate-600">/ {Number(foundCustomer?.points_goal || storeInfo?.points_goal)}</span>
+                <div className="text-center space-y-4">
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-2">Saldo Disponível</p>
+                    <div className="flex items-baseline justify-center gap-2">
+                      <span className="text-7xl font-black tracking-tighter tabular-nums text-slate-900 dark:text-white">{foundCustomer?.points_balance}</span>
+                      <span className="text-2xl font-black text-slate-300 dark:text-slate-600">/ {Number(foundCustomer?.points_goal || storeInfo?.points_goal)}</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-50 dark:border-slate-700/50">
+                    <p className="text-sm font-bold text-slate-600 dark:text-slate-400 italic">
+                      {foundCustomer.remaining <= 0
+                        ? `Parabéns! Você já pode resgatar seu prêmio ${foundCustomer.reward_name || 'especial'}! 🎉`
+                        : foundCustomer.remaining === 1
+                          ? `Falta apenas 1 ponto para o seu prêmio ${foundCustomer.reward_name || 'especial'}! ✨`
+                          : `Faltam ${foundCustomer.remaining} pontos para o prêmio ${foundCustomer.reward_name || 'especial'}!`}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -898,11 +910,22 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 </div>
 
                 <div className="bg-white dark:bg-slate-800 rounded-[30px] p-8 md:px-14 text-slate-900 dark:text-white border border-slate-100 dark:border-slate-800 shadow-xl relative overflow-hidden">
-                  <div className="text-center space-y-2">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Saldo Atual</p>
-                    <div className="flex items-baseline justify-center gap-2">
-                      <span className="text-7xl font-black tracking-tighter tabular-nums text-slate-900 dark:text-white">{balance}</span>
-                      <span className="text-2xl font-black text-slate-300 dark:text-slate-600">/ {goal}</span>
+                  <div className="text-center space-y-4">
+                    <div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-1">Saldo Atual</p>
+                      <div className="flex items-baseline justify-center gap-2">
+                        <span className="text-7xl font-black tracking-tighter tabular-nums text-slate-900 dark:text-white">{balance}</span>
+                        <span className="text-2xl font-black text-slate-300 dark:text-slate-600">/ {goal}</span>
+                      </div>
+                    </div>
+                    <div className="pt-3 border-t border-slate-50 dark:border-slate-700/50">
+                      <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 italic">
+                        {balance >= goal
+                          ? `Pronto para resgate: ${foundCustomer.reward_name || 'prêmio'}! 🎉`
+                          : (goal - balance) === 1
+                            ? `Falta apenas 1 ponto para o prêmio: ${foundCustomer.reward_name || 'prêmio'} ✨`
+                            : `Faltam ${goal - balance} pontos para o prêmio: ${foundCustomer.reward_name || 'prêmio'}`}
+                      </p>
                     </div>
                   </div>
                 </div>
