@@ -74,6 +74,10 @@ class TelegramWebhookController extends Controller
         $chatId = $callbackQuery['message']['chat']['id'];
         $messageId = $callbackQuery['message']['message_id'];
         $originalText = $callbackQuery['message']['text'] ?? $callbackQuery['message']['caption'] ?? '';
+        
+        // Se já tiver "Ponto aprovado" ou similar no texto, evitamos duplicar o histórico se for re-aprovado
+        $originalText = preg_replace('/(?i)(Ponto aprovado|SOLICITAÇÃO RECUSADA).*$/s', '', $originalText);
+        $originalText = trim($originalText);
 
         if (strpos($data, 'approve_visit:') === 0) {
             $visitId = str_replace('approve_visit:', '', $data);
@@ -148,9 +152,11 @@ class TelegramWebhookController extends Controller
             });
 
             $customer = $visit->customer->fresh();
-            $newText = "Ponto aprovado ✅\n"
+            $newText = "<b>Ponto aprovado ✅</b>\n"
                      . "Cliente agora possui <b>{$customer->points_balance}</b> pontos\n"
-                     . "Total de visitas: <b>{$customer->attendance_count}</b>";
+                     . "Total de visitas: <b>{$customer->attendance_count}</b>\n\n"
+                     . "--- Dados da Solicitação ---\n"
+                     . $originalText;
 
             $markup = [
                 'inline_keyboard' => [
@@ -168,7 +174,9 @@ class TelegramWebhookController extends Controller
                 'approved_at' => now()
             ]);
 
-            $newText = "❌ <b>SOLICITAÇÃO RECUSADA</b>";
+            $newText = "❌ <b>SOLICITAÇÃO RECUSADA</b>\n\n"
+                     . "--- Dados da Solicitação ---\n"
+                     . $originalText;
             $markup = [
                 'inline_keyboard' => [
                     [['text' => '❌ RECUSADO', 'callback_data' => 'already_processed']]
@@ -233,9 +241,11 @@ class TelegramWebhookController extends Controller
             ]);
 
             $customer = $request->customer;
-            $newText = "Ponto aprovado ✅\n"
+            $newText = "<b>Ponto aprovado ✅</b>\n"
                      . "Cliente agora possui <b>{$customer->points_balance}</b> pontos\n"
-                     . "Total de visitas: <b>{$customer->attendance_count}</b>";
+                     . "Total de visitas: <b>{$customer->attendance_count}</b>\n\n"
+                     . "--- Dados da Solicitação ---\n"
+                     . $originalText;
 
             $markup = [
                 'inline_keyboard' => [
@@ -254,7 +264,9 @@ class TelegramWebhookController extends Controller
                 'approved_at' => now(),
             ]);
 
-            $newText = "❌ <b>SOLICITAÇÃO RECUSADA</b>";
+            $newText = "❌ <b>SOLICITAÇÃO RECUSADA</b>\n\n"
+                     . "--- Dados da Solicitação ---\n"
+                     . $originalText;
             
             $markup = [
                 'inline_keyboard' => [

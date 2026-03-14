@@ -68,12 +68,16 @@ class Customer extends Model
             return asset('storage/' . $this->foto_perfil_url);
         }
 
-        $initials = collect(explode(' ', $this->name))
-            ->map(fn($n) => mb_substr($n, 0, 1))
+        $nameDisplay = $this->name ?: 'Cliente';
+        $initials = collect(explode(' ', $nameDisplay))
+            ->map(fn($n) => mb_substr(trim($n), 0, 1))
+            ->filter()
             ->take(2)
             ->join('');
         
-        return "https://ui-avatars.com/api/?name=" . urlencode($initials ?: $this->name) . "&background=random&color=fff&size=300&rounded=true";
+        $encodedInitials = rawurlencode($initials ?: 'C');
+        
+        return "https://ui-avatars.com/api/?name={$encodedInitials}&background=random&color=fff&size=512&rounded=true&bold=true";
     }
 
     public function getLoyaltyLevelNameAttribute()
