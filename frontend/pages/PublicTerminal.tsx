@@ -96,6 +96,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
     postalCode: '',
     address: '',
     birthday: '',
+    companyName: '',
     photo: undefined as string | undefined
   });
   const [bDay, setBDay] = useState('');
@@ -587,6 +588,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         postal_code: customerData.postalCode,
         address: customerData.address,
         birthday: customerData.birthday,
+        company_name: customerData.companyName,
         photo: customerData.photo
       });
       const isAdmin = !!localStorage.getItem('auth_token');
@@ -623,7 +625,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
   const reset = () => {
     setMode('START');
     setPhone('');
-    setCustomerData({ name: '', email: '', city: '', province: '', postalCode: '', address: '', birthday: '', photo: undefined });
+    setCustomerData({ name: '', email: '', city: '', province: '', postalCode: '', address: '', birthday: '', companyName: '', photo: undefined });
     setBDay('');
     setBMonth('');
     setFoundCustomer(null);
@@ -1097,12 +1099,49 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 </div>
 
                 <div className="space-y-4">
-                  <Input label="Nome Completo *" value={customerData.name} onChange={e => setCustomerData({ ...customerData, name: normalizeText(e.target.value) })} required className="focus:ring-gray-200 focus:border-gray-400" />
+                  <Input
+                    label="Nome Completo *"
+                    value={customerData.name}
+                    placeholder="Digite seu nome completo"
+                    onChange={e => setCustomerData({ ...customerData, name: normalizeText(e.target.value) })}
+                    required
+                    className="focus:ring-gray-200 focus:border-gray-400"
+                  />
+
+                  <Input
+                    label="Nome da Empresa"
+                    value={customerData.companyName}
+                    placeholder="Digite o nome da sua empresa"
+                    onChange={e => setCustomerData({ ...customerData, companyName: normalizeText(e.target.value) })}
+                    className="focus:ring-gray-200 focus:border-gray-400"
+                  />
+
                   <div className="grid grid-cols-2 gap-3">
-                    <Input label="Seu Telefone *" value={phone} onChange={e => setPhone(formatJapanesePhone(e.target.value))} required className="focus:ring-gray-200 focus:border-gray-400" />
-                    <Input label="Cidade *" value={customerData.city} onChange={e => setCustomerData({ ...customerData, city: normalizeText(e.target.value) })} required className="focus:ring-gray-200 focus:border-gray-400" />
+                    <Input
+                      label="Seu Telefone *"
+                      value={phone}
+                      placeholder="Digite seu telefone"
+                      onChange={e => setPhone(formatJapanesePhone(e.target.value))}
+                      required
+                      className="focus:ring-gray-200 focus:border-gray-400"
+                    />
+                    <Input
+                      label="Cidade *"
+                      value={customerData.city}
+                      placeholder="Nome da sua cidade"
+                      onChange={e => setCustomerData({ ...customerData, city: normalizeText(e.target.value) })}
+                      required
+                      className="focus:ring-gray-200 focus:border-gray-400"
+                    />
                   </div>
-                  <Input label="Província *" value={customerData.province} onChange={e => setCustomerData({ ...customerData, province: normalizeText(e.target.value) })} required className="focus:ring-gray-200 focus:border-gray-400" />
+                  <Input
+                    label="Província *"
+                    value={customerData.province}
+                    placeholder="digite o nome da Província"
+                    onChange={e => setCustomerData({ ...customerData, province: normalizeText(e.target.value) })}
+                    required
+                    className="focus:ring-gray-200 focus:border-gray-400"
+                  />
                 </div>
                 <Button type="submit" isLoading={loading} className="w-full h-20 bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-[25px] font-black uppercase text-base shadow-xl tracking-widest transition-transform active:scale-95 focus:ring-4 focus:ring-gray-300">
                   CADASTRAR E GANHAR PONTO
