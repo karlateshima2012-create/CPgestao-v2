@@ -87,12 +87,12 @@ class TelegramWebhookController extends Controller
 
         if (strpos($data, 'approve_request:') === 0) {
             $requestId = str_replace('approve_request:', '', $data);
-            return $this->processRequest($requestId, 'approved', $chatId, $messageId, $originalText, $callbackQueryId);
+            return $this->processRequest($requestId, 'approved', $chatId, $messageId, $originalText, $callbackQueryId, $callbackQuery);
         }
 
         if (strpos($data, 'reject_request:') === 0) {
             $requestId = str_replace('reject_request:', '', $data);
-            return $this->processRequest($requestId, 'denied', $chatId, $messageId, $originalText, $callbackQueryId);
+            return $this->processRequest($requestId, 'denied', $chatId, $messageId, $originalText, $callbackQueryId, $callbackQuery);
         }
 
         if ($data === 'already_processed') {
@@ -157,7 +157,11 @@ class TelegramWebhookController extends Controller
                     [['text' => '✅ APROVADO', 'callback_data' => 'already_processed']]
                 ]
             ];
-            $this->telegramService->editMessageCaption($chatId, $messageId, $newText, $markup);
+            if (isset($callbackQuery['message']['photo'])) {
+                $this->telegramService->editMessageCaption($chatId, $messageId, $newText, $markup);
+            } else {
+                $this->telegramService->editMessage($chatId, $messageId, $newText, $markup);
+            }
         } else {
             $visit->update([
                 'status' => 'negado',
@@ -170,7 +174,11 @@ class TelegramWebhookController extends Controller
                     [['text' => '❌ RECUSADO', 'callback_data' => 'already_processed']]
                 ]
             ];
-            $this->telegramService->editMessageCaption($chatId, $messageId, $newText, $markup);
+            if (isset($callbackQuery['message']['photo'])) {
+                $this->telegramService->editMessageCaption($chatId, $messageId, $newText, $markup);
+            } else {
+                $this->telegramService->editMessage($chatId, $messageId, $newText, $markup);
+            }
         }
 
         return response()->json(['status' => 'success']);
@@ -179,7 +187,7 @@ class TelegramWebhookController extends Controller
     /**
      * Process the approval or rejection.
      */
-    private function processRequest($requestId, $action, $chatId, $messageId, $originalText, $callbackQueryId)
+    private function processRequest($requestId, $action, $chatId, $messageId, $originalText, $callbackQueryId, $callbackQuery)
     {
         // Answer eventually if not answered already, but better to answer after checking auth
         
