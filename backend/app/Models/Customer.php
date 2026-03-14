@@ -79,15 +79,20 @@ class Customer extends Model
         }
         $initials = mb_strtoupper($initials ?: 'C');
         
-        return "https://ui-avatars.com/api/?name=" . urlencode($initials) . "&background=4f46e5&color=fff&size=512&rounded=true&bold=true";
+        return "https://ui-avatars.com/api/{$initials}/512/9ca3af/fff.png?rounded=true&bold=true";
     }
 
     private function generateStorageUrl($path)
     {
-        if (config('app.url') === 'http://localhost' && isset($_SERVER['HTTP_HOST'])) {
+        $appUrl = config('app.url');
+        
+        // Se o APP_URL estiver como localhost ou vazio, tentamos detectar o host real
+        if (($appUrl === 'http://localhost' || empty($appUrl)) && isset($_SERVER['HTTP_HOST'])) {
             $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
             return "{$protocol}://{$_SERVER['HTTP_HOST']}/storage/{$path}";
         }
+        
+        // Se tivermos um APP_URL real, usamos asset() que agora deve funcionar
         return asset('storage/' . $path);
     }
 

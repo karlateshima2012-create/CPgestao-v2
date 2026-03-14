@@ -97,19 +97,14 @@ class TelegramService
             $response = Http::post($url, $payload);
 
             if ($response->failed()) {
-                // Determine the error message
-                $telegramError = $response->json('description') ?? $response->body() ?? 'Unknown error';
-                
-                // If photo fails, try sending as text but include the error for debugging
-                $debugCaption = $caption . "\n\n⚠️ <b>Erro ao carregar avatar:</b> {$telegramError}\nURL: {$photoUrl}";
-                $this->sendMessage($tenantId, $debugCaption, $type, $targetChatId, $replyMarkup);
-                
+                // If photo fails, send as text without the debug URL to keep it clean
+                $this->sendMessage($tenantId, $caption, $type, $targetChatId, $replyMarkup);
                 Log::error("Telegram photo notification failed for tenant {$tenantId} (Target: {$targetChatId}): " . $response->body());
             }
         } catch (\Exception $e) {
             Log::error("Telegram photo notification exception for tenant {$tenantId}: " . $e->getMessage());
             // Fallback for unexpected exceptions
-            $this->sendMessage($tenantId, $caption . "\n\n⚠️ (Exception) " . $e->getMessage(), $type, $targetChatId, $replyMarkup);
+            $this->sendMessage($tenantId, $caption, $type, $targetChatId, $replyMarkup);
         }
     }
 
