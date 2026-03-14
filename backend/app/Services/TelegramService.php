@@ -72,11 +72,9 @@ class TelegramService
         }
 
         try {
-            // Fallback for photo
-            if (!$photoUrl) {
-                $this->sendMessage($tenantId, $caption, $type, $targetChatId, $replyMarkup);
-                return;
-            }
+            // We no longer fallback to text here because the Customer model 
+            // provides a fallback URL (initials) via $customer->photo_url_full.
+            // This ensures consistent UI in Telegram (always photo + caption).
 
             $url = "https://api.telegram.org/bot{$botToken}/sendPhoto";
             
