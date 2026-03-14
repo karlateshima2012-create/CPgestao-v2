@@ -199,6 +199,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
     return () => clearInterval(interval);
   }, [mode, requestId, tenantSlug, deviceUid, foundCustomer, phone, qrToken, sessionToken]);
 
+  // Redirecionamento automático removido a pedido do usuário.
+  // O fluxo agora depende exclusivamente do clique no botão de confirmação.
+
 
 
   const formatJapanesePhone = (val: string) => {
