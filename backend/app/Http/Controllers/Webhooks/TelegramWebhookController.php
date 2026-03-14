@@ -73,7 +73,7 @@ class TelegramWebhookController extends Controller
         $data = $callbackQuery['data'];
         $chatId = $callbackQuery['message']['chat']['id'];
         $messageId = $callbackQuery['message']['message_id'];
-        $originalText = $callbackQuery['message']['text'];
+        $originalText = $callbackQuery['message']['text'] ?? $callbackQuery['message']['caption'] ?? '';
 
         if (strpos($data, 'approve_visit:') === 0) {
             $visitId = str_replace('approve_visit:', '', $data);
@@ -149,8 +149,8 @@ class TelegramWebhookController extends Controller
 
             $customer = $visit->customer->fresh();
             $newText = "Ponto aprovado ✅\n"
-                     . "Cliente agora possui *{$customer->points_balance}* pontos\n"
-                     . "Total de visitas: *{$customer->attendance_count}*";
+                     . "Cliente agora possui <b>{$customer->points_balance}</b> pontos\n"
+                     . "Total de visitas: <b>{$customer->attendance_count}</b>";
 
             $markup = [
                 'inline_keyboard' => [
@@ -164,7 +164,7 @@ class TelegramWebhookController extends Controller
                 'approved_at' => now()
             ]);
 
-            $newText = "❌ *SOLICITAÇÃO RECUSADA*";
+            $newText = "❌ <b>SOLICITAÇÃO RECUSADA</b>";
             $markup = [
                 'inline_keyboard' => [
                     [['text' => '❌ RECUSADO', 'callback_data' => 'already_processed']]
@@ -187,16 +187,14 @@ class TelegramWebhookController extends Controller
 
         if (!$request) {
             $this->telegramService->answerCallbackQuery($callbackQueryId, "❌ Erro: Solicitação não encontrada.", true);
-            $escOriginal = TelegramService::escapeMarkdownV2($originalText);
-            $this->telegramService->editMessage($chatId, $messageId, $escOriginal . "\n\n❌ *Erro: Solicitação não encontrada\.*");
+            $this->telegramService->editMessage($chatId, $messageId, $originalText . "\n\n❌ <b>Erro: Solicitação não encontrada.</b>");
             return response()->json(['status' => 'not_found']);
         }
 
         if ($request->status !== 'pending') {
             $statusLabel = $request->status === 'approved' ? 'Aprovada' : 'Recusada';
             $this->telegramService->answerCallbackQuery($callbackQueryId, "ℹ️ Já processada: {$statusLabel}");
-            $escOriginal = TelegramService::escapeMarkdownV2($originalText);
-            $this->telegramService->editMessage($chatId, $messageId, $escOriginal . "\n\nℹ️ *Esta solicitação já foi {$statusLabel}\.*");
+            $this->telegramService->editMessage($chatId, $messageId, $originalText . "\n\nℹ️ <b>Esta solicitação já foi {$statusLabel}.</b>");
             return response()->json(['status' => 'already_processed']);
         }
 
@@ -228,8 +226,8 @@ class TelegramWebhookController extends Controller
 
             $customer = $request->customer;
             $newText = "Ponto aprovado ✅\n"
-                     . "Cliente agora possui *{$customer->points_balance}* pontos\n"
-                     . "Total de visitas: *{$customer->attendance_count}*";
+                     . "Cliente agora possui <b>{$customer->points_balance}</b> pontos\n"
+                     . "Total de visitas: <b>{$customer->attendance_count}</b>";
 
             $markup = [
                 'inline_keyboard' => [
@@ -248,7 +246,7 @@ class TelegramWebhookController extends Controller
                 'approved_at' => now(),
             ]);
 
-            $newText = "❌ *SOLICITAÇÃO RECUSADA*";
+            $newText = "❌ <b>SOLICITAÇÃO RECUSADA</b>";
             
             $markup = [
                 'inline_keyboard' => [
