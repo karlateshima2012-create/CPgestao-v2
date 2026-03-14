@@ -631,7 +631,6 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
     setFoundCustomer(null);
     setLoading(false);
     setQrToken(null);
-    setSessionToken(null);
 
     const url = new URL(window.location.href);
     url.search = '';

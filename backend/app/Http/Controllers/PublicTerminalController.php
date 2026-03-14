@@ -223,7 +223,8 @@ class PublicTerminalController extends Controller
         
         // MEASURE B: Digital Session Binding for Lookup
         if (!$this->validateSessionToken($request, $request->session_token, $tenant->id)) {
-            return ApiResponse::error('Sessão inválida para consulta. Por favor, reinicie o processo no totem.', 'SESSION_REQUIRED', 403);
+            $msg = $uid ? 'Sessão inválida para consulta. Por favor, reinicie o processo no totem.' : 'Sessão expirada. Por favor, recarregue a página e tente novamente.';
+            return ApiResponse::error($msg, 'SESSION_REQUIRED', 403);
         }
         
         $rawPhone = preg_replace('/\D/', '', $request->phone);
