@@ -33,7 +33,8 @@ class CustomerPhotoService
         Storage::disk('public')->makeDirectory($directory);
         Storage::disk('public')->makeDirectory($thumbDirectory);
 
-        $filename = "{$customerId}.webp";
+        $uniqueId = Str::random(6);
+        $filename = "{$customerId}_{$uniqueId}.webp";
         $path = "{$directory}/{$filename}";
         $thumbPath = "{$thumbDirectory}/{$filename}";
 
