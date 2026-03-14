@@ -57,7 +57,7 @@ class Customer extends Model
     {
         if ($this->foto_perfil_url) {
             $thumbPath = str_replace('clientes/', 'clientes/thumbs/', $this->foto_perfil_url);
-            return asset('storage/' . $thumbPath);
+            return $this->generateStorageUrl($thumbPath);
         }
         return $this->getPhotoUrlFullAttribute();
     }
@@ -65,17 +65,30 @@ class Customer extends Model
     public function getPhotoUrlFullAttribute()
     {
         if ($this->foto_perfil_url) {
-            return asset('storage/' . $this->foto_perfil_url);
+            return $this->generateStorageUrl($this->foto_perfil_url);
         }
 
         $nameDisplay = $this->name ?: 'Cliente';
-        $initials = collect(explode(' ', $nameDisplay))
-            ->map(fn($n) => mb_substr(trim($n), 0, 1))
-            ->filter()
-            ->take(2)
-            ->join('');
+        $parts = explode(' ', trim($nameDisplay));
+        $initials = '';
+        if (count($parts) > 0) {
+            $initials .= mb_substr($parts[0], 0, 1);
+            if (count($parts) > 1) {
+                $initials .= mb_substr($parts[count($parts) - 1], 0, 1);
+            }
+        }
+        $initials = mb_strtoupper($initials ?: 'C');
         
-        return "https://ui-avatars.com/api/?name=" . urlencode($initials ?: 'C') . "&background=4f46e5&color=fff&size=512&rounded=true&bold=true";
+        return "https://ui-avatars.com/api/?name=" . urlencode($initials) . "&background=4f46e5&color=fff&size=512&rounded=true&bold=true";
+    }
+
+    private function generateStorageUrl($path)
+    {
+        if (config('app.url') === 'http://localhost' && isset($_SERVER['HTTP_HOST'])) {
+            $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+            return "{$protocol}://{$_SERVER['HTTP_HOST']}/storage/{$path}";
+        }
+        return asset('storage/' . $path);
     }
 
     public function getLoyaltyLevelNameAttribute()

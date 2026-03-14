@@ -214,7 +214,7 @@ class ClientController extends Controller
 
         $oldPoints = $customer->points_balance;
         
-        $data = $request->except(['phone', 'photo']);
+        $data = $request->except(['phone', 'photo', 'foto_perfil_url']);
         $customer->fill($data);
         $customer->last_activity_at = now();
         $customer->save();

@@ -905,11 +905,8 @@ class PublicTerminalController extends Controller
                             . "💰 <b>Ponto de cadastro recebido:</b> {$visitPts}";
 
                 try {
-                    if ($device && $device->telegram_chat_id) {
-                        $this->telegramService->sendDirectMessage($device->telegram_chat_id, $regMessage);
-                    } else {
-                        $this->telegramService->sendMessage($tenant->id, $regMessage);
-                    }
+                    // Use sendPhoto for better visual consistency (includes avatar)
+                    $this->telegramService->sendPhoto($tenant->id, $customer->photo_url_full, $regMessage, 'registration');
                 } catch (\Exception $te) {
                     \Illuminate\Support\Facades\Log::warning("Registration Telegram alert failed: " . $te->getMessage());
                 }

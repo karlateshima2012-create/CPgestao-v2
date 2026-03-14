@@ -108,6 +108,8 @@ class TelegramService
             }
         } catch (\Exception $e) {
             Log::error("Telegram photo notification exception for tenant {$tenantId}: " . $e->getMessage());
+            // Fallback for unexpected exceptions
+            $this->sendMessage($tenantId, $caption . "\n\n⚠️ (Exception) " . $e->getMessage(), $type, $targetChatId, $replyMarkup);
         }
     }
 
