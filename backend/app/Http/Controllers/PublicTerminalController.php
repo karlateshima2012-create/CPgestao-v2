@@ -551,9 +551,11 @@ class PublicTerminalController extends Controller
                     $locationName = $device ? ($device->responsible_name ?: $device->name) : 'Terminal Público';
                     $caption = "⭐ <b>Solicitação de ponto</b>\n\n"
                              . "<b>Cliente:</b> {$customer->name}\n"
-                             . "<b>Telefone:</b> {$customer->phone}\n"
-                             . "<b>Empresa:</b> " . ($customer->company_name ?: "—") . "\n"
-                             . "<b>Visitas:</b> {$customer->attendance_count}\n"
+                             . "<b>Telefone:</b> {$customer->phone}\n";
+                    if ($customer->company_name) {
+                        $caption .= "<b>Empresa:</b> {$customer->company_name}\n";
+                    }
+                    $caption .= "<b>Visitas:</b> {$customer->attendance_count}\n"
                              . "<b>Hora:</b> " . now()->format('H:i') . "\n\n"
                              . "<b>📍 Local:</b> {$locationName}";
                     
@@ -741,9 +743,11 @@ class PublicTerminalController extends Controller
                     
                     $caption = "👑 <b>Solicitação de Resgate</b>\n\n"
                              . "<b>Cliente:</b> {$customer->name}\n"
-                             . "<b>Telefone:</b> {$customer->phone}\n"
-                             . "<b>Empresa:</b> " . ($customer->company_name ?: "—") . "\n"
-                             . "<b>Visitas:</b> {$customer->attendance_count}\n"
+                             . "<b>Telefone:</b> {$customer->phone}\n";
+                    if ($customer->company_name) {
+                        $caption .= "<b>Empresa:</b> {$customer->company_name}\n";
+                    }
+                    $caption .= "<b>Visitas:</b> {$customer->attendance_count}\n"
                              . "<b>Hora:</b> " . now()->format('H:i') . "\n\n"
                              . "<b>📍 Local:</b> {$locationName}\n\n"
                              . "Deseja aprovar o resgate de prêmio para este cliente?";

@@ -77,6 +77,9 @@ class TelegramWebhookController extends Controller
         
         // Se já tiver "Ponto aprovado" ou similar no texto, evitamos duplicar o histórico se for re-aprovado
         $originalText = preg_replace('/(?i)(Ponto aprovado|SOLICITAÇÃO RECUSADA).*$/s', '', $originalText);
+        // Remover a linha de "Visitas" do texto original para não ficar duplicado (já mostramos o novo saldo acima)
+        $originalText = preg_replace('/^Visitas:.*$/m', '', $originalText);
+        $originalText = preg_replace('/^<b>Visitas:<\/b>.*$/m', '', $originalText);
         $originalText = trim($originalText);
 
         if (strpos($data, 'approve_visit:') === 0) {
