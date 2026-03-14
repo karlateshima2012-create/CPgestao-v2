@@ -75,10 +75,7 @@ class Customer extends Model
             ->take(2)
             ->join('');
         
-        $encodedName = urlencode($initials ?: 'C');
-        
-        // Usamos um fundo fixo (Indigo) e adicionamos .png no final para o Telegram reconhecer melhor
-        return "https://ui-avatars.com/api/{$encodedName}/512/4f46e5/fff.png?rounded=true&bold=true";
+        return "https://ui-avatars.com/api/?name=" . urlencode($initials ?: 'C') . "&background=4f46e5&color=fff&size=512&rounded=true&bold=true";
     }
 
     public function getLoyaltyLevelNameAttribute()

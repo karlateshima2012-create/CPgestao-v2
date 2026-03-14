@@ -72,17 +72,16 @@ class TelegramService
         }
 
         try {
-            // We no longer fallback to text here because the Customer model 
             // provides a fallback URL (initials) via $customer->photo_url_full.
             // This ensures consistent UI in Telegram (always photo + caption).
-
-            $url = "https://api.telegram.org/bot{$botToken}/sendPhoto";
             
             $disableNotification = false;
             if ($settings && $type === 'points') {
                 $disableNotification = $settings->telegram_sound_points === false;
             }
 
+            $url = "https://api.telegram.org/bot{$botToken}/sendPhoto";
+            
             $payload = [
                 'chat_id' => $targetChatId,
                 'photo' => $photoUrl,
@@ -98,8 +97,13 @@ class TelegramService
             $response = Http::post($url, $payload);
 
             if ($response->failed()) {
-                // If photo fails, try sending as text
-                $this->sendMessage($tenantId, $caption, $type, $targetChatId, $replyMarkup);
+                // Determine the error message
+                $telegramError = $response->json('description') ?? $response->body() ?? 'Unknown error';
+                
+                // If photo fails, try sending as text but include the error for debugging
+                $debugCaption = $caption . "\n\n⚠️ <b>Erro ao carregar avatar:</b> {$telegramError}\nURL: {$photoUrl}";
+                $this->sendMessage($tenantId, $debugCaption, $type, $targetChatId, $replyMarkup);
+                
                 Log::error("Telegram photo notification failed for tenant {$tenantId} (Target: {$targetChatId}): " . $response->body());
             }
         } catch (\Exception $e) {
