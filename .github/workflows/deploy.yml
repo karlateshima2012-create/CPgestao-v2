@@ -47,11 +47,13 @@ jobs:
           rm -f deploy_package/api_backend/bootstrap/cache/*.php
           
           # Root .htaccess
+          # Root .htaccess
           cat <<'EOT' > deploy_package/.htaccess
           <IfModule mod_rewrite.c>
               RewriteEngine On
               RewriteBase /
               RewriteRule ^api/(.*)$ api_backend/public/$1 [L]
+              RewriteRule ^storage/(.*)$ api_backend/public/storage/$1 [L]
               RewriteRule ^index\.html$ - [L]
               RewriteCond %{REQUEST_FILENAME} !-f
               RewriteCond %{REQUEST_FILENAME} !-d
@@ -62,7 +64,7 @@ jobs:
           cd deploy_package
           zip -r ../deploy_package.zip .
           cd ..
-
+ 
       - name: Upload Package to Hostinger
         uses: appleboy/scp-action@master
         with:
@@ -72,7 +74,7 @@ jobs:
           port: 65002
           source: "deploy_package.zip"
           target: "domains/creativeprintjp.com/public_html/cpgestao/"
-
+ 
       - name: Extract and Finish Deploy
         uses: appleboy/ssh-action@master
         with:
@@ -115,6 +117,11 @@ jobs:
             
             echo "--- LIMPANDO CACHES ---"
             php artisan optimize:clear
+            
+            echo "--- CONFIGURANDO STORAGE ---"
+            # Remover link antigo se existir e criar novo
+            rm -f public/storage
+            php artisan storage:link
             
             echo "--- EXECUTANDO MIGRAÇÕES (MODO DE EMERGÊNCIA) ---"
             # Tentamos rodar, se falhar logamos o erro mas não derrubamos o deploy para podermos testar a rota /api/force-migrate
