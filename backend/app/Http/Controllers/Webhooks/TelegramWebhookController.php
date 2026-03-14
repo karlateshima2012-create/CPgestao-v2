@@ -95,6 +95,11 @@ class TelegramWebhookController extends Controller
             return $this->processRequest($requestId, 'denied', $chatId, $messageId, $originalText, $callbackQueryId);
         }
 
+        if ($data === 'already_processed') {
+            $this->telegramService->answerCallbackQuery($callbackQueryId, "ℹ️ Já processada.");
+            return response()->json(['status' => 'already_processed']);
+        }
+
         return response()->json(['status' => 'data_ignored']);
     }
 
@@ -125,7 +130,7 @@ class TelegramWebhookController extends Controller
             return response()->json(['status' => 'unauthorized'], 403);
         }
 
-        $this->telegramService->answerCallbackQuery($callbackQueryId);
+        $this->telegramService->answerCallbackQuery($callbackQueryId, $action === 'approved' ? "✅ Ponto Aprovado!" : "❌ Ponto Recusado!");
 
         if ($action === 'approved') {
             \Illuminate\Support\Facades\DB::transaction(function() use ($visit) {
@@ -147,7 +152,12 @@ class TelegramWebhookController extends Controller
                      . "Cliente agora possui *{$customer->points_balance}* pontos\n"
                      . "Total de visitas: *{$customer->attendance_count}*";
 
-            $this->telegramService->editMessageCaption($chatId, $messageId, $newText);
+            $markup = [
+                'inline_keyboard' => [
+                    [['text' => '✅ APROVADO', 'callback_data' => 'already_processed']]
+                ]
+            ];
+            $this->telegramService->editMessageCaption($chatId, $messageId, $newText, $markup);
         } else {
             $visit->update([
                 'status' => 'negado',
@@ -155,7 +165,12 @@ class TelegramWebhookController extends Controller
             ]);
 
             $newText = "❌ *SOLICITAÇÃO RECUSADA*";
-            $this->telegramService->editMessageCaption($chatId, $messageId, $newText);
+            $markup = [
+                'inline_keyboard' => [
+                    [['text' => '❌ RECUSADO', 'callback_data' => 'already_processed']]
+                ]
+            ];
+            $this->telegramService->editMessageCaption($chatId, $messageId, $newText, $markup);
         }
 
         return response()->json(['status' => 'success']);
@@ -201,8 +216,8 @@ class TelegramWebhookController extends Controller
             return response()->json(['status' => 'unauthorized'], 403);
         }
 
-        // Answer now to stop spinner
-        $this->telegramService->answerCallbackQuery($callbackQueryId);
+        // Answer now to stop spinner and give feedback
+        $this->telegramService->answerCallbackQuery($callbackQueryId, $action === 'approved' ? "✅ Ponto Aprovado!" : "❌ Ponto Recusado!");
 
         if ($action === 'approved') {
             $this->pointRequestService->applyPoints($request);
@@ -216,10 +231,16 @@ class TelegramWebhookController extends Controller
                      . "Cliente agora possui *{$customer->points_balance}* pontos\n"
                      . "Total de visitas: *{$customer->attendance_count}*";
 
+            $markup = [
+                'inline_keyboard' => [
+                    [['text' => '✅ APROVADO', 'callback_data' => 'already_processed']]
+                ]
+            ];
+
             if (isset($callbackQuery['message']['photo'])) {
-                $this->telegramService->editMessageCaption($chatId, $messageId, $newText);
+                $this->telegramService->editMessageCaption($chatId, $messageId, $newText, $markup);
             } else {
-                $this->telegramService->editMessage($chatId, $messageId, $newText);
+                $this->telegramService->editMessage($chatId, $messageId, $newText, $markup);
             }
         } else {
             $request->update([
@@ -229,10 +250,16 @@ class TelegramWebhookController extends Controller
 
             $newText = "❌ *SOLICITAÇÃO RECUSADA*";
             
+            $markup = [
+                'inline_keyboard' => [
+                    [['text' => '❌ RECUSADO', 'callback_data' => 'already_processed']]
+                ]
+            ];
+
             if (isset($callbackQuery['message']['photo'])) {
-                $this->telegramService->editMessageCaption($chatId, $messageId, $newText);
+                $this->telegramService->editMessageCaption($chatId, $messageId, $newText, $markup);
             } else {
-                $this->telegramService->editMessage($chatId, $messageId, $newText);
+                $this->telegramService->editMessage($chatId, $messageId, $newText, $markup);
             }
         }
 
