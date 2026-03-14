@@ -122,21 +122,23 @@ jobs:
             php artisan optimize:clear
             
             echo "--- CONFIGURANDO STORAGE ---"
-            # Remover links antigos se existirem
-            rm -f public/storage
-            rm -f ../storage
+            # Remover links antigos se existirem (força remoção de pastas se necessário)
+            rm -rf public/storage || true
+            rm -rf ../storage || true
+            
+            # Garantir que a pasta de destino do link existe
+            mkdir -p storage/app/public/clientes/thumbs
             
             # Criar link na pasta public do laravel (para compatibilidade interna)
-            php artisan storage:link
+            php artisan storage:link || true
             
             # Criar link na raiz do site (para o frontend e telegram)
             # Usamos caminho absoluto para evitar erros de resolução no apache
             # Usamos -sf para forçar a criação mesmo que já exista
-            ln -sf $ROOT_PATH/api_backend/storage/app/public $ROOT_PATH/storage
+            ln -sf $ROOT_PATH/api_backend/storage/app/public $ROOT_PATH/storage || true
             
-            # Garantir que a pasta clientes existe e é gravável
-            mkdir -p storage/app/public/clientes/thumbs
-            chmod -R 777 storage/app/public
+            # Garantir permissões
+            chmod -R 777 storage/app/public || true
             
             echo "--- EXECUTANDO MIGRAÇÕES (MODO DE EMERGÊNCIA) ---"
             php artisan migrate --force || echo "⚠️ Alerta: Erro nas migrações."
