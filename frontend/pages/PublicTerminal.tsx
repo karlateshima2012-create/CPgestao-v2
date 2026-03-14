@@ -199,23 +199,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
     return () => clearInterval(interval);
   }, [mode, requestId, tenantSlug, deviceUid, foundCustomer, phone, qrToken, sessionToken]);
 
-  // Auto-Redirect/Reset after success
-  useEffect(() => {
-    if (mode === 'SUCCESS' || mode === 'AUTO_SUCCESS' || mode === 'WAITING_APPROVAL') {
-      const isAdmin = !!localStorage.getItem('auth_token');
-      if (isAdmin) return; // Admins don't get redirected
 
-      const timer = setTimeout(() => {
-        if (tenantSlug) {
-          const cleanPhone = phone.replace(/\D/g, '');
-          window.location.href = `/p/${tenantSlug}${cleanPhone ? `?phone=${cleanPhone}` : ''}`;
-        } else {
-          reset();
-        }
-      }, 5000); // 5 seconds redirect
-      return () => clearTimeout(timer);
-    }
-  }, [mode, tenantSlug, phone]);
 
   const formatJapanesePhone = (val: string) => {
     const digits = val.replace(/\D/g, '').slice(0, 11);
@@ -1198,7 +1182,17 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 <p className="text-[10px] font-black uppercase text-slate-300 dark:text-slate-600 mb-1">Novo Saldo</p>
                 <p className="text-8xl font-black text-slate-900 dark:text-white tracking-tighter">{approvedData.points_balance} <span className="text-3xl text-slate-300 dark:text-slate-700">/ {approvedData.points_goal}</span></p>
               </div>
-              <Button onClick={reset} className="w-full h-20 font-black uppercase bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-2xl focus:ring-4 focus:ring-gray-300">
+              <Button
+                onClick={() => {
+                  if (tenantSlug) {
+                    const cleanPhone = phone.replace(/\D/g, '');
+                    window.location.href = `/p/${tenantSlug}${cleanPhone ? `?phone=${cleanPhone}` : ''}`;
+                  } else {
+                    reset();
+                  }
+                }}
+                className="w-full h-20 font-black uppercase bg-[#2B2B2B] hover:bg-[#444444] text-white rounded-2xl focus:ring-4 focus:ring-gray-300"
+              >
                 {approvedData.is_registration ? "Ver Meus Pontos" : "Voltar ao Início"}
               </Button>
             </div>
