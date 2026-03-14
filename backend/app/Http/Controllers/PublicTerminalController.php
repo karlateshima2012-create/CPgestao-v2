@@ -98,7 +98,7 @@ class PublicTerminalController extends Controller
             ->first();
 
         if (!$device) {
-            abort(404, 'Dispositivo não reconhecido.');
+            abort(404, "Dispositivo não reconhecido. (Slug: {$slug}, UID: {$uid})");
         }
 
         if (!$device->active) {
@@ -608,6 +608,11 @@ class PublicTerminalController extends Controller
 
             return $response;
         });
+    }
+
+    public function autoEarn(Request $request, $slug, $uid = null)
+    {
+        return $this->earn($request, $slug, $uid);
     }
 
     public function redeem(Request $request, $slug, $uid = null)

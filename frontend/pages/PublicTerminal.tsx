@@ -268,7 +268,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get('token');
 
+      console.log(`Resolving Terminal: Slug=${slug}, UID=${uid}, Token=${token}`);
       const res = await terminalService.getInfo(slug, uid, token);
+      console.log("Terminal Resolved:", res.data);
       setStoreInfo(res.data);
       const newSessionToken = res.data.session_token;
       if (newSessionToken) setSessionToken(newSessionToken);
