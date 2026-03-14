@@ -52,10 +52,6 @@ jobs:
               RewriteEngine On
               RewriteBase /
               
-              # Redirecionar /storage para a pasta real do Laravel
-              # Tentamos primeiro via public/storage (symlink)
-              RewriteRule ^storage/(.*)$ api_backend/public/storage/$1 [L]
-              
               # Regras da API
               RewriteRule ^api/(.*)$ api_backend/public/$1 [L]
               
@@ -94,6 +90,7 @@ jobs:
             echo "--- VERIFICANDO INFORMAÇÕES DO SISTEMA ---"
             php -v
             pwd
+            ROOT_PATH=$(pwd)
             
             echo "--- ATUALIZANDO CÓDIGO ---"
             unzip -o deploy_package.zip
@@ -125,25 +122,28 @@ jobs:
             php artisan optimize:clear
             
             echo "--- CONFIGURANDO STORAGE ---"
-            # Remover link antigo se existir e criar novo
+            # Remover links antigos se existirem
             rm -f public/storage
+            rm -f ../storage
+            
+            # Criar link na pasta public do laravel (para compatibilidade interna)
             php artisan storage:link
+            
+            # Criar link na raiz do site (para o frontend e telegram)
+            # Usamos caminho absoluto para evitar erros de resolução no apache
+            ln -s $ROOT_PATH/api_backend/storage/app/public $ROOT_PATH/storage
             
             # Garantir que a pasta clientes existe e é gravável
             mkdir -p storage/app/public/clientes/thumbs
             chmod -R 777 storage/app/public
             
             echo "--- EXECUTANDO MIGRAÇÕES (MODO DE EMERGÊNCIA) ---"
-            # Tentamos rodar, se falhar logamos o erro mas não derrubamos o deploy para podermos testar a rota /api/force-migrate
-            php artisan migrate --force || echo "⚠️ Alerta: Erro nas migrações. Utilize /api/force-migrate para resolver."
+            php artisan migrate --force || echo "⚠️ Alerta: Erro nas migrações."
             
             echo "--- FINALIZANDO CONFIGURAÇÃO ---"
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
-            
-            # Tentar setar webhook mas sem derrubar se falhar
-            php artisan telegram:set-webhook || echo "⚠️ Alerta: Falha ao configurar webhook Telegram."
             
             chmod -R 777 storage bootstrap/cache
             cd ..
