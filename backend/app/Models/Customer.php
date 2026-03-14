@@ -89,11 +89,11 @@ class Customer extends Model
         // Se o APP_URL estiver como localhost ou vazio, tentamos detectar o host real
         if (($appUrl === 'http://localhost' || empty($appUrl)) && isset($_SERVER['HTTP_HOST'])) {
             $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-            return "{$protocol}://{$_SERVER['HTTP_HOST']}/storage/{$path}";
+            $appUrl = "{$protocol}://{$_SERVER['HTTP_HOST']}";
         }
         
-        // Se tivermos um APP_URL real, usamos asset() que agora deve funcionar
-        return asset('storage/' . $path);
+        // Garantimos que o caminho comece com /storage/
+        return rtrim($appUrl, '/') . '/storage/' . $path;
     }
 
     public function getLoyaltyLevelNameAttribute()

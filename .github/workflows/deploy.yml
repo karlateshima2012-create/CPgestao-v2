@@ -47,13 +47,19 @@ jobs:
           rm -f deploy_package/api_backend/bootstrap/cache/*.php
           
           # Root .htaccess
-          # Root .htaccess
           cat <<'EOT' > deploy_package/.htaccess
           <IfModule mod_rewrite.c>
               RewriteEngine On
               RewriteBase /
-              RewriteRule ^api/(.*)$ api_backend/public/$1 [L]
+              
+              # Redirecionar /storage para a pasta real do Laravel
+              # Tentamos primeiro via public/storage (symlink)
               RewriteRule ^storage/(.*)$ api_backend/public/storage/$1 [L]
+              
+              # Regras da API
+              RewriteRule ^api/(.*)$ api_backend/public/$1 [L]
+              
+              # Regras do Frontend (React)
               RewriteRule ^index\.html$ - [L]
               RewriteCond %{REQUEST_FILENAME} !-f
               RewriteCond %{REQUEST_FILENAME} !-d
@@ -94,7 +100,7 @@ jobs:
             cd api_backend
             
             # Garantir permissões básicas antes de tudo
-            chmod -R 775 storage bootstrap/cache
+            chmod -R 777 storage bootstrap/cache
             
             echo "--- GERANDO .ENV ---"
             cat <<EOT > .env
@@ -123,6 +129,10 @@ jobs:
             rm -f public/storage
             php artisan storage:link
             
+            # Garantir que a pasta clientes existe e é gravável
+            mkdir -p storage/app/public/clientes/thumbs
+            chmod -R 777 storage/app/public
+            
             echo "--- EXECUTANDO MIGRAÇÕES (MODO DE EMERGÊNCIA) ---"
             # Tentamos rodar, se falhar logamos o erro mas não derrubamos o deploy para podermos testar a rota /api/force-migrate
             php artisan migrate --force || echo "⚠️ Alerta: Erro nas migrações. Utilize /api/force-migrate para resolver."
@@ -135,7 +145,7 @@ jobs:
             # Tentar setar webhook mas sem derrubar se falhar
             php artisan telegram:set-webhook || echo "⚠️ Alerta: Falha ao configurar webhook Telegram."
             
-            chmod -R 775 storage bootstrap/cache
+            chmod -R 777 storage bootstrap/cache
             cd ..
             rm deploy_package.zip
             echo "--- DEPLOY FINALIZADO ---"
