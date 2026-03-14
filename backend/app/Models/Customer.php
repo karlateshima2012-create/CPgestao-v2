@@ -79,7 +79,7 @@ class Customer extends Model
         }
         $initials = mb_strtoupper($initials ?: 'C');
         
-        return "https://ui-avatars.com/api/{$initials}/512/9ca3af/fff.png?rounded=true&bold=true";
+        return "https://ui-avatars.com/api/?name=" . urlencode($initials) . "&size=512&background=9ca3af&color=fff&rounded=true&bold=true&format=png";
     }
 
     private function generateStorageUrl($path)
