@@ -131,7 +131,8 @@ jobs:
             
             # Criar link na raiz do site (para o frontend e telegram)
             # Usamos caminho absoluto para evitar erros de resolução no apache
-            ln -s $ROOT_PATH/api_backend/storage/app/public $ROOT_PATH/storage
+            # Usamos -sf para forçar a criação mesmo que já exista
+            ln -sf $ROOT_PATH/api_backend/storage/app/public $ROOT_PATH/storage
             
             # Garantir que a pasta clientes existe e é gravável
             mkdir -p storage/app/public/clientes/thumbs
