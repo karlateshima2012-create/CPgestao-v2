@@ -11,7 +11,7 @@ class TelegramService
     /**
      * Send a notification to the tenant's Telegram chat or a specific chat ID.
      */
-    public function sendMessage(string $tenantId, string $message, string $type = 'registration', ?string $chatId = null, $replyMarkup = null): void
+    public function sendMessage(string $tenantId, string $message, string $type = 'registration', ?string $chatId = null, $replyMarkup = null): ?array
     {
         $settings = TenantSetting::withoutGlobalScopes()->where('tenant_id', $tenantId)->first();
         $botToken = config('services.telegram.bot_token');
@@ -19,7 +19,7 @@ class TelegramService
         $targetChatId = $chatId ?: ($settings ? $settings->telegram_chat_id : null);
 
         if (!$botToken || !$targetChatId) {
-            return;
+            return null;
         }
 
         try {
@@ -48,19 +48,24 @@ class TelegramService
             }
 
             $response = Http::post($url, $payload);
+            $data = $response->json();
 
             if ($response->failed()) {
                 Log::error("Telegram notification failed for tenant {$tenantId} (Target: {$targetChatId}): " . $response->body());
+                return null;
             }
+
+            return $data;
         } catch (\Exception $e) {
             Log::error("Telegram notification exception for tenant {$tenantId}: " . $e->getMessage());
+            return null;
         }
     }
 
     /**
      * Send a photo notification to the tenant's Telegram chat or a specific chat ID.
      */
-    public function sendPhoto(string $tenantId, ?string $photoUrl, string $caption, string $type = 'points', $replyMarkup = null, ?string $chatId = null): void
+    public function sendPhoto(string $tenantId, ?string $photoUrl, string $caption, string $type = 'points', $replyMarkup = null, ?string $chatId = null): ?array
     {
         $settings = TenantSetting::withoutGlobalScopes()->where('tenant_id', $tenantId)->first();
         $botToken = config('services.telegram.bot_token');
@@ -68,7 +73,7 @@ class TelegramService
         $targetChatId = $chatId ?: ($settings ? $settings->telegram_chat_id : null);
 
         if (!$botToken || !$targetChatId) {
-            return;
+            return null;
         }
 
         try {
@@ -95,16 +100,19 @@ class TelegramService
             }
 
             $response = Http::post($url, $payload);
+            $data = $response->json();
 
             if ($response->failed()) {
                 // If photo fails, send as text without the debug URL to keep it clean
-                $this->sendMessage($tenantId, $caption, $type, $targetChatId, $replyMarkup);
                 Log::error("Telegram photo notification failed for tenant {$tenantId} (Target: {$targetChatId}): " . $response->body());
+                return $this->sendMessage($tenantId, $caption, $type, $targetChatId, $replyMarkup);
             }
+
+            return $data;
         } catch (\Exception $e) {
             Log::error("Telegram photo notification exception for tenant {$tenantId}: " . $e->getMessage());
             // Fallback for unexpected exceptions
-            $this->sendMessage($tenantId, $caption, $type, $targetChatId, $replyMarkup);
+            return $this->sendMessage($tenantId, $caption, $type, $targetChatId, $replyMarkup);
         }
     }
 

@@ -89,6 +89,8 @@ class VisitController extends Controller
                 'approved_at' => now()
             ]);
 
+            $this->syncTelegramStatus($visit, 'approved');
+
             return ApiResponse::ok($visit);
         });
     }
@@ -109,6 +111,8 @@ class VisitController extends Controller
             'approved_by' => auth()->id(),
             'approved_at' => now()
         ]);
+
+        $this->syncTelegramStatus($visit, 'denied');
 
         return ApiResponse::ok($visit);
     }
@@ -137,6 +141,8 @@ class VisitController extends Controller
                     'approved_by' => auth()->id(),
                     'approved_at' => now()
                 ]);
+
+                $this->syncTelegramStatus($visit, 'approved');
             }
 
             return ApiResponse::ok(['message' => count($pendingVisits) . ' visitas aprovadas com sucesso.']);
@@ -184,5 +190,50 @@ class VisitController extends Controller
 
             return ApiResponse::ok($visit);
         });
+    }
+
+    /**
+     * Sync status with Telegram message if exists.
+     */
+    private function syncTelegramStatus($record, $status)
+    {
+        try {
+            $meta = $record->meta ?? [];
+            $messageId = $meta['telegram_message_id'] ?? null;
+            $chatId = $meta['telegram_chat_id'] ?? null;
+
+            if (!$messageId || !$chatId) return;
+
+            $telegramService = app(\App\Services\TelegramService::class);
+            $customer = $record->customer;
+            
+            if ($status === 'approved') {
+                $newText = "<b>Ponto aprovado ✅</b>\n"
+                        . "Cliente: <b>{$customer->name}</b>\n"
+                        . "Saldo atual: <b>{$customer->points_balance}</b> pontos\n"
+                        . "Total de visitas: <b>{$customer->attendance_count}</b>\n\n"
+                        . "<i>Status: Processado via Painel Administrativo</i>";
+
+                $markup = [
+                    'inline_keyboard' => [
+                        [['text' => '✅ APROVADO (PAINEL)', 'callback_data' => 'already_processed']]
+                    ]
+                ];
+                
+                $telegramService->editMessageCaption($chatId, (int)$messageId, $newText, $markup);
+            } elseif ($status === 'denied') {
+                $newText = "❌ <b>SOLICITAÇÃO RECUSADA</b>\n\n"
+                        . "Cliente: <b>{$customer->name}</b>\n"
+                        . "<i>Ação realizada via Painel Administrativo</i>";
+                $markup = [
+                    'inline_keyboard' => [
+                        [['text' => '❌ RECUSADO (PAINEL)', 'callback_data' => 'already_processed']]
+                    ]
+                ];
+                $telegramService->editMessageCaption($chatId, (int)$messageId, $newText, $markup);
+            }
+        } catch (\Exception $e) {
+            \Log::warning("Erro ao sincronizar status com Telegram: " . $e->getMessage());
+        }
     }
 }

@@ -569,7 +569,14 @@ class PublicTerminalController extends Controller
                         ]
                     ];
                     
-                    $this->telegramService->sendPhoto($tenant->id, $customer->photo_url_full, $caption, 'points', $replyMarkup, $targetChatId);
+                    $tgRes = $this->telegramService->sendPhoto($tenant->id, $customer->photo_url_full, $caption, 'points', $replyMarkup, $targetChatId);
+                    
+                    if ($tgRes && isset($tgRes['result']['message_id'])) {
+                        $meta = $visit->meta ?? [];
+                        $meta['telegram_message_id'] = $tgRes['result']['message_id'];
+                        $meta['telegram_chat_id'] = $targetChatId;
+                        $visit->update(['meta' => $meta]);
+                    }
                 }
             }
 
@@ -762,7 +769,14 @@ class PublicTerminalController extends Controller
                         ]
                     ];
                     
-                    $this->telegramService->sendPhoto($tenant->id, $customer->photo_url_full, $caption, 'points', $replyMarkup, $targetChatId);
+                    $tgRes = $this->telegramService->sendPhoto($tenant->id, $customer->photo_url_full, $caption, 'points', $replyMarkup, $targetChatId);
+                    
+                    if ($tgRes && isset($tgRes['result']['message_id'])) {
+                        $meta = $requestRecord->meta ?? [];
+                        $meta['telegram_message_id'] = $tgRes['result']['message_id'];
+                        $meta['telegram_chat_id'] = $targetChatId;
+                        $requestRecord->update(['meta' => $meta]);
+                    }
                 }
             }
 
