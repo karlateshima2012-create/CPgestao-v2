@@ -254,7 +254,7 @@ const App: React.FC = () => {
     if (authRole === 'client') {
       interval = setInterval(() => {
         fetchPendingRequestsCount(true);
-      }, 20000); // Polling every 20 seconds
+      }, 10000); // Polling every 10 seconds
     }
     return () => clearInterval(interval);
   }, [authRole, pendingRequestsCount, accountSettings]);

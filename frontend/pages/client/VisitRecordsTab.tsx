@@ -33,8 +33,8 @@ export const VisitRecordsTab: React.FC = () => {
         type: 'info'
     });
 
-    const fetchVisits = async (page = 1) => {
-        setIsLoading(true);
+    const fetchVisits = async (page = 1, silent = false) => {
+        if (!silent) setIsLoading(true);
         try {
             const params = {
                 page,
@@ -60,6 +60,19 @@ export const VisitRecordsTab: React.FC = () => {
     useEffect(() => {
         fetchVisits(1);
     }, [period, status]);
+
+    // Polling para atualizar o status em tempo real (ex: aprovação via Telegram)
+    useEffect(() => {
+        let interval: any;
+        if (pendingCount > 0) {
+            interval = setInterval(() => {
+                fetchVisits(pagination.current_page, true);
+            }, 10000); // Poll a cada 10 segundos se houver pendentes
+        }
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [pendingCount, pagination.current_page]);
 
     const handleAction = async (id: string, action: 'approve' | 'deny') => {
         try {
