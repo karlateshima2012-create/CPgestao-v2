@@ -85,7 +85,14 @@ class PointRequestService
             } else {
                 // Simple Credit
                 $customer->increment('points_balance', $pointsToAddRaw);
-                $customer->increment('attendance_count');
+                
+                // Only increment attendance if it's NOT a manual adjustment or removal
+                $isAdjustment = in_array($isVisit ? $request->origin : $request->source, ['ajuste_manual', 'correcao', 'extra']);
+                
+                if (!$isAdjustment) {
+                    $customer->increment('attendance_count');
+                }
+                
                 $customer->update(['last_activity_at' => now()]);
 
                 $source = $isVisit ? $request->origin : $request->source;
@@ -93,13 +100,14 @@ class PointRequestService
                 PointMovement::create([
                     'tenant_id' => $request->tenant_id,
                     'customer_id' => $customer->id,
-                    'type' => 'earn',
+                    'type' => $isAdjustment ? 'adjustment' : 'earn',
                     'points' => $pointsToAddRaw,
                     'origin' => $source,
-                    'device_id' => (get_class($request) === 'App\Models\PointRequest') ? $request->device_id : null,
-                    'description' => 'Pontos creditados via: ' . $request->id,
+                    'device_id' => ($request instanceof \App\Models\PointRequest) ? $request->device_id : null,
+                    'description' => $isAdjustment ? 'Ajuste manual de pontos via: ' . $request->id : 'Pontos creditados via: ' . $request->id,
                     'meta' => [
                         'request_id' => $request->id,
+                        'reason' => $meta['reason'] ?? null
                     ]
                 ]);
             }

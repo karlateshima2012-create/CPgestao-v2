@@ -99,6 +99,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/visits/{id}/approve', [\App\Http\Controllers\VisitController::class, 'approve']);
         Route::post('/visits/{id}/deny', [\App\Http\Controllers\VisitController::class, 'deny']);
         Route::post('/visits/approve-all', [\App\Http\Controllers\VisitController::class, 'approveAll']);
+        Route::post('/visits/manual', [\App\Http\Controllers\VisitController::class, 'storeManual']);
         // Reports & Insights
         Route::get('/reports/insights', [\App\Http\Controllers\ReportController::class, 'getInsights']);
         Route::get('/reports/export', [\App\Http\Controllers\ReportController::class, 'getExportData']);

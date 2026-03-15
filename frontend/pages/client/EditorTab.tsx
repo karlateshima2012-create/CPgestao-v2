@@ -465,7 +465,10 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
     if (!selectedContact?.id || !actionModal) return;
 
     const points = actionModal === 'remove' ? -Math.abs(actionData.points) : actionData.points;
-    const origin = actionModal === 'remove' ? 'ajuste_manual' : 'manual';
+    let origin = 'manual';
+    if (actionModal === 'add' || actionModal === 'remove') {
+      origin = 'ajuste_manual';
+    }
 
     try {
       const res = await api.post('/client/visits/manual', {
