@@ -88,7 +88,7 @@ export const ClientsTab: React.FC<ClientsTabProps> = ({ contacts, onEdit, onDele
                       const date = new Date(createdAt);
                       const now = new Date();
                       const isNew = (now.getTime() - date.getTime()) < 24 * 60 * 60 * 1000;
-                      return isNew ? 'bg-pink-50/30 dark:bg-pink-500/5 border-l-4 border-l-pink-500' : '';
+                      return isNew ? 'bg-primary-50/30 dark:bg-primary-500/5 border-l-4 border-l-primary-500' : '';
                     }
                     return '';
                   })()}`}
@@ -116,7 +116,7 @@ export const ClientsTab: React.FC<ClientsTabProps> = ({ contacts, onEdit, onDele
 
                               if (isNew) {
                                 return (
-                                  <div className="flex items-center gap-1 bg-pink-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-sm shadow-pink-500/30 animate-pulse transition-all">
+                                  <div className="flex items-center gap-1 bg-primary-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-sm shadow-primary-500/30 animate-pulse transition-all">
                                     <Sparkles className="w-2.5 h-2.5" />
                                     NOVO
                                   </div>
@@ -181,45 +181,47 @@ export const ClientsTab: React.FC<ClientsTabProps> = ({ contacts, onEdit, onDele
           </table>
         </div>
 
-        {totalPages > 1 && (
-          <div className="p-6 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-900">
-            <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-              Página {currentPage} de {totalPages}
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-                className="h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-wider gap-2 bg-gray-50 dark:bg-gray-800 border-none hover:bg-gray-100"
-              >
-                <ChevronLeft className="w-3.5 h-3.5" /> Anterior
-              </Button>
-              <div className="flex items-center gap-1 mx-2">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`w-9 h-9 rounded-xl text-[10px] font-black transition-all ${currentPage === page ? 'bg-primary-500 text-white shadow-lg shadow-slate-400/20' : 'text-gray-400 hover:bg-gray-50'}`}
-                  >
-                    {page}
-                  </button>
-                ))}
+        {
+          totalPages > 1 && (
+            <div className="p-6 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-900">
+              <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                Página {currentPage} de {totalPages}
               </div>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-                className="h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-wider gap-2 bg-gray-50 dark:bg-gray-800 border-none hover:bg-gray-100"
-              >
-                Próximo <ChevronRight className="w-3.5 h-3.5" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-wider gap-2 bg-gray-50 dark:bg-gray-800 border-none hover:bg-gray-100"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" /> Anterior
+                </Button>
+                <div className="flex items-center gap-1 mx-2">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-9 h-9 rounded-xl text-[10px] font-black transition-all ${currentPage === page ? 'bg-primary-500 text-white shadow-lg shadow-slate-400/20' : 'text-gray-400 hover:bg-gray-50'}`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-wider gap-2 bg-gray-50 dark:bg-gray-800 border-none hover:bg-gray-100"
+                >
+                  Próximo <ChevronRight className="w-3.5 h-3.5" />
+                </Button>
+              </div>
             </div>
-          </div>
-        )}
-      </Card>
-    </div>
+          )
+        }
+      </Card >
+    </div >
   );
 };
