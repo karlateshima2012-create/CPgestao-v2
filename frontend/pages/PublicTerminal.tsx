@@ -1214,7 +1214,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
             </div>
           </div>
         )}
-        <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">CP System &copy; 2026</p>
+        <p className="text-[10px] font-black text-gray-400 tracking-widest text-center">
+          &copy; {new Date().getFullYear()} Creative Print. Todos os direitos reservados.
+        </p>
       </div>
 
       {modal.isOpen && <StatusModal isOpen={modal.isOpen} title={modal.title} message={modal.message} type={modal.type} theme="neutral" confirmLabel="OK" onClose={() => setModal(prev => ({ ...prev, isOpen: false }))} />}
