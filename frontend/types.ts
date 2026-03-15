@@ -96,6 +96,7 @@ export interface Contact {
   photo_url?: string;
   photo_url_full?: string;
   company_name?: string;
+  created_at?: string;
 }
 export interface Reminder {
   id: string;

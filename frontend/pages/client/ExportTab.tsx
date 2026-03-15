@@ -80,7 +80,8 @@ export const ExportTab: React.FC<ExportTabProps> = ({ contacts: initialContacts 
       (c.phone?.includes(search)) ||
       (c.city?.toLowerCase().includes(search.toLowerCase()));
 
-    const createdAt = new Date(c.created_at);
+    const createdAtStr = (c as any).created_at || (c as any).createdAt;
+    const createdAt = new Date(createdAtStr);
     // Add 1 day to dateTo to include the whole day
     const matchesDateFrom = !dateFrom || createdAt >= new Date(dateFrom);
     const matchesDateTo = !dateTo || createdAt <= new Date(new Date(dateTo).setHours(23, 59, 59, 999));
