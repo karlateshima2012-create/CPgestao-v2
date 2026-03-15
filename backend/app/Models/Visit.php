@@ -35,20 +35,35 @@ class Visit extends Model
         'meta' => 'array',
     ];
 
-    protected $appends = ['foto_perfil_full'];
+    protected $appends = ['foto_perfil_full', 'customer_photo_url'];
 
     public function getFotoPerfilFullAttribute()
+    {
+        return $this->getCustomerPhotoUrlAttribute();
+    }
+
+    public function getCustomerPhotoUrlAttribute()
     {
         if ($this->foto_perfil_url) {
             return asset('storage/' . $this->foto_perfil_url);
         }
 
-        $initials = collect(explode(' ', $this->customer_name))
-            ->map(fn($n) => mb_substr($n, 0, 1))
-            ->take(2)
-            ->join('');
+        // Tenta pegar a foto atual do cliente se o registro da visita não tiver foto
+        if ($this->customer) {
+            return $this->customer->photo_url_full;
+        }
+
+        $parts = explode(' ', trim($this->customer_name ?: 'Cliente'));
+        $initials = '';
+        if (count($parts) > 0) {
+            $initials .= mb_substr($parts[0], 0, 1);
+            if (count($parts) > 1) {
+                $initials .= mb_substr($parts[count($parts) - 1], 0, 1);
+            }
+        }
+        $initials = mb_strtoupper($initials ?: 'C');
         
-        return "https://ui-avatars.com/api/?name=" . urlencode($initials ?: $this->customer_name) . "&background=random&color=fff&size=300&rounded=true";
+        return "https://ui-avatars.com/api/?name=" . urlencode($initials) . "&size=512&background=9ca3af&color=fff&rounded=true&bold=true&format=png";
     }
 
     /**
