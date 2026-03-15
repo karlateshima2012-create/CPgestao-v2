@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Plus, MapPin, Star, Edit2, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Plus, MapPin, Star, Edit2, Trash2, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { Card, Button, Badge } from '../../components/ui';
 import { Contact } from '../../types';
 
@@ -82,7 +82,16 @@ export const ClientsTab: React.FC<ClientsTabProps> = ({ contacts, onEdit, onDele
               {paginatedData.map((contact) => (
                 <tr
                   key={contact.id}
-                  className="group hover:bg-gray-50/80 dark:hover:bg-gray-800/40 transition-all duration-200 cursor-pointer"
+                  className={`group hover:bg-gray-50/80 dark:hover:bg-gray-800/40 transition-all duration-200 cursor-pointer ${(() => {
+                    const createdAt = (contact as any).created_at || (contact as any).createdAt;
+                    if (createdAt) {
+                      const date = new Date(createdAt);
+                      const now = new Date();
+                      const isNew = (now.getTime() - date.getTime()) < 24 * 60 * 60 * 1000;
+                      return isNew ? 'bg-pink-50/30 dark:bg-pink-500/5 border-l-4 border-l-pink-500' : '';
+                    }
+                    return '';
+                  })()}`}
                   onClick={() => onEdit(contact)}
                 >
                   <td className="px-8 py-5">
@@ -97,6 +106,25 @@ export const ClientsTab: React.FC<ClientsTabProps> = ({ contacts, onEdit, onDele
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2">
                           <span className="font-black text-gray-900 dark:text-white text-sm tracking-tight">{contact.name || 'Sem Nome'}</span>
+                          {(() => {
+                            const createdAt = (contact as any).created_at || (contact as any).createdAt;
+                            if (createdAt) {
+                              const date = new Date(createdAt);
+                              const now = new Date();
+                              const diff = now.getTime() - date.getTime();
+                              const isNew = diff < 24 * 60 * 60 * 1000; // 24 horas
+
+                              if (isNew) {
+                                return (
+                                  <div className="flex items-center gap-1 bg-pink-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-sm shadow-pink-500/30 animate-pulse transition-all">
+                                    <Sparkles className="w-2.5 h-2.5" />
+                                    NOVO
+                                  </div>
+                                );
+                              }
+                            }
+                            return null;
+                          })()}
                           <Badge color={contact.loyaltyLevel === 4 ? 'diamond' : contact.loyaltyLevel === 3 ? 'gold' : contact.loyaltyLevel === 2 ? 'silver' : 'bronze'}>
                             {contact.loyalty_level_name || (
                               contact.loyaltyLevel === 4 ? '💎 Diamante' :
