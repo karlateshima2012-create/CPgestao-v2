@@ -1169,12 +1169,14 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
               <h2 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
                 {approvedData.is_registration
                   ? "Obrigado por participar,\nvocê já recebeu seu primeiro ponto!"
-                  : (approvedData.points_balance >= approvedData.points_goal)
-                    ? "Meta Atingida!\nResgate na próxima visita."
-                    : <>Solicitação enviada!<br />Seu ponto foi adicionado.</>}
+                  : mode === 'AUTO_SUCCESS'
+                    ? "Obrigado pela visita,\nseu ponto foi adicionado!"
+                    : (approvedData.points_balance >= approvedData.points_goal)
+                      ? "Meta Atingida!\nResgate na próxima visita."
+                      : <>Solicitação enviada!<br />Seu ponto foi adicionado.</>}
               </h2>
               <p className="text-sm text-slate-500 font-bold mt-2">
-                {approvedData.is_registration
+                {approvedData.is_registration || mode === 'AUTO_SUCCESS'
                   ? "Consulte seu saldo clicando no botão ver meus pontos."
                   : (approvedData.points_balance >= approvedData.points_goal)
                     ? "Parabéns! Você atingiu a pontuação necessária."

@@ -537,6 +537,23 @@ class PublicTerminalController extends Controller
                     'meta' => ['visit_id' => $visit->id]
                 ]);
 
+                // NOTIFICAÇÃO INFORMATIVA PARA O ELITE (Sem botões de aprovação)
+                $settings = \App\Models\TenantSetting::where('tenant_id', $tenant->id)->first();
+                $targetChatId = ($device && $device->telegram_chat_id) ? $device->telegram_chat_id : ($settings ? $settings->telegram_chat_id : null);
+                
+                if ($targetChatId) {
+                    $locationName = $device ? ($device->responsible_name ?: $device->name) : 'Terminal Público';
+                    $caption = "💎 <b>PONTO AUTOMÁTICO (ELITE)</b>\n\n"
+                             . "O cliente acabou de pontuar sozinho.\n\n"
+                             . "<b>Cliente:</b> {$customer->name}\n"
+                             . "<b>Novo Saldo:</b> {$customer->points_balance} pontos\n"
+                             . "<b>Visitas:</b> {$customer->attendance_count}\n"
+                             . "<b>Hora:</b> " . now()->format('H:i') . "\n\n"
+                             . "<b>📍 Local:</b> {$locationName}";
+                    
+                    $this->telegramService->sendPhoto($tenant->id, $customer->photo_url_full, $caption, 'points', null, $targetChatId);
+                }
+
                 try {
                     // Force broadcast for real-time UI updates
                     event(new \App\Events\PointRequestStatusUpdated((object)['id' => $visit->id, 'status' => 'approved', 'tenant_id' => $tenant->id]));
