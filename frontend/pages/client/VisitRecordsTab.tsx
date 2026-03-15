@@ -191,10 +191,8 @@ export const VisitRecordsTab: React.FC = () => {
                         <thead>
                             <tr className="bg-gray-50/50 dark:bg-gray-800/50">
                                 <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Cliente</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Empresa</th>
                                 <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Status</th>
                                 <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Horário</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Origem</th>
                                 <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Ações</th>
                             </tr>
                         </thead>
@@ -202,12 +200,12 @@ export const VisitRecordsTab: React.FC = () => {
                             {isLoading ? (
                                 Array(5).fill(0).map((_, i) => (
                                     <tr key={i} className="animate-pulse">
-                                        <td colSpan={6} className="px-8 py-6 h-20 bg-gray-50/20 dark:bg-gray-800/10"></td>
+                                        <td colSpan={4} className="px-8 py-6 h-20 bg-gray-50/20 dark:bg-gray-800/10"></td>
                                     </tr>
                                 ))
                             ) : visits.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-8 py-20 text-center">
+                                    <td colSpan={4} className="px-8 py-20 text-center">
                                         <div className="flex flex-col items-center justify-center opacity-40">
                                             <Activity className="w-12 h-12 mb-4" />
                                             <p className="text-sm font-bold uppercase tracking-widest">Nenhum registro encontrado</p>
@@ -228,15 +226,14 @@ export const VisitRecordsTab: React.FC = () => {
                                                 </div>
                                                 <div className="flex flex-col">
                                                     <span className="text-sm font-bold text-gray-900 dark:text-white capitalize">{v.customer_name}</span>
-                                                    <span className="text-[11px] text-gray-400 font-medium font-mono">{v.customer_phone}</span>
+                                                    {v.customer_company && (
+                                                        <span className="text-[10px] font-black text-primary-500 uppercase tracking-widest leading-none mt-0.5">{v.customer_company}</span>
+                                                    )}
+                                                    <span className="text-[11px] text-gray-400 font-medium font-mono mt-0.5">{v.customer_phone}</span>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-5">
-                                            <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-tight">
-                                                {v.customer_company || '—'}
-                                            </span>
-                                        </td>
+
                                         <td className="px-6 py-5">
                                             <div className="flex justify-center">
                                                 <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 ${v.status === 'aprovado' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10' :
@@ -261,13 +258,7 @@ export const VisitRecordsTab: React.FC = () => {
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-5">
-                                            <div className="flex justify-center">
-                                                <div className="w-8 h-8 rounded-xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center text-gray-400 group-hover:text-primary-500 transition-colors shadow-sm">
-                                                    {getOriginIcon(v.origin)}
-                                                </div>
-                                            </div>
-                                        </td>
+
                                         <td className="px-8 py-5">
                                             <div className="flex items-center justify-end gap-2">
                                                 {v.status === 'pendente' ? (
