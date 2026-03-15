@@ -320,7 +320,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
         if (isAdmin) {
           setMode('LOJISTA_QUICK_REGISTER');
         } else {
-          setMode('REGISTER');
+          setMode('VISIT_NOT_FOUND');
         }
       } else {
         setFoundCustomer(res.data);
@@ -771,9 +771,9 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
                 <UserPlus className="w-12 h-12" />
               </div>
               <div className="space-y-4 max-w-md">
-                <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">Este número ainda não participa.</h2>
+                <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">Ops! Ainda não participa</h2>
                 <p className="text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
-                  Cadastre-se para começar a ganhar pontos!
+                  Esse número ainda não está participando. Clique em cadastrar para começar a ganhar pontos!
                 </p>
               </div>
               <div className="flex flex-col gap-4 w-full max-w-sm">
