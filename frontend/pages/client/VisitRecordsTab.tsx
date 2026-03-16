@@ -61,18 +61,18 @@ export const VisitRecordsTab: React.FC = () => {
         fetchVisits(1);
     }, [period, status]);
 
-    // Polling para atualizar o status em tempo real (ex: aprovação via Telegram)
+    // Polling para atualizar a lista em tempo real (importante para o plano Elite onde visitas são auto-aprovadas)
     useEffect(() => {
         let interval: any;
-        if (pendingCount > 0) {
+        if (visits.length > 0 || isLoading === false) {
             interval = setInterval(() => {
                 fetchVisits(pagination.current_page, true);
-            }, 10000); // Poll a cada 10 segundos se houver pendentes
+            }, 10000); // Poll a cada 10 segundos
         }
         return () => {
             if (interval) clearInterval(interval);
         };
-    }, [pendingCount, pagination.current_page]);
+    }, [pagination.current_page, visits.length, isLoading]);
 
     const handleAction = async (id: string, action: 'approve' | 'deny') => {
         try {

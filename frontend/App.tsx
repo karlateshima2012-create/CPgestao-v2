@@ -248,16 +248,17 @@ const App: React.FC = () => {
     }
   }, [clientTab, authRole]);
 
-  // Periodic polling for pending requests
+  // Periodic polling for data updates (Real-time dashboard updates)
   useEffect(() => {
     let interval: any;
     if (authRole === 'client') {
       interval = setInterval(() => {
-        fetchPendingRequestsCount(true);
-      }, 10000); // Polling every 10 seconds
+        // We refresh everything to ensure points and new registrations are picked up
+        refreshAllData();
+      }, 12000); // Poll every 12 seconds
     }
     return () => clearInterval(interval);
-  }, [authRole, pendingRequestsCount, accountSettings]);
+  }, [authRole, clientTab, pendingRequestsCount, accountSettings]);
 
   const handleLogin = async (email?: string, password?: string) => {
     setIsLoading(true);
