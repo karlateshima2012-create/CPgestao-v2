@@ -543,13 +543,11 @@ class PublicTerminalController extends Controller
                 
                 if ($targetChatId) {
                     $locationName = $device ? ($device->responsible_name ?: $device->name) : 'Terminal Público';
-                    $caption = "💎 <b>PONTO AUTOMÁTICO (ELITE)</b>\n\n"
-                             . "O cliente acabou de pontuar sozinho.\n\n"
-                             . "<b>Cliente:</b> {$customer->name}\n"
-                             . "<b>Novo Saldo:</b> {$customer->points_balance} pontos\n"
-                             . "<b>Visitas:</b> {$customer->attendance_count}\n"
-                             . "<b>Hora:</b> " . now()->format('H:i') . "\n\n"
-                             . "<b>📍 Local:</b> {$locationName}";
+                    $caption = "✅ <b>PONTO REGISTRADO</b>\n\n"
+                             . "👤 {$customer->name}\n"
+                             . "📊 Total de visitas: {$customer->attendance_count}\n\n"
+                             . "📅 " . now()->format('d/m/Y') . "\n"
+                             . "🕒 " . now()->format('H:i');
                     
                     $this->telegramService->sendPhoto($tenant->id, $customer->photo_url_full, $caption, 'points', null, $targetChatId);
                 }
