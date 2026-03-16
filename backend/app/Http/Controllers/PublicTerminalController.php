@@ -554,7 +554,10 @@ class PublicTerminalController extends Controller
 
                 try {
                     // Force broadcast for real-time UI updates
-                    event(new \App\Events\PointRequestStatusUpdated((object)['id' => $visit->id, 'status' => 'approved', 'tenant_id' => $tenant->id]));
+                    // Note: Removed the object cast to avoid TypeError in PointRequestStatusUpdated constructor
+                    // if we don't have a real PointRequest model here.
+                    // Instead, we rely on polling for now to avoid breaking the flow.
+                    // event(new \App\Events\PointRequestStatusUpdated(...)); 
                 } catch (\Throwable $ee) {
                     \Illuminate\Support\Facades\Log::warning("Broadcast failed in earn: " . $ee->getMessage());
                 }
