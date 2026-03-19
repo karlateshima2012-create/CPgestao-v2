@@ -159,7 +159,10 @@ class ClientController extends Controller
 
                 $escName = TelegramService::escapeMarkdownV2($customer->name);
                 $escPhone = TelegramService::escapeMarkdownV2($customer->phone);
-                $this->telegramService->sendMessage($customer->tenant_id, "👤 *Novo Cliente Cadastrado \(CRM\)*\n\n*Nome:* {$escName}\n*Telefone:* {$escPhone}");
+                \App\Jobs\SendTelegramNotificationJob::dispatch(
+                    $customer->tenant_id, 
+                    "👤 *Novo Cliente Cadastrado \(CRM\)*\n\n*Nome:* {$escName}\n*Telefone:* {$escPhone}"
+                );
 
                 return ApiResponse::ok($customer, "Contato criado com sucesso");
             });

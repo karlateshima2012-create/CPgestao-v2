@@ -423,7 +423,11 @@ class PublicTerminalController extends Controller
                             . "📞 <b>Telefone:</b> {$escPhone}";
                 
                 // For New Registrations, we always use the General Chat ID (settings->telegram_chat_id)
-                $this->telegramService->sendMessage($tenant->id, $newMessage, 'registration');
+                \App\Jobs\SendTelegramNotificationJob::dispatch(
+                    $tenant->id, 
+                    $newMessage, 
+                    'registration'
+                );
             }
 
             // Consumption of token if present
@@ -549,7 +553,14 @@ class PublicTerminalController extends Controller
                              . "📅 " . now()->format('d/m/Y') . "\n"
                              . "🕒 " . now()->format('H:i');
                     
-                    $this->telegramService->sendPhoto($tenant->id, $customer->photo_url_full, $caption, 'points', null, $targetChatId);
+                    \App\Jobs\SendTelegramNotificationJob::dispatch(
+                        $tenant->id, 
+                        $caption, 
+                        'points', 
+                        $targetChatId, 
+                        null, 
+                        $customer->photo_url_full
+                    );
                 }
 
                 try {

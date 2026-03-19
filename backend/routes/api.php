@@ -12,27 +12,9 @@ Route::get('/version', function() {
     return response()->json(['version' => '2.5.3', 'time' => now()->toDateTimeString()]);
 });
 
-Route::get('/force-migrate', function() {
-    try {
-        \Illuminate\Support\Facades\Artisan::call('migrate --force');
-        return response()->json(['status' => 'success', 'output' => \Illuminate\Support\Facades\Artisan::output()]);
-    } catch (\Throwable $e) {
-        return response()->json(['error' => $e->getMessage()]);
-    }
-});
-
-Route::get('/force-process-reminders', function() {
-    try {
-        \Illuminate\Support\Facades\Artisan::call('app:process-reminders');
-        return response()->json(['status' => 'success', 'output' => \Illuminate\Support\Facades\Artisan::output()]);
-    } catch (\Throwable $e) {
-        return response()->json(['error' => $e->getMessage()]);
-    }
-});
-
-Route::post('/auth/login', [AuthController::class, 'login']);
-Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
-Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
+Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
+Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:5,1');
+Route::post('/auth/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:5,1');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
@@ -51,9 +33,27 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/tenants/{id}/devices', [TenantController::class, 'storeDevice']);
         Route::put('/tenants/{id}/devices/{deviceId}', [TenantController::class, 'updateDevice']);
         Route::delete('/tenants/{id}/devices/{deviceId}', [TenantController::class, 'deleteDevice']);
-        Route::post('/tenants/{id}/pin-reset', [TenantController::class, 'resetPin']);
+        Route::get('/tenants/{id}/pin-reset', [TenantController::class, 'resetPin']);
         Route::delete('/tenants/{id}', [TenantController::class, 'destroy']);
         Route::get('/metrics', [TenantController::class, 'getGlobalMetrics']);
+
+        // System Maintainance (Moved from public)
+        Route::get('/system/migrate', function() {
+            try {
+                \Illuminate\Support\Facades\Artisan::call('migrate --force');
+                return response()->json(['status' => 'success', 'output' => \Illuminate\Support\Facades\Artisan::output()]);
+            } catch (\Throwable $e) {
+                return response()->json(['error' => $e->getMessage()]);
+            }
+        });
+        Route::get('/system/process-reminders', function() {
+            try {
+                \Illuminate\Support\Facades\Artisan::call('app:process-reminders');
+                return response()->json(['status' => 'success', 'output' => \Illuminate\Support\Facades\Artisan::output()]);
+            } catch (\Throwable $e) {
+                return response()->json(['error' => $e->getMessage()]);
+            }
+        });
     });
 
     // =========================================================================
@@ -130,11 +130,11 @@ Route::prefix('public')->group(function () {
     // Alias endpoints for UID-less operations if called via /p/{slug} in front
     Route::prefix('p/{slug}')->group(function () {
         Route::get('/', [PublicTerminalController::class, 'getInfo']);
-        Route::post('/lookup', [PublicTerminalController::class, 'lookup']);
-        Route::post('/photo', [PublicTerminalController::class, 'updatePhoto']);
-        Route::post('/register', [PublicTerminalController::class, 'register']);
-        Route::post('/earn', [PublicTerminalController::class, 'earn']);
-        Route::post('/redeem', [PublicTerminalController::class, 'redeem']);
+        Route::post('/lookup', [PublicTerminalController::class, 'lookup'])->middleware('throttle:30,1');
+        Route::post('/photo', [PublicTerminalController::class, 'updatePhoto'])->middleware('throttle:10,1');
+        Route::post('/register', [PublicTerminalController::class, 'register'])->middleware('throttle:10,1');
+        Route::post('/earn', [PublicTerminalController::class, 'earn'])->middleware('throttle:20,1');
+        Route::post('/redeem', [PublicTerminalController::class, 'redeem'])->middleware('throttle:20,1');
         Route::get('/point-requests/{requestId}/status', [PublicTerminalController::class, 'getRequestStatus']);
     });
 });

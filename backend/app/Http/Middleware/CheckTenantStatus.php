@@ -54,15 +54,13 @@ class CheckTenantStatus
         $count = $tenant->customers()->count();
         
         if ($count >= $limit) {
-             if (!$request->isMethod('GET')) {
-                 return response()->json([
-                    'ok' => false,
-                    'error' => 'Limite Atingido',
-                    'code' => 'LIMIT_REACHED',
-                    'current' => $count,
-                    'limit' => $limit
-                ], 403);
-             }
+             return response()->json([
+                'ok' => false,
+                'error' => 'Limite Atingido',
+                'code' => 'LIMIT_REACHED',
+                'current' => $count,
+                'limit' => $limit
+            ], 403);
         }
 
         return $next($request);
