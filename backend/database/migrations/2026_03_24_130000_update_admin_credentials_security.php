@@ -13,39 +13,38 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Forçar a atualização das credenciais do Admin Master no banco de dados de produção
         $oldMasterAdmin = 'admin@creativeprint.com';
         $newMasterAdmin = 'suporte@creativeprintjp.com';
         $newMasterPass  = 'CPgestaoCRM23%';
 
-        // 1. Verificar se o Administrador existe (pelo antigo ou novo e-mail)
+        // 1. Procurar o usuário atual (pelo e-mail antigo ou pelo e-mail novo se já existir)
         $admin = DB::table('users')
-            ->where(function ($query) use ($oldMasterAdmin, $newMasterAdmin) {
-                $query->where('email', $oldMasterAdmin)
-                      ->orWhere('email', $newMasterAdmin);
-            })
-            ->where('role', 'admin')
+            ->where('email', $oldMasterAdmin)
+            ->orWhere('email', $newMasterAdmin)
             ->first();
 
         if ($admin) {
+            // Se ele já existe, atualizamos todos os dados para o novo padrão Master
             DB::table('users')
                 ->where('id', $admin->id)
                 ->update([
                     'email' => $newMasterAdmin,
                     'password' => Hash::make($newMasterPass),
-                    'must_change_password' => true,
+                    'role' => 'admin', // Garante que ele tenha o papel de admin master
+                    'must_change_password' => false, // Admin Master não precisa da tela de primeiro acesso
+                    'active' => true,
                     'name' => 'Admin Master CP Gestão',
                     'updated_at' => now()
                 ]);
         } else {
-            // Caso por algum motivo bizarro ele não exista, criamos o padrão seguro
+            // Se por acaso ele não existir em lugar nenhum, criamos do zero
             DB::table('users')->insert([
                 'id' => \Illuminate\Support\Str::uuid(),
                 'name' => 'Admin Master CP Gestão',
                 'email' => $newMasterAdmin,
                 'password' => Hash::make($newMasterPass),
                 'role' => 'admin',
-                'must_change_password' => true,
+                'must_change_password' => false,
                 'active' => true,
                 'created_at' => now(),
                 'updated_at' => now()
