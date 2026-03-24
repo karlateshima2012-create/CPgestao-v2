@@ -243,6 +243,8 @@ class PublicTerminalController extends Controller
             ->whereIn('phone', $variations)
             ->first();
 
+        \Illuminate\Support\Facades\Log::debug("LOOKUP: Tenant: {$tenant->slug} ({$tenant->id}) | Raw: {$request->phone} | Variations: " . implode(', ', $variations) . " | Found: " . ($customer ? 'YES ('.$customer->id.')' : 'NO'));
+
         if (!$customer) {
             return ApiResponse::ok([
                 'customer_exists' => false,
