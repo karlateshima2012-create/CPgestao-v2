@@ -85,6 +85,7 @@ const App: React.FC = () => {
   const [dashboardMetrics, setDashboardMetrics] = useState<any>(null);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const [accountSettings, setAccountSettings] = useState<any>(null);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   const playNotificationSound = () => {
     try {
@@ -298,8 +299,8 @@ const App: React.FC = () => {
         }
         fetchAccountSettings();
       }
-    } catch (error) {
-      alert('Falha no login. Verifique suas credenciais.');
+    } catch (error: any) {
+      setLoginError(error.response?.data?.error || 'Acesso negado. Verifique seu e-mail e senha.');
     } finally {
       setIsLoading(false);
     }
@@ -385,7 +386,7 @@ const App: React.FC = () => {
                 spellCheck="false"
                 placeholder="seu@email.com"
                 value={loginForm.email}
-                onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
+                onChange={(e) => { setLoginForm({ ...loginForm, email: e.target.value }); setLoginError(null); }}
               />
               <div className="space-y-1">
                 <Input
@@ -394,7 +395,7 @@ const App: React.FC = () => {
                   placeholder="Mínimo 8 caracteres"
                   minLength={8}
                   value={loginForm.password}
-                  onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                  onChange={(e) => { setLoginForm({ ...loginForm, password: e.target.value }); setLoginError(null); }}
                 />
                 <div className="text-right">
                   <button
@@ -405,6 +406,18 @@ const App: React.FC = () => {
                   </button>
                 </div>
               </div>
+              {loginError && (
+                <div className="p-4 bg-red-50 border border-red-100 rounded-2xl animate-shake">
+                  <div className="flex gap-3">
+                    <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />
+                    <div>
+                      <p className="text-xs font-black text-red-600 uppercase tracking-tight">Falha na Autenticação</p>
+                      <p className="text-[11px] text-red-500 font-medium leading-tight mt-0.5">{loginError}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <button
                 className="w-full py-3.5 bg-[#25aae1] hover:bg-[#1c98ce] text-white font-bold rounded-xl shadow-lg shadow-cyan-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-2 disabled:opacity-50"
                 onClick={() => handleLogin()}

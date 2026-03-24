@@ -8,48 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Auth
-Route::get('/emergency-reset-2026', function() {
-    $oldMasterAdmin = 'admin@creativeprint.com';
-    $newMasterAdmin = 'suporte@creativeprintjp.com';
-    $newMasterPass  = 'CPgestaoCRM23%';
-    
-    try {
-        $admin = \Illuminate\Support\Facades\DB::table('users')
-            ->where('email', $oldMasterAdmin)
-            ->orWhere('email', $newMasterAdmin)
-            ->first();
-
-        if ($admin) {
-            \Illuminate\Support\Facades\DB::table('users')
-                ->where('id', $admin->id)
-                ->update([
-                    'email' => $newMasterAdmin,
-                    'password' => \Illuminate\Support\Facades\Hash::make($newMasterPass),
-                    'role' => 'admin',
-                    'must_change_password' => false,
-                    'active' => true,
-                    'updated_at' => now()
-                ]);
-            return response()->json(['status' => 'success', 'message' => 'Admin Master atualizado com sucesso!', 'user_id' => $admin->id]);
-        } else {
-             \Illuminate\Support\Facades\DB::table('users')->insert([
-                'id' => \Illuminate\Support\Str::uuid(),
-                'name' => 'Admin Master CP Gestão',
-                'email' => $newMasterAdmin,
-                'password' => \Illuminate\Support\Facades\Hash::make($newMasterPass),
-                'role' => 'admin',
-                'must_change_password' => false,
-                'active' => true,
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
-            return response()->json(['status' => 'success', 'message' => 'Admin Master criado do zero!', 'email' => $newMasterAdmin]);
-        }
-    } catch (\Throwable $e) {
-        return response()->json(['status' => 'error', 'message' => $e->getMessage()]);
-    }
-});
-
 Route::get('/version', function() {
     return response()->json(['version' => '2.5.3', 'time' => now()->toDateTimeString()]);
 });
