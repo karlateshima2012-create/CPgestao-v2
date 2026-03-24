@@ -96,6 +96,10 @@ class PointRequestService
                 $customer->update(['last_activity_at' => now()]);
 
                 $source = $isVisit ? $request->origin : $request->source;
+                $reason = $meta['reason'] ?? null;
+                $finalDescription = $isAdjustment 
+                    ? ($reason ? "Ajuste manual: $reason" : 'Ajuste manual de pontos')
+                    : ($reason ? "Lojista: $reason" : 'Pontos creditados via: ' . $request->id);
 
                 PointMovement::create([
                     'tenant_id' => $request->tenant_id,
@@ -104,10 +108,10 @@ class PointRequestService
                     'points' => $pointsToAddRaw,
                     'origin' => $source,
                     'device_id' => ($request instanceof \App\Models\PointRequest) ? $request->device_id : null,
-                    'description' => $isAdjustment ? 'Ajuste manual de pontos via: ' . $request->id : 'Pontos creditados via: ' . $request->id,
+                    'description' => $finalDescription,
                     'meta' => [
                         'request_id' => $request->id,
-                        'reason' => $meta['reason'] ?? null
+                        'reason' => $reason
                     ]
                 ]);
             }

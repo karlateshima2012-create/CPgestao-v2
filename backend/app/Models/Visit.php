@@ -14,6 +14,7 @@ class Visit extends Model
     protected $fillable = [
         'tenant_id',
         'customer_id',
+        'device_id',
         'customer_name',
         'customer_phone',
         'customer_company',
@@ -72,6 +73,14 @@ class Visit extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class, 'customer_id');
+    }
+
+    /**
+     * Relationship to Device.
+     */
+    public function device(): BelongsTo
+    {
+        return $this->belongsTo(Device::class, 'device_id');
     }
 
     /**

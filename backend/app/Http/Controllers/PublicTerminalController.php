@@ -514,12 +514,13 @@ class PublicTerminalController extends Controller
             $visit = \App\Models\Visit::create([
                 'tenant_id' => $tenant->id,
                 'customer_id' => $customer->id,
+                'device_id' => $device?->id,
                 'customer_name' => $customer->name,
                 'customer_phone' => $customer->phone,
                 'customer_company' => $customer->company_name,
                 'foto_perfil_url' => $customer->foto_perfil_url,
                 'visit_at' => now(),
-                'origin' => $token ? 'nfc' : 'qr',
+                'origin' => $token ? 'nfc' : ($device ? 'qr' : 'manual'), // 'manual' for virtual / p/{slug}
                 'plan_type' => $tenant->plan,
                 'status' => $status,
                 'points_granted' => $pointsToAdd,

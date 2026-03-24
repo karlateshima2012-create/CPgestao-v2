@@ -191,8 +191,10 @@ export const VisitRecordsTab: React.FC = () => {
                         <thead>
                             <tr className="bg-gray-50/50 dark:bg-gray-800/50">
                                 <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Cliente</th>
+                                <th className="px-4 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Pontos</th>
+                                <th className="px-4 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Origem</th>
                                 <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Status</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Horário</th>
+                                <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Horário</th>
                                 <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Ações</th>
                             </tr>
                         </thead>
@@ -200,12 +202,12 @@ export const VisitRecordsTab: React.FC = () => {
                             {isLoading ? (
                                 Array(5).fill(0).map((_, i) => (
                                     <tr key={i} className="animate-pulse">
-                                        <td colSpan={4} className="px-8 py-6 h-20 bg-gray-50/20 dark:bg-gray-800/10"></td>
+                                        <td colSpan={6} className="px-8 py-6 h-20 bg-gray-50/20 dark:bg-gray-800/10"></td>
                                     </tr>
                                 ))
                             ) : visits.length === 0 ? (
                                 <tr>
-                                    <td colSpan={4} className="px-8 py-20 text-center">
+                                    <td colSpan={6} className="px-8 py-20 text-center">
                                         <div className="flex flex-col items-center justify-center opacity-40">
                                             <Activity className="w-12 h-12 mb-4" />
                                             <p className="text-sm font-bold uppercase tracking-widest">Nenhum registro encontrado</p>
@@ -234,6 +236,26 @@ export const VisitRecordsTab: React.FC = () => {
                                             </div>
                                         </td>
 
+                                        <td className="px-4 py-5 text-center">
+                                            <span className={`text-sm font-black ${v.points_granted > 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                                {v.points_granted > 0 ? `+${v.points_granted}` : v.points_granted}
+                                            </span>
+                                        </td>
+
+                                        <td className="px-4 py-5">
+                                            <div className="flex flex-col items-center">
+                                                <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-gray-600 dark:text-gray-400">
+                                                    {getOriginIcon(v.origin)}
+                                                    {v.origin === 'nfc' || v.origin === 'qr' ? (v.device?.name || 'TOTEM') : 'Dashboard'}
+                                                </div>
+                                                {v.meta?.reason && (
+                                                    <span className="text-[9px] text-gray-400 font-medium italic mt-0.5 line-clamp-1 max-w-[120px]" title={v.meta.reason}>
+                                                        {v.meta.reason}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </td>
+
                                         <td className="px-6 py-5">
                                             <div className="flex justify-center">
                                                 <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 ${v.status === 'aprovado' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10' :
@@ -249,7 +271,7 @@ export const VisitRecordsTab: React.FC = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-5">
-                                            <div className="flex flex-col">
+                                            <div className="flex flex-col items-center">
                                                 <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
                                                     {new Date(v.visit_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                 </span>

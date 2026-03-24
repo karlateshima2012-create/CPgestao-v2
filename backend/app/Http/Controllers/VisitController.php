@@ -21,7 +21,7 @@ class VisitController extends Controller
     {
         try {
             $tenantId = auth()->user()->tenant_id;
-            $query = Visit::with('customer')->where('tenant_id', $tenantId);
+            $query = Visit::with(['customer', 'device'])->where('tenant_id', $tenantId);
 
             // Filters
             if ($request->has('status') && $request->status !== 'all') {

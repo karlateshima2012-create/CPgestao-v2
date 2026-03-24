@@ -131,11 +131,20 @@ export interface Visit {
   customer_company?: string;
   customer_photo_url?: string;
   visit_at: string;
-  origin: 'nfc' | 'qr' | 'manual' | 'sistema';
+  origin: string;
   plan_type: string;
   status: 'pendente' | 'aprovado' | 'negado';
   points_granted: number;
+  device_id?: string;
+  device?: {
+    id: string;
+    name: string;
+  };
   approved_by?: string;
   approved_at?: string;
   created_at: string;
+  meta?: {
+    reason?: string;
+    [key: string]: any;
+  };
 }
