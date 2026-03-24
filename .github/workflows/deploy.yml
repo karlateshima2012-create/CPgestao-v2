@@ -112,6 +112,14 @@ jobs:
             DB_DATABASE=${{ secrets.DB_DATABASE }}
             DB_USERNAME=${{ secrets.DB_USERNAME }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            MAIL_MAILER=smtp
+            MAIL_HOST=smtp.hostinger.com
+            MAIL_PORT=465
+            MAIL_USERNAME=${{ secrets.MAIL_USERNAME || 'suporte@creativeprintjp.com' }}
+            MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD || 'K!=DHdv23' }}
+            MAIL_ENCRYPTION=ssl
+            MAIL_FROM_ADDRESS=${{ secrets.MAIL_USERNAME || 'suporte@creativeprintjp.com' }}
+            MAIL_FROM_NAME="CP Gestão"
             SESSION_DRIVER=file
             CACHE_DRIVER=file
             QUEUE_CONNECTION=sync

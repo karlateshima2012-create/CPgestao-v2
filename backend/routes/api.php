@@ -8,22 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Auth
-Route::get('/force-sync-2026', function() {
-    try {
-        $tenants = \App\Models\Tenant::all();
-        $results = [];
-        foreach ($tenants as $tenant) {
-            $updated = \App\Models\User::where('tenant_id', $tenant->id)
-                ->where('role', 'client')
-                ->update(['email' => $tenant->email]);
-            $results[] = "Loja {$tenant->id} ({$tenant->email}): {$updated} usuários de login sincronizados";
-        }
-        return response()->json(['status' => 'success', 'results' => $results]);
-    } catch (\Throwable $e) {
-        return response()->json(['status' => 'error', 'message' => $e->getMessage()]);
-    }
-});
-
 Route::get('/version', function() {
     return response()->json(['version' => '2.5.3', 'time' => now()->toDateTimeString()]);
 });
