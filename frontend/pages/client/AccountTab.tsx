@@ -31,6 +31,7 @@ export const AccountTab: React.FC = () => {
   const [newPin, setNewPin] = useState('');
   const [showPin, setShowPin] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   const [modal, setModal] = useState<{
     isOpen: boolean;
@@ -190,7 +191,7 @@ export const AccountTab: React.FC = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto py-10 animate-fade-in space-y-8">
+    <div className="max-w-3xl mx-auto py-10 animate-fade-in space-y-8 text-gray-800 dark:text-gray-200">
       <div>
         <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Minha Conta</h1>
         <p className="text-lg text-gray-500 dark:text-gray-400 mt-1">Gerencie as informações e configurações da sua loja.</p>
@@ -478,6 +479,23 @@ export const AccountTab: React.FC = () => {
           >
             Salvar Configurações
           </Button>
+
+          <footer className="mt-12 py-8 border-t border-gray-100 dark:border-gray-800 flex flex-col items-center gap-3 text-center">
+            <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">
+              © {new Date().getFullYear()} Creative Print. Todos os direitos reservados.
+            </p>
+            <button
+              onClick={() => setShowTermsModal(true)}
+              className="text-[10px] font-black text-primary-500 hover:text-primary-600 hover:underline uppercase tracking-widest transition-all"
+            >
+              Termos de Uso e Política de Privacidade
+            </button>
+
+            <div className="flex items-center gap-4 mt-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+              <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Sistema Operacional • v2.1.0</span>
+            </div>
+          </footer>
         </div>
       </Card>
 
@@ -495,7 +513,7 @@ export const AccountTab: React.FC = () => {
       {/* MODAL DE UPGRADE */}
       {showUpgradeModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-md animate-fade-in overflow-y-auto">
-          <Card className="w-full max-w-2xl p-0 shadow-2xl overflow-hidden animate-scale-up my-auto max-h-[95vh] flex flex-col">
+          <Card className="w-full max-w-2xl p-0 shadow-2xl overflow-hidden animate-scale-up my-auto max-h-[95vh] flex flex-col border-none">
             <div className="p-4 sm:p-8 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-gray-900/50 shrink-0">
               <div>
                 <h3 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3">
@@ -564,6 +582,107 @@ Pacote Escolhido: ${pack.name} (Valor: ${pack.price})`;
                   <p className="text-[10px] text-purple-600 dark:text-purple-400 font-bold mt-0.5">Adquira agora e mantenha seu limite extra para sempre, mesmo se trocar de plano.</p>
                 </div>
               </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* MODAL DE TERMOS E POLÍTICAS */}
+      {showTermsModal && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in overflow-y-auto">
+          <Card className="w-full max-w-3xl p-0 shadow-2xl overflow-hidden animate-scale-up my-8 max-h-[90vh] flex flex-col bg-white dark:bg-gray-900 border-none">
+            <div className="p-6 sm:p-8 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-gray-900/50 shrink-0">
+              <div>
+                <h3 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3 uppercase tracking-tight">
+                  Termos e Políticas
+                </h3>
+                <p className="text-[10px] sm:text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">Sua segurança e privacidade em primeiro lugar</p>
+              </div>
+              <button
+                onClick={() => setShowTermsModal(false)}
+                className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-full transition-colors"
+              >
+                <X className="w-6 h-6 text-gray-400" />
+              </button>
+            </div>
+
+            <div className="p-6 sm:p-10 overflow-y-auto custom-scrollbar space-y-10 text-gray-700 dark:text-gray-300">
+              {/* POLÍTICA DE PRIVACIDADE */}
+              <section className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-green-50 dark:bg-green-900/20 flex items-center justify-center">
+                    <ShieldCheck className="w-5 h-5 text-green-600" />
+                  </div>
+                  <h4 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight">Política de Privacidade</h4>
+                </div>
+                <p className="text-sm leading-relaxed">
+                  A <strong>Creative Print</strong> valoriza a privacidade de seus usuários. Esta Política descreve como coletamos e utilizamos seus dados no sistema <strong>CP Gestão</strong>.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                  <div className="p-5 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800">
+                    <h5 className="font-black text-[10px] uppercase text-gray-400 mb-2">1. Coleta de Dados</h5>
+                    <p>Coletamos apenas informações essenciais para a prestação de nossos serviços de gestão e fidelidade, como nome, contato da empresa, logotipos e preferências de serviço configuradas pelo administrador.</p>
+                  </div>
+                  <div className="p-5 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800">
+                    <h5 className="font-black text-[10px] uppercase text-gray-400 mb-2">2. Uso das Informações</h5>
+                    <p>Seus dados são utilizados exclusivamente para gerenciar seus clientes, processar pontuações automatizadas, gerar relatórios estratégicos e enviar notificações via bot oficial do Telegram.</p>
+                  </div>
+                  <div className="p-5 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800">
+                    <h5 className="font-black text-[10px] uppercase text-gray-400 mb-2">3. Segurança e Isolamento</h5>
+                    <p>Utilizamos arquitetura Multi-Tenant, garantindo isolamento total dos dados de cada loja. Adotamos criptografia em trânsito (SSL) e medidas técnicas contra acessos não autorizados.</p>
+                  </div>
+                  <div className="p-5 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800">
+                    <h5 className="font-black text-[10px] uppercase text-gray-400 mb-2">4. Armazenamento</h5>
+                    <p>Os dados são processados e armazenados em servidores seguros, mantendo logs de auditoria para garantir a integridade das transações de pontos de cada cliente final.</p>
+                  </div>
+                </div>
+              </section>
+
+              {/* TERMOS DE USO */}
+              <section className="space-y-4 pt-10 border-t border-gray-100 dark:border-gray-800">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+                    <Rocket className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <h4 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight">Termos de Uso</h4>
+                </div>
+                <p className="text-sm leading-relaxed mb-4">
+                  Ao utilizar a plataforma <strong>CP Gestão</strong>, você concorda integralmente com os seguintes termos:
+                </p>
+                <div className="space-y-4">
+                  {[
+                    { t: 'Licença de Uso', c: 'Concedemos uma licença limitada e intransferível para o uso de nossa plataforma conforme o plano contratado. O uso indevido para spam ou práticas ilegais resultará em suspensão imediata.' },
+                    { t: 'Responsabilidade pelos Dados', c: 'O usuário administrador é o único responsável legal pelos dados de seus clientes inseridos na plataforma, garantindo conformidade com leis locais de proteção de dados.' },
+                    { t: 'Manutenção de Assinatura', c: 'O acesso ao sistema está condicionado à manutenção do plano de assinatura ativo. A falta de renovação poderá limitar funcionalidades críticas como o registro de novos pontos.' },
+                    { t: 'Cancelamento e Reembolso', c: 'O cancelamento pode ser feito a qualquer momento. Conforme padrão SaaS, não haverá reembolso de ciclos já pagos, permanecendo o acesso ativo até o término do período vigente.' },
+                    { t: 'Conformidade de Hardware', c: 'O uso de dispositivos físicos (Totens) fornecidos separadamente está sujeito às condições de garantia de hardware e conectividade local do estabelecimento.' },
+                    { t: 'Cookies Estratégicos', c: 'Utilizamos cookies essenciais para autenticação de sessão e tokens de segurança. Cookies não essenciais podem ser desativados sem comprometer a lógica principal do CRM.' },
+                  ].map((item, idx) => (
+                    <div key={idx} className="flex gap-4 p-4 hover:bg-gray-50 dark:hover:bg-gray-800/30 rounded-xl transition-colors">
+                      <span className="text-primary-500 font-black text-sm">{idx + 1}.</span>
+                      <div>
+                        <p className="font-bold text-gray-900 dark:text-white text-sm mb-1">{item.t}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{item.c}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <div className="p-6 bg-primary-50 dark:bg-primary-900/10 rounded-3xl text-center border border-primary-100 dark:border-primary-900/30">
+                <p className="text-[10px] font-black text-primary-700 dark:text-primary-400 uppercase tracking-widest">
+                  Última atualização: {new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+                </p>
+              </div>
+            </div>
+
+            <div className="p-6 sm:p-8 bg-gray-50 dark:bg-gray-900/50 shrink-0 border-t border-gray-100 dark:border-gray-800">
+              <Button
+                onClick={() => setShowTermsModal(false)}
+                className="w-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold uppercase tracking-widest py-4 rounded-xl"
+              >
+                Compreendi e Concordo
+              </Button>
             </div>
           </Card>
         </div>

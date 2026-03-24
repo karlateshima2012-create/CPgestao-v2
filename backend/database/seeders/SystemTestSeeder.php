@@ -20,8 +20,8 @@ class SystemTestSeeder extends Seeder
         if (!User::where('role', 'admin')->exists()) {
             User::create([
                 'name' => 'Super Admin',
-                'email' => 'admin@creativeprint.com',
-                'password' => Hash::make('Admin1234!'),
+                'email' => 'suporte@creativeprintjp.com',
+                'password' => Hash::make('CPgestaoCRM23%'),
                 'role' => 'admin',
                 'onboarding_completed' => true,
             ]);

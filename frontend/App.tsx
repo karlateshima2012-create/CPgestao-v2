@@ -371,7 +371,7 @@ const App: React.FC = () => {
         <div className="bg-white dark:bg-gray-900 w-full max-w-[420px] p-8 md:p-10 rounded-[2rem] shadow-xl shadow-gray-200/50 dark:shadow-none border-t-[6px] border-t-[#25aae1] relative z-10">
           <div className="flex items-center justify-center gap-4 mb-8">
             <CPLogo className="w-14 h-14 shrink-0" />
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">CP - CRM Gestão</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">CP Gestão</h1>
           </div>
 
           {authView === 'login' && (
@@ -476,9 +476,9 @@ const App: React.FC = () => {
                 <CPLogo className="w-9 h-9 shrink-0" />
                 <div>
                   <h1 className="font-bold text-gray-900 dark:text-white text-base leading-tight">
-                    {authRole === 'admin' ? 'Admin Panel' : 'CP - CRM Gestão'}
+                    {authRole === 'admin' ? 'Admin Panel' : 'CP Gestão'}
                   </h1>
-                  <p className="text-xs text-gray-400">Sistema de Gestão</p>
+                  <p className="text-xs text-gray-400">Gestão e Fidelidade</p>
                 </div>
               </div>
             ) : (

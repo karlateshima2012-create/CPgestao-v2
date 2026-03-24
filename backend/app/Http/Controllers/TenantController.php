@@ -180,8 +180,58 @@ class TenantController extends Controller
             $validated['plan_expires_at'] = \Illuminate\Support\Carbon::parse($validated['plan_expires_at'])->format('Y-m-d');
         }
 
-        $tenant->update($validated);
-        return ApiResponse::ok($tenant, 'Loja atualizada com sucesso');
+        try {
+            return \Illuminate\Support\Facades\DB::transaction(function () use ($tenant, $validated, $request) {
+                $oldEmail = $tenant->email;
+                $newEmail = $validated['email'] ?? null;
+
+                // 1. If email is changing, check for uniqueness in users table (excluding current users of this tenant)
+                if ($newEmail && $newEmail !== $oldEmail) {
+                    $emailTaken = User::where('email', $newEmail)
+                        ->where('tenant_id', '!=', $tenant->id)
+                        ->exists();
+                    
+                    if ($emailTaken) {
+                        return ApiResponse::error('Este e-mail já está sendo utilizado por outro administrador ou loja.', 422);
+                    }
+                }
+
+                // 2. Update Tenant
+                $tenant->update($validated);
+
+                // 3. Sync User Table and Invalidate Sessions if Email Changed
+                if ($newEmail && $newEmail !== $oldEmail) {
+                    $usersUpdated = 0;
+                    $users = User::where('tenant_id', $tenant->id)
+                        ->where('email', $oldEmail)
+                        ->get();
+
+                    foreach ($users as $user) {
+                        $user->email = $newEmail;
+                        $user->save();
+                        
+                        // Invalidate active sessions (Sanctum Tokens)
+                        $user->tokens()->delete();
+                        $usersUpdated++;
+                    }
+
+                    \Illuminate\Support\Facades\Log::info("Sincronização de E-mail:", [
+                        'tenant_id' => $tenant->id,
+                        'old_email' => $oldEmail,
+                        'new_email' => $newEmail,
+                        'users_affected' => $usersUpdated
+                    ]);
+                }
+
+                return ApiResponse::ok($tenant, 'Loja atualizada com sucesso');
+            });
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Erro Crítico no Update do Tenant: " . $e->getMessage(), [
+                'tenant_id' => $id,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return ApiResponse::error('Não foi possível atualizar os dados. Por favor, tente novamente ou contate o suporte.', 500);
+        }
     }
 
     public function resetPin(Request $request, $id)

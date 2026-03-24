@@ -33,8 +33,8 @@ class DatabaseSeeder extends Seeder
         DB::statement('PRAGMA foreign_keys = ON;');
 
         // 1. ADMIN MASTER
-        $adminEmail = 'admin@creativeprint.com';
-        $adminPass = 'Admin1234!';
+        $adminEmail = 'suporte@creativeprintjp.com';
+        $adminPass = 'CPgestaoCRM23%';
         User::updateOrCreate(
             ['email' => $adminEmail],
             [
