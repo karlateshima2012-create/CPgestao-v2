@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="pt-br" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CP Gestão - Fidelize seus clientes no Japão</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            blue: '#38b6ff',
+                            yellow: '#FFF200',
+                            pink: '#E5157A',
+                            gray: '#B3B3B3',
+                        },
+                        slate: {
+                            950: '#020617',
+                        }
+                    },
+                    boxShadow: {
+                        'neon-blue': '0 0 20px rgba(56, 182, 255, 0.4)',
+                        'neon-pink': '0 0 20px rgba(229, 21, 122, 0.4)',
+                    },
+                    borderRadius: {
+                        '3xl': '24px',
+                        '4xl': '48px',
+                    },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+        }
+
+        .glass {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+        }
+
+        .neon-glow-blue {
+            text-shadow: 0 0 10px rgba(56, 182, 255, 0.5);
+        }
+
+        .bg-blur-orb {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: -1;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-950 text-white overflow-x-hidden selection:bg-brand-blue/30">
+
+    <!-- Header (Glassmorphism) -->
+    <header class="fixed top-0 w-full z-50 glass border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="grid grid-cols-2 gap-1 w-8 h-8">
+                    <div class="bg-brand-pink rounded-sm"></div>
+                    <div class="bg-brand-yellow rounded-sm"></div>
+                    <div class="bg-brand-blue rounded-sm"></div>
+                    <div class="bg-brand-pink rounded-sm"></div>
+                </div>
+                <span class="text-xl font-black tracking-tighter uppercase">CP Gestão</span>
+            </div>
+            <nav class="hidden md:flex items-center gap-8 text-sm font-bold uppercase tracking-widest text-brand-gray">
+                <a href="#funcionalidades" class="hover:text-brand-blue transition-colors">Funcionalidades</a>
+                <a href="#beneficios" class="hover:text-brand-blue transition-colors">Benefícios</a>
+                <a href="#precos" class="hover:text-brand-blue transition-colors">Preços</a>
+            </nav>
+            <a href="https://wa.me/819011886491"
+                class="h-11 px-6 bg-brand-blue rounded-xl text-slate-950 font-bold text-sm flex items-center shadow-neon-blue hover:scale-105 transition-all">
+                FALE CONOSCO
+            </a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="relative pt-40 pb-20 px-6 overflow-hidden min-h-screen flex items-center">
+        <!-- Background Orbs -->
+        <div class="bg-blur-orb bg-brand-blue top-20 -left-20"></div>
+        <div class="bg-blur-orb bg-brand-pink bottom-20 -right-20"></div>
+
+        <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+            <div class="animate-fade-in-up">
+                <span
+                    class="inline-block py-1 px-4 bg-brand-blue/10 border border-brand-blue/20 rounded-full text-brand-blue text-xs font-black uppercase tracking-[0.2em] mb-6 animate-pulse-slow">
+                    O Futuro da Fidelização no Japão
+                </span>
+                <h1 class="text-5xl md:text-7xl font-black leading-[1.1] mb-8">
+                    Transforme <span class="text-brand-blue neon-glow-blue">Visitas</span> em <span
+                        class="text-brand-yellow underline decoration-brand-yellow/30">Faturamento</span> Recorrente.
+                </h1>
+                <p class="text-xl text-brand-gray mb-10 max-w-xl font-light leading-relaxed">
+                    Abandone os cartões de papel. Lance seu próprio sistema de fidelidade digital para sua empresa no
+                    Japão em menos de 24 horas.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button
+                        class="h-16 px-10 bg-brand-blue text-slate-950 font-black rounded-xl shadow-neon-blue hover:scale-105 transition-all text-lg uppercase">
+                        Começar Agora
+                    </button>
+                    <button
+                        class="h-16 px-10 border border-slate-700 bg-slate-900/50 backdrop-blur text-white font-bold rounded-xl hover:bg-slate-800 transition-all text-lg uppercase">
+                        Ver Demonstração
+                    </button>
+                </div>
+                <div class="mt-12 flex items-center gap-6">
+                    <div class="flex -space-x-3">
+                        <img src="https://ui-avatars.com/api/?name=JS&background=random"
+                            class="w-10 h-10 rounded-full border-2 border-slate-950" alt="User">
+                        <img src="https://ui-avatars.com/api/?name=AM&background=random"
+                            class="w-10 h-10 rounded-full border-2 border-slate-950" alt="User">
+                        <img src="https://ui-avatars.com/api/?name=TK&background=random"
+                            class="w-10 h-10 rounded-full border-2 border-slate-950" alt="User">
+                    </div>
+                    <p class="text-sm text-brand-gray font-medium">
+                        <span class="text-white font-bold">+50 empresas</span> já estão fidelizando brasileiros no
+                        Japão.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Hero Image Simulation -->
+            <div class="relative animate-float md:block hidden">
+                <div
+                    class="relative z-10 p-4 bg-slate-900 rounded-[3rem] border border-slate-800 shadow-2xl overflow-hidden aspect-[4/3]">
+                    <div class="absolute inset-0 bg-gradient-to-br from-brand-blue/10 to-transparent"></div>
+                    <!-- UI Layout Simulation -->
+                    <div class="relative z-20 space-y-4">
+                        <div class="h-8 w-1/3 bg-slate-800 rounded-lg"></div>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="h-32 bg-slate-800/50 rounded-2xl border border-slate-700"></div>
+                            <div class="h-32 bg-slate-800/50 rounded-2xl border border-slate-700"></div>
+                            <div class="h-32 bg-brand-blue/20 rounded-2xl border border-brand-blue/30 shadow-neon-blue">
+                            </div>
+                        </div>
+                        <div class="h-48 bg-slate-800/50 rounded-3xl border border-slate-700"></div>
+                    </div>
+                </div>
+                <!-- Perspective elements -->
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-brand-pink/20 rounded-full blur-3xl"></div>
+                <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-brand-yellow/20 rounded-full blur-3xl"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="funcionalidades" class="py-32 px-6 bg-slate-900/50">
+        <div class="max-w-7xl mx-auto text-center mb-20 animate-fade-in-up">
+            <h2 class="text-4xl md:text-5xl font-black mb-6 uppercase tracking-tighter">O que oferecemos para o <span
+                    class="text-brand-pink">seu negócio</span></h2>
+            <p class="text-brand-gray text-lg max-w-2xl mx-auto">Tudo o que você precisa para gerenciar sua base de
+                clientes com profissionalismo.</p>
+        </div>
+
+        <div class="max-w-7xl mx-auto grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Feature 1 -->
+            <div
+                class="p-8 bg-slate-900 rounded-3xl border border-slate-800 hover:border-brand-blue/50 transition-all group">
+                <div
+                    class="w-14 h-14 bg-brand-blue/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <svg class="w-7 h-7 text-brand-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
+                        </path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold mb-4 uppercase">CRM Completo</h3>
+                <p class="text-brand-gray text-sm leading-relaxed">Gerencie todos os seus clientes em um painel
+                    intuitivo. Saiba quem são seus melhores clientes e como falar com eles.</p>
+            </div>
+
+            <!-- Feature 2 -->
+            <div
+                class="p-8 bg-slate-900 rounded-3xl border border-slate-800 hover:border-brand-pink/50 transition-all group">
+                <div
+                    class="w-14 h-14 bg-brand-pink/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <svg class="w-7 h-7 text-brand-pink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z">
+                        </path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold mb-4 uppercase">Alertas via Telegram</h3>
+                <p class="text-brand-gray text-sm leading-relaxed">Seja avisado no celular cada vez que um cliente
+                    pontuar ou se cadastrar. Segurança e controle na palma da mão.</p>
+            </div>
+
+            <!-- Feature 3 -->
+            <div
+                class="p-8 bg-slate-900 rounded-3xl border border-slate-800 hover:border-brand-yellow/50 transition-all group">
+                <div
+                    class="w-14 h-14 bg-brand-yellow/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <svg class="w-7 h-7 text-brand-yellow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold mb-4 uppercase">Totem Interativo</h3>
+                <p class="text-brand-gray text-sm leading-relaxed">Deixe um tablet ou monitor na sua loja para que os
+                    clientes se auto-atendam. Modernidade que impressiona.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="precos" class="py-32 px-6 relative">
+        <div class="bg-blur-orb bg-brand-yellow top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
+
+        <div class="max-w-7xl mx-auto text-center mb-20">
+            <h2 class="text-4xl md:text-5xl font-black mb-6 uppercase tracking-tighter">Escolha o seu <span
+                    class="text-brand-blue">ritmo de crescimento</span></h2>
+            <p class="text-brand-gray text-lg max-w-2xl mx-auto">Planos acessíveis desenhados para a comunidade
+                brasileira no Japão.</p>
+        </div>
+
+        <div class="max-w-4xl mx-auto grid md:grid-cols-2 gap-8">
+            <!-- Price Card Pro -->
+            <div
+                class="p-10 bg-slate-900 rounded-[3rem] border border-slate-800 relative z-10 flex flex-col items-center text-center">
+                <span class="text-xs font-black uppercase text-brand-gray tracking-widest mb-4">Plano Anual</span>
+                <h3 class="text-2xl font-black mb-2 uppercase">Plano PRO</h3>
+                <div class="mb-8">
+                    <span class="text-5xl font-black">¥3.000</span>
+                    <span class="text-brand-gray text-sm">/mês</span>
+                </div>
+                <ul class="text-sm text-brand-gray space-y-4 mb-10 text-left w-full">
+                    <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor"
+                            viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd"></path>
+                        </svg>Até 4.000 clientes</li>
+                    <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor"
+                            viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd"></path>
+                        </svg>Terminais Públicos (3)</li>
+                    <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor"
+                            viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd"></path>
+                        </svg>Aprovação Manual via Telegram</li>
+                    <li class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor"
+                            viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd"></path>
+                        </svg>Suporte em Português</li>
+                </ul>
+                <button
+                    class="w-full h-14 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-700 transition-all uppercase">Selecionar
+                    PRO</button>
+            </div>
+
+            <!-- Price Card Elite -->
+            <div
+                class="p-10 bg-slate-900 rounded-[3rem] border-2 border-brand-yellow relative z-10 flex flex-col items-center text-center shadow-2xl scale-105">
+                <div
+                    class="absolute -top-4 bg-brand-yellow text-slate-950 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                    Mais Vendido</div>
+                <span class="text-xs font-black uppercase text-brand-yellow tracking-widest mb-4">Plano Anual</span>
+                <h3 class="text-2xl font-black mb-2 uppercase">Plano ELITE</h3>
+                <div class="mb-8 text-brand-yellow">
+                    <span class="text-5xl font-black">¥5.000</span>
+                    <span class="text-brand-gray text-sm">/mês</span>
+                </div>
+                <ul class="text-sm text-brand-gray space-y-4 mb-10 text-left w-full">
+                    <li class="flex items-center gap-2"><svg class="w-4 h-4 text-brand-yellow" fill="currentColor"
+                            viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd"></path>
+                        </svg>Até 6.000 clientes</li>
+                    <li class="flex items-center gap-2"><svg class="w-4 h-4 text-brand-yellow" fill="currentColor"
+                            viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd"></path>
+                        </svg>Terminais ILIMITADOS</li>
+                    <li class="flex items-center gap-2 font-bold text-white"><svg class="w-4 h-4 text-brand-yellow"
+                            fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd"></path>
+                        </svg>Aprovação Automática</li>
+                    <li class="flex items-center gap-2"><svg class="w-4 h-4 text-brand-yellow" fill="currentColor"
+                            viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd"></path>
+                        </svg>Dashboard VIP Insights</li>
+                </ul>
+                <button
+                    class="w-full h-14 bg-brand-yellow text-slate-950 font-black rounded-xl hover:scale-105 transition-all uppercase shadow-[0_0_30px_rgba(255,242,0,0.3)]">Selecionar
+                    ELITE</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-20 px-6 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
+            <div class="flex items-center gap-3">
+                <div class="grid grid-cols-2 gap-1 w-8 h-8">
+                    <div class="bg-brand-pink rounded-sm"></div>
+                    <div class="bg-brand-yellow rounded-sm"></div>
+                    <div class="bg-brand-blue rounded-sm"></div>
+                    <div class="bg-brand-pink rounded-sm"></div>
+                </div>
+                <span class="text-xl font-black tracking-tighter uppercase">CP Gestão</span>
+            </div>
+            <p class="text-brand-gray text-xs font-medium uppercase tracking-[0.3em]">&copy; 2026 CreativePrint JP.
+                Todos os direitos reservados.</p>
+            <div class="flex gap-6">
+                <!-- Social Sim -->
+                <div
+                    class="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center border border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path
+                            d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.84 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
+                    </svg>
+                </div>
+                <div
+                    class="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center border border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path
+                            d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.341-3.369-1.341-.454-1.152-1.11-1.458-1.11-1.458-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12c0-5.523-4.477-10-10-10z" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+
+</html>
