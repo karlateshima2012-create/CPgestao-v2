@@ -513,21 +513,27 @@ class PublicTerminalController extends Controller
             $approvedAt = $isElite ? now() : null;
 
             // CRIAR REGISTRO DE VISITA
-            $visit = \App\Models\Visit::create([
+            $visit_data = [
                 'tenant_id' => $tenant->id,
                 'customer_id' => $customer->id,
-                'device_id' => $device?->id,
                 'customer_name' => $customer->name,
                 'customer_phone' => $customer->phone,
                 'customer_company' => $customer->company_name,
                 'foto_perfil_url' => $customer->foto_perfil_url,
                 'visit_at' => now(),
-                'origin' => $token ? 'nfc' : ($device ? 'qr' : 'manual'), // 'manual' for virtual / p/{slug}
+                'origin' => $token ? 'nfc' : ($device ? 'qr' : 'manual'),
                 'plan_type' => $tenant->plan,
                 'status' => $status,
                 'points_granted' => $pointsToAdd,
                 'approved_at' => $approvedAt,
-            ]);
+            ];
+
+            // Only add device_id if it exists in the model's fillable and we have a device
+            if ($device) {
+                $visit_data['device_id'] = $device->id;
+            }
+
+            $visit = \App\Models\Visit::create($visit_data);
 
             if ($isElite) {
                 // Apply points immediately for Elite
