@@ -8,7 +8,9 @@ import {
   Calendar,
   FileSpreadsheet,
   FileCode,
-  UserPlus
+  UserPlus,
+  Smartphone,
+  X
 } from 'lucide-react';
 import { Contact } from '../../types';
 import { reportsService } from '../../services/api';
@@ -57,6 +59,7 @@ export const ExportTab: React.FC<ExportTabProps> = ({ contacts: initialContacts 
     message: '',
     type: 'info'
   });
+  const [showMacTutorial, setShowMacTutorial] = useState(false);
 
   const setQuickFilterNew = () => {
     const thirtyDaysAgo = new Date();
@@ -343,7 +346,75 @@ export const ExportTab: React.FC<ExportTabProps> = ({ contacts: initialContacts 
             <FileSpreadsheet className="w-6 h-6" /> Exportar em EXCEL
           </Button>
         </div>
+        <div className="flex flex-col items-center gap-4 mt-12 bg-slate-50 dark:bg-slate-900/50 p-8 rounded-[32px] border border-dashed border-slate-200 dark:border-slate-800">
+          <div className="flex items-center gap-6">
+            <Smartphone className="w-8 h-8 text-primary-500 animate-bounce" />
+            <div className="text-left">
+              <h4 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tighter">Dica do Especialista</h4>
+              <p className="text-[11px] text-slate-500 font-medium">Sincronize sua base de clientes com seu ecossistema Apple em segundos.</p>
+            </div>
+            <button
+              onClick={() => setShowMacTutorial(true)}
+              className="px-6 py-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl text-[10px] font-black text-primary-600 uppercase tracking-widest hover:bg-primary-50 dark:hover:bg-primary-950/30 transition-all shadow-sm active:scale-95"
+            >
+              Como importar contatos no Mac?
+            </button>
+          </div>
+        </div>
       </section>
+
+      {/* Modal Tutorial Mac */}
+      {showMacTutorial && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-fade-in">
+          <Card className="w-full max-w-xl bg-white dark:bg-slate-900 rounded-[2.5rem] p-10 shadow-2xl overflow-hidden relative">
+            <button
+              onClick={() => setShowMacTutorial(false)}
+              className="absolute top-6 right-6 p-2 bg-slate-50 dark:bg-slate-800 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+            >
+              <X className="w-5 h-5 text-slate-400" />
+            </button>
+
+            <div className="flex flex-col items-center text-center space-y-6">
+              <div className="w-20 h-20 bg-primary-50 dark:bg-primary-900/20 rounded-[2.5rem] flex items-center justify-center">
+                <Smartphone className="w-10 h-10 text-primary-600" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">CSV → Contatos do Mac</h3>
+                <p className="text-slate-500 text-sm mt-1 font-medium">Veja seus clientes salvos no Macbook e iPhone instantaneamente.</p>
+              </div>
+
+              <div className="w-full space-y-4 pt-4">
+                {[
+                  { step: 1, text: "Exporte seu relatório no formato CSV aqui no painel." },
+                  { step: 2, text: "Abra o aplicativo 'Contatos' no seu Macbook." },
+                  { step: 3, text: "Vá no menu 'Arquivo' -> 'Importar' (ou use ⌘+O)." },
+                  { step: 4, text: "Selecione o arquivo CSV baixado e clique em Importar." },
+                  { step: 5, text: "Mapeie os campos se o Mac solicitar (ex: Nome = First Name)." }
+                ].map((item) => (
+                  <div key={item.step} className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl text-left hover:translate-x-1 transition-transform">
+                    <span className="w-8 h-8 rounded-full bg-white dark:bg-slate-900 flex items-center justify-center text-xs font-black text-primary-600 shadow-sm grow-0 shrink-0">
+                      {item.step}
+                    </span>
+                    <p className="text-sm font-bold text-slate-700 dark:text-slate-300 leading-tight">{item.text}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="pt-6 w-full">
+                <Button
+                  className="w-full h-14 bg-primary-600 hover:bg-primary-700 text-white font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-primary-500/20"
+                  onClick={() => setShowMacTutorial(false)}
+                >
+                  Entendi, mãos à obra!
+                </Button>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-4">
+                  💡 Os contatos serão sincronizados via iCloud.
+                </p>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
 
       <StatusModal
         isOpen={showSuccessModal}
