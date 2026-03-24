@@ -288,6 +288,31 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
+  const handleUpdateDeviceLocal = (deviceId: string, field: string, value: string) => {
+    setStoreDevices(prev => prev.map(d => d.id === deviceId ? { ...d, [field]: value } : d));
+  };
+
+  const handleSaveDevice = async (deviceId: string) => {
+    if (!tenantForDevices) return;
+    const device = storeDevices.find(d => d.id === deviceId);
+    if (!device) return;
+
+    try {
+      await tenantsService.updateDevice(tenantForDevices.id, deviceId, {
+        name: device.name,
+        nfc_uid: device.nfc_uid,
+      });
+    } catch (error) {
+      console.error('Error updating totem', error);
+      setStatusModal({
+        isOpen: true,
+        title: 'Erro',
+        message: 'Não foi possível atualizar o totem.',
+        type: 'error'
+      });
+    }
+  };
+
   const handleOpenEditModal = (tenant: Tenant) => {
     setEditingTenant(tenant);
     setTempPin(null);
@@ -808,8 +833,21 @@ export const AdminDashboard: React.FC = () => {
                                       <Monitor className="w-5 h-5" />
                                     </div>
                                     <div>
-                                      <p className="font-black text-gray-900 dark:text-white uppercase tracking-tight">{device.name}</p>
-                                      <p className="text-[10px] text-gray-400 font-mono uppercase">Lote/UID: {device.nfc_uid}</p>
+                                      <input
+                                        className="font-black text-gray-900 dark:text-white uppercase tracking-tight bg-transparent border-none p-0 focus:ring-0 w-full"
+                                        value={device.name}
+                                        onChange={(e) => handleUpdateDeviceLocal(device.id, 'name', e.target.value)}
+                                        onBlur={() => handleSaveDevice(device.id)}
+                                      />
+                                      <div className="flex items-center gap-1">
+                                        <span className="text-[10px] text-gray-400 font-mono uppercase">Lote/UID:</span>
+                                        <input
+                                          className="text-[10px] text-primary-600 font-mono uppercase bg-transparent border-none p-0 focus:ring-0 w-32"
+                                          value={device.nfc_uid}
+                                          onChange={(e) => handleUpdateDeviceLocal(device.id, 'nfc_uid', e.target.value)}
+                                          onBlur={() => handleSaveDevice(device.id)}
+                                        />
+                                      </div>
                                     </div>
                                   </div>
                                   <button

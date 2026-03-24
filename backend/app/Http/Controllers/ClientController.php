@@ -548,9 +548,10 @@ class ClientController extends Controller
             'mode' => 'sometimes|string|in:manual,approval,auto_checkin',
             'telegram_chat_id' => 'nullable|string',
             'responsible_name' => 'nullable|string',
+            'nfc_uid' => 'sometimes|string|unique:devices,nfc_uid,' . $deviceId,
         ]);
 
-        $data = $request->only(['name', 'mode', 'telegram_chat_id', 'responsible_name']);
+        $data = $request->only(['name', 'mode', 'telegram_chat_id', 'responsible_name', 'nfc_uid']);
         if (isset($data['mode'])) {
             $data['auto_approve'] = $data['mode'] === 'auto_checkin';
         }

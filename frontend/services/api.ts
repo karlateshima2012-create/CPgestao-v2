@@ -46,7 +46,7 @@ export const tenantsService = {
     delete: (id: string) => api.delete(`/admin/tenants/${id}`),
     getDevices: (id: string) => api.get(`/admin/tenants/${id}/devices`),
     createDevice: (id: string, data: { name: string; mode: string; telegram_chat_id?: string; responsible_name?: string }) => api.post(`/admin/tenants/${id}/devices`, data),
-    updateDevice: (tenantId: string, deviceId: string, data: Partial<{ name: string; mode: string; telegram_chat_id: string; responsible_name: string }>) => api.put(`/admin/tenants/${tenantId}/devices/${deviceId}`, data),
+    updateDevice: (tenantId: string, deviceId: string, data: Partial<{ name: string; mode: string; nfc_uid: string; telegram_chat_id: string; responsible_name: string }>) => api.put(`/admin/tenants/${tenantId}/devices/${deviceId}`, data),
     deleteDevice: (id: string, deviceId: string) => api.delete(`/admin/tenants/${id}/devices/${deviceId}`),
     getGlobalMetrics: () => api.get('/admin/metrics'),
 };
