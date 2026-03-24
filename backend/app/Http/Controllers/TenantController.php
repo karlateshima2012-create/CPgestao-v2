@@ -199,23 +199,25 @@ class TenantController extends Controller
                 // 2. Update Tenant
                 $tenant->update($validated);
 
-                // 3. Sync User Table and Invalidate Sessions if Email Changed
+                // 3. Sync User Table (Owner Accounts) and Invalidate Sessions
                 if ($newEmail && $newEmail !== $oldEmail) {
                     $usersUpdated = 0;
+                    // Sincroniza o e-mail de TODOS os usuários com papel 'client' vinculados a este tenant.
+                    // Isso garante que o lojista principal sempre mude de login junto com os dados da loja.
                     $users = User::where('tenant_id', $tenant->id)
-                        ->where('email', $oldEmail)
+                        ->where('role', 'client')
                         ->get();
 
                     foreach ($users as $user) {
                         $user->email = $newEmail;
                         $user->save();
                         
-                        // Invalidate active sessions (Sanctum Tokens)
+                        // Invalida sessões ativas (Sanctum Tokens) para forçar novo login com novo e-mail
                         $user->tokens()->delete();
                         $usersUpdated++;
                     }
 
-                    \Illuminate\Support\Facades\Log::info("Sincronização de E-mail:", [
+                    \Illuminate\Support\Facades\Log::info("Sincronização de E-mail (Lojista):", [
                         'tenant_id' => $tenant->id,
                         'old_email' => $oldEmail,
                         'new_email' => $newEmail,
