@@ -322,11 +322,12 @@ class TenantController extends Controller
             $request->validate([
                 'name' => 'sometimes|string',
                 'mode' => 'sometimes|string|in:approval,auto_checkin',
+                'nfc_uid' => 'sometimes|string|unique:devices,nfc_uid,' . $deviceId,
                 'telegram_chat_id' => 'nullable|string',
                 'responsible_name' => 'nullable|string',
             ]);
 
-            $data = $request->only(['name', 'mode', 'telegram_chat_id', 'responsible_name']);
+            $data = $request->only(['name', 'mode', 'nfc_uid', 'telegram_chat_id', 'responsible_name']);
             if (isset($data['mode'])) {
                 $data['auto_approve'] = $data['mode'] === 'auto_checkin';
             }

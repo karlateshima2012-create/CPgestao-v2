@@ -50,6 +50,7 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug }
         const payload = {
             telegram_chat_id: overrides.telegram_chat_id !== undefined ? overrides.telegram_chat_id : (d.telegram_chat_id || ''),
             responsible_name: overrides.responsible_name !== undefined ? overrides.responsible_name : (d.responsible_name || ''),
+            nfc_uid: overrides.nfc_uid !== undefined ? overrides.nfc_uid : (d.nfc_uid || ''),
             telegram_sound_points: overrides.telegram_sound_points !== undefined ? overrides.telegram_sound_points : (d.telegram_sound_points ?? true),
         };
 
@@ -121,7 +122,7 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug }
 
                                 {/* Configuration Section (Direct Edit) */}
                                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4 pt-5 border-t border-gray-50 dark:border-gray-800 items-end">
-                                    <div className="md:col-span-4 space-y-1.5">
+                                    <div className="md:col-span-3 space-y-1.5">
                                         <div className="flex items-center justify-between ml-1">
                                             <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
                                                 <MessageCircle className="w-3 h-3 text-blue-500" /> ID TELEGRAM
@@ -136,7 +137,7 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug }
                                         />
                                     </div>
 
-                                    <div className="md:col-span-4 space-y-1.5">
+                                    <div className="md:col-span-3 space-y-1.5">
                                         <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">
                                             RESPONSÁVEL
                                         </label>
@@ -149,14 +150,27 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug }
                                         />
                                     </div>
 
-                                    <div className="md:col-span-4 pb-0.5">
+                                    <div className="md:col-span-3 space-y-1.5">
+                                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                                            UID DO TOTEM (URL)
+                                        </label>
+                                        <Input
+                                            placeholder="Ex: abc123def456"
+                                            value={device.nfc_uid || ''}
+                                            onChange={e => handleUpdateLocal(device.id, 'nfc_uid', e.target.value)}
+                                            onBlur={() => handleSaveDevice(device.id)}
+                                            className="h-10 text-xs bg-gray-50/50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 rounded-xl font-mono"
+                                        />
+                                    </div>
+
+                                    <div className="md:col-span-3 pb-0.5">
                                         <div className="flex items-center justify-between h-10 px-4 bg-blue-50/30 dark:bg-blue-900/10 rounded-xl border border-blue-100/50 dark:border-blue-900/30">
                                             <div className="flex items-center gap-2.5">
                                                 <div className={`p-1.5 rounded-lg ${device.telegram_sound_points !== false ? 'bg-primary-500 text-white' : 'bg-gray-200 text-gray-400'} transition-all`}>
                                                     <Volume2 className="w-3 h-3" />
                                                 </div>
                                                 <div className="flex flex-col">
-                                                    <span className="text-[9px] font-black text-primary-600 dark:text-primary-400 uppercase tracking-widest">Aviso Sonoro</span>
+                                                    <span className="text-[9px] font-black text-primary-600 dark:text-primary-400 uppercase tracking-widest">Aviso</span>
                                                 </div>
                                             </div>
                                             <label className="relative inline-flex items-center cursor-pointer">
@@ -181,18 +195,20 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({ tenantPlan, tenantSlug }
                 )}
             </div>
 
-            {modal.isOpen && (
-                <StatusModal
-                    isOpen={modal.isOpen}
-                    title={modal.title}
-                    message={modal.message}
-                    type={modal.type}
-                    onConfirm={modal.onConfirm}
-                    confirmLabel={modal.confirmLabel}
-                    theme="accent"
-                    onClose={() => setModal(prev => ({ ...prev, isOpen: false, onConfirm: undefined }))}
-                />
-            )}
-        </div>
+            {
+                modal.isOpen && (
+                    <StatusModal
+                        isOpen={modal.isOpen}
+                        title={modal.title}
+                        message={modal.message}
+                        type={modal.type}
+                        onConfirm={modal.onConfirm}
+                        confirmLabel={modal.confirmLabel}
+                        theme="accent"
+                        onClose={() => setModal(prev => ({ ...prev, isOpen: false, onConfirm: undefined }))}
+                    />
+                )
+            }
+        </div >
     );
 };
