@@ -528,12 +528,22 @@ class PublicTerminalController extends Controller
                 'approved_at' => $approvedAt,
             ];
 
-            // Only add device_id if it exists in the model's fillable and we have a device
-            if ($device) {
-                $visit_data['device_id'] = $device->id;
+            // Safety catch for device_id
+            try {
+                if ($device) {
+                    $visit_data['device_id'] = $device->id;
+                }
+                $visit = \App\Models\Visit::create($visit_data);
+            } catch (\Exception $de) {
+                \Illuminate\Support\Facades\Log::error("EARN_ERROR: Visit creation failed: " . $de->getMessage());
+                // Try once more without device_id in case column is missing
+                if (isset($visit_data['device_id'])) {
+                    unset($visit_data['device_id']);
+                    $visit = \App\Models\Visit::create($visit_data);
+                } else {
+                    throw $de;
+                }
             }
-
-            $visit = \App\Models\Visit::create($visit_data);
 
             if ($isElite) {
                 // Apply points immediately for Elite
