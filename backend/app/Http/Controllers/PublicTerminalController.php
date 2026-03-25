@@ -227,21 +227,9 @@ class PublicTerminalController extends Controller
             return ApiResponse::error($msg, 'SESSION_REQUIRED', 403);
         }
         
-        $rawPhone = preg_replace('/\D/', '', $request->phone);
-        $phone = PhoneHelper::normalize($request->phone);
-        
-        // Criar variações para garantir que encontramos o cliente
-        $variations = array_unique([$phone, $rawPhone]);
-        
-        // Se começa com 0, tenta sem o zero e com 81
-        if (str_starts_with($phone, '0')) {
-            $noZero = substr($phone, 1);
-            $variations[] = '81' . $noZero;
-        }
-        
-        $customer = Customer::withoutGlobalScopes()->where('tenant_id', $tenant->id)
-            ->whereIn('phone', $variations)
-            ->first();
+        $res = $this->findCustomer($tenant->id, $request->phone);
+        $customer = $res['customer'];
+        $variations = $res['variations'];
 
         \Illuminate\Support\Facades\Log::debug("LOOKUP: Tenant: {$tenant->slug} ({$tenant->id}) | Raw: {$request->phone} | Variations: " . implode(', ', $variations) . " | Found: " . ($customer ? 'YES ('.$customer->id.')' : 'NO'));
 
@@ -391,12 +379,9 @@ class PublicTerminalController extends Controller
                 return ApiResponse::error('Esta ação exige presença física na loja (NFC ou QRCode do Totem).', 'DEVICE_REQUIRED', 403);
             }
 
-            $phone = PhoneHelper::normalize($request->phone);
+            $res = $this->findCustomer($tenant->id, $request->phone);
+            $customer = $res['customer'];
 
-            $customer = Customer::withoutGlobalScopes()
-                ->where('tenant_id', $tenant->id)
-                ->where('phone', $phone)
-                ->first();
 
             $isNew = false;
             if (!$customer) {
@@ -1101,5 +1086,42 @@ class PublicTerminalController extends Controller
             'remaining_points' => max(0, $goal - $customer->points_balance),
             'tenant_name' => $tenant->name
         ]);
+    }
+    /**
+     * Robust phone lookup that handles variations in prefixes.
+     */
+    private function findCustomer($tenantId, $phoneInput)
+    {
+        $raw = preg_replace('/\D/', '', $phoneInput);
+        $norm = PhoneHelper::normalize($phoneInput);
+        
+        $variations = [$raw, $norm];
+        
+        // Variations for Japan (0 vs 81 vs no prefix)
+        if (str_starts_with($norm, '0') && strlen($norm) >= 10) {
+            $noPrefix = substr($norm, 1);
+            $variations[] = $noPrefix;
+            $variations[] = '81' . $noPrefix;
+        } elseif (str_starts_with($norm, '81') && strlen($norm) >= 11) {
+            $noPrefix = substr($norm, 2);
+            $variations[] = $noPrefix;
+            $variations[] = '0' . $noPrefix;
+        } elseif (strlen($norm) == 10) {
+            // If it's 90... (without leading zero)
+            $variations[] = '0' . $norm;
+            $variations[] = '81' . $norm;
+        }
+
+        $variations = array_unique(array_filter($variations));
+
+        $customer = Customer::withoutGlobalScopes()
+            ->where('tenant_id', $tenantId)
+            ->whereIn('phone', $variations)
+            ->first();
+        
+        return [
+            'customer' => $customer,
+            'variations' => $variations
+        ];
     }
 }
