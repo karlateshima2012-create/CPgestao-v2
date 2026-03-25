@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Check, X, Clock, Smartphone, Globe, UserCheck, Filter, ChevronLeft, ChevronRight, Search, Activity, Trash2, CheckCircle2 } from 'lucide-react';
-import { Button, StatusModal } from '../../components/ui';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Check, X, Clock, Smartphone, Globe, UserCheck, Filter, ChevronLeft, ChevronRight, Search, Activity, Trash2, CheckCircle2, Trophy } from 'lucide-react';
+import { Button, StatusModal, Badge } from '../../components/ui';
 import { Visit } from '../../types';
 import api from '../../services/api';
 
@@ -18,6 +18,7 @@ export const VisitRecordsTab: React.FC = () => {
     const [period, setPeriod] = useState('all');
     const [status, setStatus] = useState('all');
     const [customerFilter, setCustomerFilter] = useState('');
+    const [loyaltySettings, setLoyaltySettings] = useState<any>(null);
     const [modal, setModal] = useState<{
         isOpen: boolean;
         title: string;
@@ -57,8 +58,18 @@ export const VisitRecordsTab: React.FC = () => {
         }
     };
 
+    const fetchLoyaltySettings = async () => {
+        try {
+            const res = await api.get('/client/loyalty/settings');
+            setLoyaltySettings(res.data.data || res.data);
+        } catch (err) {
+            console.error('Error fetching loyalty settings:', err);
+        }
+    };
+
     useEffect(() => {
         fetchVisits(1);
+        fetchLoyaltySettings();
     }, [period, status]);
 
     // Polling para atualizar a lista em tempo real (importante para o plano Elite onde visitas são auto-aprovadas)
@@ -84,6 +95,26 @@ export const VisitRecordsTab: React.FC = () => {
                 isOpen: true,
                 title: 'Erro',
                 message: error.response?.data?.message || 'Erro ao processar ação.',
+                type: 'error'
+            });
+        }
+    };
+
+    const handleRedeemReward = async (customerId: string) => {
+        try {
+            await api.post(`/client/contacts/${customerId}/redeem`);
+            setModal({
+                isOpen: true,
+                title: '🏆 META ALCANÇADA!',
+                message: 'Prêmio entregue com sucesso! O nível do cliente foi atualizado.',
+                type: 'success'
+            });
+            fetchVisits(pagination.current_page);
+        } catch (err: any) {
+            setModal({
+                isOpen: true,
+                title: 'Erro',
+                message: err.response?.data?.message || 'Erro ao processar premiação.',
                 type: 'error'
             });
         }
@@ -115,6 +146,13 @@ export const VisitRecordsTab: React.FC = () => {
             case 'manual': return <UserCheck className="w-3 h-3" />;
             default: return <Activity className="w-3 h-3" />;
         }
+    };
+
+    const getCustomerGoal = (customer: any) => {
+        if (!loyaltySettings || !customer) return 10;
+        const levelIdx = Math.max(0, (customer.loyalty_level || 1) - 1);
+        const config = loyaltySettings.levels_config?.[levelIdx];
+        return config?.goal || loyaltySettings.points_goal || 10;
     };
 
     return (
@@ -195,6 +233,7 @@ export const VisitRecordsTab: React.FC = () => {
                                 <th className="px-4 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Origem</th>
                                 <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Status</th>
                                 <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Horário</th>
+                                <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Saldo</th>
                                 <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Ações</th>
                             </tr>
                         </thead>
@@ -202,12 +241,12 @@ export const VisitRecordsTab: React.FC = () => {
                             {isLoading ? (
                                 Array(5).fill(0).map((_, i) => (
                                     <tr key={i} className="animate-pulse">
-                                        <td colSpan={6} className="px-8 py-6 h-20 bg-gray-50/20 dark:bg-gray-800/10"></td>
+                                        <td colSpan={7} className="px-8 py-6 h-20 bg-gray-50/20 dark:bg-gray-800/10"></td>
                                     </tr>
                                 ))
                             ) : visits.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-8 py-20 text-center">
+                                    <td colSpan={7} className="px-8 py-20 text-center">
                                         <div className="flex flex-col items-center justify-center opacity-40">
                                             <Activity className="w-12 h-12 mb-4" />
                                             <p className="text-sm font-bold uppercase tracking-widest">Nenhum registro encontrado</p>
@@ -227,7 +266,14 @@ export const VisitRecordsTab: React.FC = () => {
                                                     )}
                                                 </div>
                                                 <div className="flex flex-col">
-                                                    <span className="text-sm font-bold text-gray-900 dark:text-white capitalize">{v.customer_name}</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-sm font-bold text-gray-900 dark:text-white capitalize">{v.customer_name}</span>
+                                                        {v.customer?.loyalty_level_name && (
+                                                            <Badge color={v.customer.loyaltyLevel === 1 ? 'bronze' : v.customer.loyaltyLevel === 2 ? 'silver' : v.customer.loyaltyLevel === 3 ? 'gold' : 'diamond'} className="py-0 px-2 h-5 text-[9px]">
+                                                                {v.customer.loyalty_level_name}
+                                                            </Badge>
+                                                        )}
+                                                    </div>
                                                     {v.customer_company && (
                                                         <span className="text-[10px] font-black text-primary-500 uppercase tracking-widest leading-none mt-0.5">{v.customer_company}</span>
                                                     )}
@@ -270,7 +316,7 @@ export const VisitRecordsTab: React.FC = () => {
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-5">
+                                        <td className="px-6 py-5 text-center">
                                             <div className="flex flex-col items-center">
                                                 <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
                                                     {new Date(v.visit_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -278,6 +324,15 @@ export const VisitRecordsTab: React.FC = () => {
                                                 <span className="text-[10px] text-gray-400">
                                                     {new Date(v.visit_at).toLocaleDateString()}
                                                 </span>
+                                            </div>
+                                        </td>
+
+                                        <td className="px-6 py-5 text-center">
+                                            <div className="flex flex-col items-center">
+                                                <span className={`text-sm font-black ${(v.customer?.pointsBalance || 0) >= getCustomerGoal(v.customer) ? 'text-amber-500' : 'text-gray-900 dark:text-white'}`}>
+                                                    {v.customer?.pointsBalance || 0}
+                                                </span>
+                                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">PTs</span>
                                             </div>
                                         </td>
 
@@ -300,7 +355,17 @@ export const VisitRecordsTab: React.FC = () => {
                                                         </button>
                                                     </>
                                                 ) : (
-                                                    <span className="text-[10px] font-black text-gray-300 dark:text-gray-600 uppercase tracking-widest">Processado</span>
+                                                    <div className="flex items-center gap-2">
+                                                        {v.customer?.pointsBalance >= getCustomerGoal(v.customer) && (
+                                                            <button
+                                                                onClick={() => handleRedeemReward(v.customer_id)}
+                                                                className="px-4 py-2.5 rounded-xl bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-500/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 animate-pulse-soft"
+                                                            >
+                                                                <Trophy className="w-3.5 h-3.5 fill-white/20" /> PREMIAR!
+                                                            </button>
+                                                        )}
+                                                        <span className="text-[10px] font-black text-gray-300 dark:text-gray-600 uppercase tracking-widest">Processado</span>
+                                                    </div>
                                                 )}
                                             </div>
                                         </td>
@@ -347,6 +412,6 @@ export const VisitRecordsTab: React.FC = () => {
                 confirmLabel={modal.confirmLabel}
                 cancelLabel={modal.cancelLabel}
             />
-        </div>
+        </div >
     );
 };

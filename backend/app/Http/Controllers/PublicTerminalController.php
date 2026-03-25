@@ -566,18 +566,43 @@ class PublicTerminalController extends Controller
                 
                 if ($targetChatId) {
                     $locationName = $device ? ($device->responsible_name ?: $device->name) : 'Terminal Público';
-                    $caption = "✅ <b>PONTO REGISTRADO</b>\n\n"
+                    
+                    // Check if Goal Reached for Elite
+                    $goal = $tenant->points_goal;
+                    $lvlIdx = max(0, (int)$customer->loyalty_level - 1);
+                    if (is_array($levelsConfig) && isset($levelsConfig[$lvlIdx])) {
+                        $goal = (int)($levelsConfig[$lvlIdx]['goal'] ?? $goal);
+                    }
+                    
+                    $metaAlert = "";
+                    if ($customer->points_balance >= $goal) {
+                        $metaAlert = "🏆 <b>META ALCANÇADA!</b> 🏆\n"
+                                   . "Prêmio disponível na <b>próxima visita</b>! 🎁\n\n";
+                    }
+
+                    $caption = $metaAlert 
+                             . "✅ <b>PONTO REGISTRADO</b>\n\n"
                              . "👤 {$customer->name}\n"
-                             . "📊 Total de visitas: {$customer->attendance_count}\n\n"
+                             . "📊 Total de visitas: {$customer->attendance_count}\n"
+                             . "💰 Saldo atual: {$customer->points_balance} / {$goal}\n"
                              . "📅 " . now()->format('d/m/Y') . "\n"
                              . "🕒 " . now()->format('H:i');
                     
+                    $replyMarkup = null;
+                    if ($customer->points_balance + $pointsToGrant >= $goal) {
+                        $replyMarkup = [
+                            'inline_keyboard' => [
+                                [['text' => '🎁 PREMIAR AGORA!', 'callback_data' => "redeem_reward:{$customer->id}"]]
+                            ]
+                        ];
+                    }
+
                     \App\Jobs\SendTelegramNotificationJob::dispatch(
                         $tenant->id, 
                         $caption, 
                         'points', 
                         $targetChatId, 
-                        null, 
+                        $replyMarkup, 
                         $customer->photo_url_full
                     );
                 }
@@ -598,13 +623,29 @@ class PublicTerminalController extends Controller
 
                 if ($targetChatId && $isSoundEnabled) {
                     $locationName = $device ? ($device->responsible_name ?: $device->name) : 'Terminal Público';
-                    $caption = "⭐ <b>Solicitação de ponto</b>\n\n"
+                    // Check if Goal Reached for PRO Approval Request
+                    $goal = $tenant->points_goal;
+                    $lvlIdx = max(0, (int)$customer->fresh()->loyalty_level - 1);
+                    if (is_array($levelsConfig) && isset($levelsConfig[$lvlIdx])) {
+                        $goal = (int)($levelsConfig[$lvlIdx]['goal'] ?? $goal);
+                    }
+                    
+                    $metaAlert = "";
+                    $potentialBalance = $customer->points_balance + $pointsToAdd;
+                    if ($potentialBalance >= $goal) {
+                        $metaAlert = "🏆 <b>META SENDO ALCANÇADA!</b> 🏆\n"
+                                   . "Ao aprovar, o cliente atingirá a meta!\n\n";
+                    }
+
+                    $caption = $metaAlert
+                             . "⭐ <b>Solicitação de ponto</b>\n\n"
                              . "<b>Cliente:</b> {$customer->name}\n"
                              . "<b>Telefone:</b> {$customer->phone}\n";
                     if ($customer->company_name) {
                         $caption .= "<b>Empresa:</b> {$customer->company_name}\n";
                     }
                     $caption .= "<b>Visitas:</b> {$customer->attendance_count}\n"
+                             . "<b>Saldo:</b> {$customer->points_balance} (+{$pointsToAdd}) / {$goal}\n"
                              . "<b>Hora:</b> " . now()->format('H:i') . "\n\n"
                              . "<b>📍 Local:</b> {$locationName}";
                     
@@ -616,6 +657,13 @@ class PublicTerminalController extends Controller
                             ]
                         ]
                     ];
+
+                    // If meta will be reached, suggest reward
+                    if ($customer->points_balance + $pointsToAdd >= $goal) {
+                        $replyMarkup['inline_keyboard'][] = [
+                            ['text' => '🎁 PREMIAR AGORA!', 'callback_data' => "redeem_reward:{$customer->id}"]
+                        ];
+                    }
                     
                     $tgRes = $this->telegramService->sendPhoto($tenant->id, $customer->photo_url_full, $caption, 'points', $replyMarkup, $targetChatId);
                     

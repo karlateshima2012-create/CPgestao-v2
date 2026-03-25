@@ -107,6 +107,11 @@ class TelegramWebhookController extends Controller
             return response()->json(['status' => 'already_processed']);
         }
 
+        if (strpos($data, 'redeem_reward:') === 0) {
+            $customerId = str_replace('redeem_reward:', '', $data);
+            return $this->handleRedeemReward($customerId, $chatId, $messageId, $callbackQueryId, $callbackQuery);
+        }
+
         return response()->json(['status' => 'data_ignored']);
     }
 
@@ -288,5 +293,99 @@ class TelegramWebhookController extends Controller
         event(new \App\Events\PointRequestStatusUpdated($request));
 
         return response()->json(['status' => 'success']);
+    }
+
+    /**
+     * Handle Manual Reward Redemption from Telegram.
+     */
+    private function handleRedeemReward($customerId, $chatId, $messageId, $callbackQueryId, $callbackQuery)
+    {
+        $customer = \App\Models\Customer::find($customerId);
+        if (!$customer) {
+            $this->telegramService->answerCallbackQuery($callbackQueryId, "❌ Erro: Cliente não encontrado.", true);
+            return response()->json(['status' => 'not_found']);
+        }
+
+        $tenantId = $customer->tenant_id;
+        $loyalty = \App\Models\LoyaltySetting::where('tenant_id', $tenantId)->first();
+        if (!$loyalty) {
+            $this->telegramService->answerCallbackQuery($callbackQueryId, "❌ Erro: Fidelidade não configurada.", true);
+            return response()->json(['status' => 'error']);
+        }
+
+        $levelsConfig = $loyalty->levels_config;
+        $currentLevel = (int)($customer->loyalty_level ?? 1);
+        
+        // Get Goal
+        $settings = \App\Models\TenantSetting::where('tenant_id', $tenantId)->first();
+        $goal = 10; // Default
+        if ($settings && $settings->points_goal) $goal = (int)$settings->points_goal;
+        
+        $lvlIdx = max(0, $currentLevel - 1);
+        if (is_array($levelsConfig) && isset($levelsConfig[$lvlIdx])) {
+            $goal = (int)($levelsConfig[$lvlIdx]['goal'] ?? $goal);
+        }
+
+        if ($customer->points_balance < $goal) {
+            $this->telegramService->answerCallbackQuery($callbackQueryId, "⚠️ Saldo insuficiente ({$customer->points_balance}/{$goal}).", true);
+            return response()->json(['status' => 'insufficient_points']);
+        }
+
+        // Apply reward
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function() use ($customer, $loyalty, $goal, $currentLevel, $levelsConfig) {
+                $nextLevelIdx = $currentLevel; 
+                $pointsToAdd = (int)($loyalty->regular_points_per_scan ?? 1);
+                
+                if (is_array($levelsConfig) && isset($levelsConfig[$nextLevelIdx]) && isset($levelsConfig[$nextLevelIdx]['points_per_visit'])) {
+                    $pointsToAdd = (int) $levelsConfig[$nextLevelIdx]['points_per_visit'];
+                }
+
+                // Create a mock request for applyPoints
+                $mockRequest = (object)[
+                    'tenant_id' => $customer->tenant_id,
+                    'customer_id' => $customer->id,
+                    'requested_points' => $pointsToAdd,
+                    'id' => 'redeem_telegram_' . uniqid(),
+                    'source' => 'telegram_remote_manual',
+                    'meta' => [
+                        'is_redemption' => true,
+                        'goal' => $goal
+                    ]
+                ];
+
+                $service = app(\App\Services\PointRequestService::class);
+                $service->applyPoints($mockRequest);
+            });
+
+            $customer = $customer->fresh();
+            $this->telegramService->answerCallbackQuery($callbackQueryId, "🏆 RECOMPENSA ENTREGUE! 🏆");
+
+            $originalText = $callbackQuery['message']['text'] ?? $callbackQuery['message']['caption'] ?? '';
+            $newText = "🏆 <b>RECOMPENSA ENTREGUE!</b> 🏆\n"
+                     . "Cliente: <b>{$customer->name}</b>\n"
+                     . "Novo nível: <b>{$customer->loyalty_level_name}</b>\n"
+                     . "Ponto inicial: <b>{$customer->points_balance}</b>\n\n"
+                     . "<i>Ação realizada via Telegram</i>\n\n"
+                     . $originalText;
+
+            $markup = [
+                'inline_keyboard' => [
+                    [['text' => '🏆 PREMIADO (VIA TELEGRAM)', 'callback_data' => 'already_processed']]
+                ]
+            ];
+
+            if (isset($callbackQuery['message']['photo'])) {
+                $this->telegramService->editMessageCaption($chatId, $messageId, $newText, $markup);
+            } else {
+                $this->telegramService->editMessage($chatId, $messageId, $newText, $markup);
+            }
+
+            return response()->json(['status' => 'success']);
+        } catch (\Exception $e) {
+            Log::error('Telegram Redemption Error: ' . $e->getMessage());
+            $this->telegramService->answerCallbackQuery($callbackQueryId, "❌ Erro ao processar: " . $e->getMessage(), true);
+            return response()->json(['status' => 'error']);
+        }
     }
 }

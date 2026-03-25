@@ -66,6 +66,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/contacts/{id}', [ClientController::class, 'getContact']);
         Route::post('/contacts', [ClientController::class, 'storeContact']);
         Route::patch('/contacts/{id}', [ClientController::class, 'updateContact']);
+        Route::post('/contacts/{id}/redeem', [ClientController::class, 'redeemReward']);
         Route::delete('/contacts/{id}', [ClientController::class, 'deleteContact']);
 
         Route::get('/contacts/{id}/service-records', [\App\Http\Controllers\ServiceRecordController::class, 'index']);

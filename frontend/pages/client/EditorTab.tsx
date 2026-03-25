@@ -495,6 +495,45 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
     }
   };
 
+  const handleRedeemReward = async () => {
+    if (!selectedContact?.id) return;
+    try {
+      const res = await api.post(`/client/contacts/${selectedContact.id}/redeem`);
+
+      const updatedData = res.data?.data || res.data;
+      if (updatedData && typeof updatedData === 'object') {
+        // Mapear campos
+        const mappedData = {
+          ...updatedData,
+          pointsBalance: updatedData.points_balance ?? updatedData.pointsBalance ?? 0,
+          loyaltyLevel: updatedData.loyalty_level ?? updatedData.loyaltyLevel ?? 1,
+          postalCode: updatedData.postal_code ?? updatedData.postalCode,
+          totalSpent: updatedData.total_spent ?? updatedData.totalSpent ?? 0,
+          averageTicket: updatedData.average_ticket ?? updatedData.averageTicket ?? 0,
+          attendanceCount: updatedData.attendance_count ?? updatedData.attendanceCount ?? 0,
+          lastActivityAt: updatedData.last_activity_at ?? updatedData.lastActivityAt
+        };
+        setFormData(prev => ({ ...prev, ...mappedData }));
+      }
+
+      setSystemModal({
+        isOpen: true,
+        title: '🏆 META ALCANÇADA!',
+        message: 'Prêmio entregue com sucesso! O cliente avançou para o próximo nível.',
+        type: 'success'
+      });
+
+      onRefresh();
+    } catch (err: any) {
+      setSystemModal({
+        isOpen: true,
+        title: 'Ops!',
+        message: err.response?.data?.message || 'Erro ao processar premiação.',
+        type: 'error'
+      });
+    }
+  };
+
   const { time: displayTime, period } = getTimeDisplay(formData.reminderTime);
 
   return (
@@ -618,7 +657,7 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
       {selectedContact && (
         <Card className="p-8 border border-gray-200 dark:border-gray-800 w-full rounded-[24px]">
           <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2 mb-8"><Shield className="w-5 h-5 text-gray-400" /> Ações do Lojista</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Button
               variant="secondary"
               onClick={() => { setActionModal('add'); setActionData({ points: 1, reason: '' }); }}
@@ -641,7 +680,7 @@ export const EditorTab: React.FC<EditorTabProps> = ({ selectedContact, onSave, o
               className="h-24 flex flex-col items-center justify-center gap-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 hover:bg-gray-300 dark:hover:bg-gray-600 transition-all rounded-[20px] shadow-sm text-center px-4"
             >
               <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
-              <span className="text-[10px] font-black uppercase tracking-widest leading-tight">Registrar Visita Manual</span>
+              <span className="text-[10px] font-black uppercase tracking-widest leading-tight">Visita Manual</span>
             </Button>
           </div>
         </Card>

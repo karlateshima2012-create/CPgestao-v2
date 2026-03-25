@@ -259,6 +259,59 @@ class ClientController extends Controller
         return ApiResponse::ok($customer, 'Contato atualizado com sucesso');
     }
 
+    /**
+     * Manually award a prize (Premiar) and move customer to the next level.
+     */
+    public function redeemReward(Request $request, $id)
+    {
+        $tenantId = auth()->user()->tenant_id;
+        $customer = Customer::where('tenant_id', $tenantId)->findOrFail($id);
+        
+        $loyalty = LoyaltySetting::where('tenant_id', $tenantId)->first();
+        if (!$loyalty) return ApiResponse::error('Fidelidade não configurada', 'LOYALTY_NOT_FOUND', 404);
+        
+        $levelsConfig = $loyalty->levels_config;
+        $currentLevel = (int)($customer->loyalty_level ?? 1);
+        
+        $goal = $request->user()->tenant->points_goal;
+        $lvlIdx = max(0, $currentLevel - 1);
+        if (is_array($levelsConfig) && isset($levelsConfig[$lvlIdx])) {
+            $goal = (int)($levelsConfig[$lvlIdx]['goal'] ?? $goal);
+        }
+        
+        if ($customer->points_balance < $goal) {
+            $levelName = $levelsConfig[$lvlIdx]['name'] ?? 'atual';
+            return ApiResponse::error("Saldo insuficiente ({$customer->points_balance}/{$goal}) para resgate no nível {$levelName}", 'INSUFFICIENT_POINTS', 400);
+        }
+
+        return DB::transaction(function () use ($customer, $loyalty, $goal, $currentLevel, $levelsConfig) {
+            $nextLevelIdx = $currentLevel; 
+            $pointsToAdd = (int)($loyalty->regular_points_per_scan ?? 1);
+            
+            if (is_array($levelsConfig) && isset($levelsConfig[$nextLevelIdx]) && isset($levelsConfig[$nextLevelIdx]['points_per_visit'])) {
+                $pointsToAdd = (int) $levelsConfig[$nextLevelIdx]['points_per_visit'];
+            }
+
+            // Create a mock request for applyPoints
+            $mockRequest = (object)[
+                'tenant_id' => $customer->tenant_id,
+                'customer_id' => $customer->id,
+                'requested_points' => $pointsToAdd,
+                'id' => 'redeem_manual_' . uniqid(),
+                'source' => 'crm_manual',
+                'meta' => [
+                    'is_redemption' => true,
+                    'goal' => $goal
+                ]
+            ];
+
+            $service = new \App\Services\PointRequestService();
+            $service->applyPoints($mockRequest);
+
+            return ApiResponse::ok($customer->fresh(), "Premiação realizada com sucesso! O cliente avançou para o próximo nível.");
+        });
+    }
+
 
     public function getContactReminders(Request $request, $id)
     {
@@ -672,14 +725,31 @@ class ClientController extends Controller
             $loyalty = LoyaltySetting::where('tenant_id', $tenantId)->first();
             $pointsGoal = $loyalty ? $loyalty->points_goal : 10;
             
-            $nearRewardCount = Customer::where('points_balance', '>=', $pointsGoal * 0.8)
-                                       ->where('points_balance', '<', $pointsGoal)
+            // Accurate Met Goal check based on first level goal (usually the main one)
+            $firstLvlGoal = (is_array($loyalty->levels_config) && isset($loyalty->levels_config[0])) 
+                ? (int)($loyalty->levels_config[0]['goal'] ?? $pointsGoal)
+                : $pointsGoal;
+
+            $metGoalCount = Customer::where('points_balance', '>=', $firstLvlGoal)->count();
+
+            $nearRewardCount = Customer::where('points_balance', '>=', $firstLvlGoal * 0.8)
+                                       ->where('points_balance', '<', $firstLvlGoal)
                                        ->count();
                                        
             $inactive30d = Customer::where('last_activity_at', '<=', now()->subDays(30))
                                    ->count();
 
             $suggestions = [];
+            
+            if ($metGoalCount > 0) {
+                $suggestions[] = [
+                    'type' => 'success',
+                    'title' => '🏆 Premiação Disponível',
+                    'text' => "{$metGoalCount} clientes atingiram a meta e aguardam premiação",
+                    'color' => 'emerald'
+                ];
+            }
+
             if ($nearRewardCount > 0) {
                 $suggestions[] = [
                     'type' => 'opportunity',
@@ -725,6 +795,7 @@ class ClientController extends Controller
                     ->orderBy('reminder_date', 'asc')
                     ->orderBy('reminder_time', 'asc')
                     ->paginate(6, ['*'], 'reminders_page'),
+                'met_goal_count' => $metGoalCount,
             ]);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Dashboard Metrics Error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());

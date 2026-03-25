@@ -29,17 +29,9 @@ class PointRequestService
                 $initialLevelPoints = 0;
                 $nextLevel = ($customer->loyalty_level ?? 1) + 1;
                 
-                if ($loyalty && is_array($loyalty->levels_config)) {
-                    // level uses 1-based indexing in customer, so index is nextLevel - 1
-                    $nextLevelIdx = $nextLevel - 1;
-                    if (isset($loyalty->levels_config[$nextLevelIdx])) {
-                        $initialLevelPoints = (int)($loyalty->levels_config[$nextLevelIdx]['initial_points'] ?? 0);
-                    }
-                }
-
                 // Update customer state
-                // New Balance = (Remaining from previous level) + visit points + new level initial bonus
-                $customer->points_balance = ($customer->points_balance - $goal) + $pointsToAddRaw + $initialLevelPoints;
+                // Level-up: Reset balance to the visit points of the NEW level (no carry over)
+                $customer->points_balance = $pointsToAddRaw;
                 $customer->loyalty_level = $nextLevel;
                 $customer->attendance_count = ($customer->attendance_count ?? 0) + 1;
                 $customer->last_activity_at = now();

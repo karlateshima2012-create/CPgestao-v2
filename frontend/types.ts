@@ -147,4 +147,5 @@ export interface Visit {
     reason?: string;
     [key: string]: any;
   };
+  customer?: Contact;
 }
