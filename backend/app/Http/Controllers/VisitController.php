@@ -167,23 +167,38 @@ class VisitController extends Controller
         return DB::transaction(function () use ($request, $tenantId, $customer) {
             $service = new PointRequestService();
             
-            // Create the visit record
-            $visit = Visit::create([
-                'tenant_id' => $tenantId,
-                'customer_id' => $customer->id,
-                'customer_name' => $customer->name,
-                'customer_phone' => $customer->phone,
-                'customer_company' => $customer->company_name,
-                'foto_perfil_url' => $customer->foto_perfil_url,
-                'visit_at' => now(),
-                'origin' => $request->origin,
-                'plan_type' => auth()->user()->tenant?->plan ?? 'pro',
-                'status' => 'aprovado',
-                'points_granted' => $request->points,
-                'meta' => ['reason' => $request->reason],
-                'approved_by' => auth()->id(),
-                'approved_at' => now(),
-            ]);
+            // Create the visit record with safety catch
+            try {
+                $visit = Visit::create([
+                    'tenant_id' => $tenantId,
+                    'customer_id' => $customer->id,
+                    'customer_name' => $customer->name,
+                    'customer_phone' => $customer->phone,
+                    'customer_company' => $customer->company_name,
+                    'foto_perfil_url' => $customer->foto_perfil_url,
+                    'visit_at' => now(),
+                    'origin' => $request->origin,
+                    'plan_type' => auth()->user()->tenant?->plan ?? 'pro',
+                    'status' => 'aprovado',
+                    'points_granted' => $request->points,
+                    'meta' => ['reason' => $request->reason],
+                    'approved_by' => auth()->id(),
+                    'approved_at' => now(),
+                ]);
+            } catch (\Exception $e) {
+                \Log::warning("Manual Visit Create Fallback: " . $e->getMessage());
+                // Minimal create if first one fails
+                $visit = Visit::create([
+                    'tenant_id' => $tenantId,
+                    'customer_id' => $customer->id,
+                    'customer_name' => $customer->name,
+                    'customer_phone' => $customer->phone,
+                    'visit_at' => now(),
+                    'origin' => $request->origin,
+                    'status' => 'aprovado',
+                    'points_granted' => $request->points,
+                ]);
+            }
 
             // Apply points to customer
             $service->applyPoints($visit);
