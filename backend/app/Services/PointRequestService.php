@@ -54,34 +54,42 @@ class PointRequestService
                 $source = $isVisit ? $request->origin : $request->source;
 
                 // Log Redemption Movement
-                PointMovement::create([
-                    'tenant_id' => $request->tenant_id,
-                    'customer_id' => $customer->id,
-                    'type' => 'redeem',
-                    'points' => -$goal,
-                    'origin' => $source,
-                    'device_id' => ($request instanceof \App\Models\PointRequest) ? $request->device_id : null,
-                    'description' => 'Resgate de prêmio via: ' . $request->id,
-                    'meta' => [
-                        'request_id' => $request->id,
-                        'goal' => $goal,
-                        'new_level' => $customer->loyalty_level,
-                    ]
-                ]);
+                try {
+                    PointMovement::create([
+                        'tenant_id' => $request->tenant_id,
+                        'customer_id' => $customer->id,
+                        'type' => 'redeem',
+                        'points' => -$goal,
+                        'origin' => $source,
+                        'device_id' => ($request instanceof \App\Models\PointRequest) ? $request->device_id : null,
+                        'description' => 'Resgate de prêmio via: ' . $request->id,
+                        'meta' => [
+                            'request_id' => $request->id,
+                            'goal' => $goal,
+                            'new_level' => $customer->loyalty_level,
+                        ]
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::warning("PointMovement REDEEM failed logs: " . $e->getMessage());
+                }
 
                 // Log Earn Movement
-                PointMovement::create([
-                    'tenant_id' => $request->tenant_id,
-                    'customer_id' => $customer->id,
-                    'type' => 'earn',
-                    'points' => $pointsToAddRaw,
-                    'origin' => $source,
-                    'device_id' => ($request instanceof \App\Models\PointRequest) ? $request->device_id : null,
-                    'description' => 'Pontos da visita (Resgate) via: ' . $request->id,
-                    'meta' => [
-                        'request_id' => $request->id,
-                    ]
-                ]);
+                try {
+                    PointMovement::create([
+                        'tenant_id' => $request->tenant_id,
+                        'customer_id' => $customer->id,
+                        'type' => 'earn',
+                        'points' => $pointsToAddRaw,
+                        'origin' => $source,
+                        'device_id' => ($request instanceof \App\Models\PointRequest) ? $request->device_id : null,
+                        'description' => 'Pontos da visita (Resgate) via: ' . $request->id,
+                        'meta' => [
+                            'request_id' => $request->id,
+                        ]
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::warning("PointMovement EARN (resgate) failed logs: " . $e->getMessage());
+                }
             } else {
                 // Simple Credit
                 $customer->increment('points_balance', $pointsToAddRaw);
@@ -101,19 +109,24 @@ class PointRequestService
                     ? ($reason ? "Ajuste manual: $reason" : 'Ajuste manual de pontos')
                     : ($reason ? "Lojista: $reason" : 'Pontos creditados via: ' . $request->id);
 
-                PointMovement::create([
-                    'tenant_id' => $request->tenant_id,
-                    'customer_id' => $customer->id,
-                    'type' => $isAdjustment ? 'adjustment' : 'earn',
-                    'points' => $pointsToAddRaw,
-                    'origin' => $source,
-                    'device_id' => ($request instanceof \App\Models\PointRequest) ? $request->device_id : null,
-                    'description' => $finalDescription,
-                    'meta' => [
-                        'request_id' => $request->id,
-                        'reason' => $reason
-                    ]
-                ]);
+                // Log Adjustment Movement
+                try {
+                    PointMovement::create([
+                        'tenant_id' => $request->tenant_id,
+                        'customer_id' => $customer->id,
+                        'type' => $isAdjustment ? 'adjustment' : 'earn',
+                        'points' => $pointsToAddRaw,
+                        'origin' => $source,
+                        'device_id' => ($request instanceof \App\Models\PointRequest) ? $request->device_id : null,
+                        'description' => $finalDescription,
+                        'meta' => [
+                            'request_id' => $request->id,
+                            'reason' => $reason
+                        ]
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::warning("PointMovement LOGGING failed: " . $e->getMessage());
+                }
             }
 
             return true;
