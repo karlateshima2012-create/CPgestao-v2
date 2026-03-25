@@ -150,24 +150,24 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
       {/* Link de Divulgação Social */}
       <section className="relative overflow-hidden group">
         <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 via-transparent to-primary-500/5 dark:from-primary-900/20 pointer-events-none rounded-[32px]" />
-        <Card className="p-8 border-primary-100 dark:border-primary-900/30 bg-white/40 dark:bg-slate-900/40 backdrop-blur-sm rounded-[32px] shadow-sm flex flex-col md:flex-row items-center justify-between gap-8 border-2 border-dashed">
-          <div className="flex items-center gap-6">
-            <div className="w-16 h-16 rounded-2xl bg-primary-500 flex items-center justify-center text-white shadow-xl shadow-primary-500/20 group-hover:scale-110 transition-transform">
-              <Smartphone className="w-8 h-8" />
+        <Card className="p-4 sm:p-6 border-primary-100 dark:border-primary-900/30 bg-white/40 dark:bg-emerald-900/10 backdrop-blur-sm rounded-[32px] shadow-sm flex flex-col xl:flex-row items-center justify-between gap-6 border-2 border-dashed">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-primary-500 flex items-center justify-center text-white shadow-xl shadow-primary-500/20 group-hover:scale-105 transition-transform">
+              <Smartphone className="w-6 h-6 sm:w-7 sm:h-7" />
             </div>
-            <div className="space-y-1">
-              <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Link de Divulgação nas Redes Sociais</h3>
-              <p className="text-sm font-bold text-slate-500 dark:text-slate-400"></p>
+            <div className="space-y-0.5">
+              <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight leading-tight">Link de Divulgação nas Redes Sociais</h3>
+              <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Aumente sua visibilidade</p>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-            <div className="bg-white dark:bg-slate-800 px-6 py-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 font-mono text-xs text-slate-500 dark:text-slate-400 flex-1 md:flex-none md:min-w-[300px] text-center shadow-inner">
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto">
+            <div className="bg-white dark:bg-slate-800 px-4 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 font-mono text-[11px] text-slate-500 dark:text-slate-400 flex-1 xl:flex-none xl:min-w-[250px] text-center shadow-inner overflow-hidden truncate">
               {window.location.origin}/p/{tenantSlug}
             </div>
             <Button
               onClick={onCopyLink}
-              className={`h-14 px-8 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all shadow-lg ${copiedLink ? 'bg-emerald-500 text-white' : 'bg-primary-500 text-white hover:bg-primary-600'}`}
+              className={`h-11 px-6 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all shadow-lg flex-shrink-0 ${copiedLink ? 'bg-emerald-500 text-white' : 'bg-primary-500 text-white hover:bg-primary-600'}`}
             >
               {copiedLink ? 'copiado! ✅' : 'copiar'}
             </Button>
