@@ -44,7 +44,21 @@ export const VisitRecordsTab: React.FC = () => {
                 customer: customerFilter
             };
             const res = await api.get('/client/visits', { params });
-            setVisits(res.data.visits.data);
+            const mappedVisits = res.data.visits.data.map((v: any) => {
+                if (v.customer) {
+                    return {
+                        ...v,
+                        customer: {
+                            ...v.customer,
+                            pointsBalance: v.customer.points_balance ?? v.customer.pointsBalance ?? 0,
+                            loyaltyLevel: v.customer.loyalty_level ?? v.customer.loyaltyLevel ?? 1,
+                            loyalty_level_name: v.customer.loyalty_level_name ?? v.customer.loyaltyLevelName
+                        }
+                    };
+                }
+                return v;
+            });
+            setVisits(mappedVisits);
             setPagination({
                 current_page: res.data.visits.current_page,
                 last_page: res.data.visits.last_page,
@@ -150,7 +164,7 @@ export const VisitRecordsTab: React.FC = () => {
 
     const getCustomerGoal = (customer: any) => {
         if (!loyaltySettings || !customer) return 10;
-        const levelIdx = Math.max(0, (customer.loyalty_level || 1) - 1);
+        const levelIdx = Math.max(0, (customer.loyaltyLevel || 1) - 1);
         const config = loyaltySettings.levels_config?.[levelIdx];
         return config?.goal || loyaltySettings.points_goal || 10;
     };
@@ -268,9 +282,14 @@ export const VisitRecordsTab: React.FC = () => {
                                                 <div className="flex flex-col">
                                                     <div className="flex items-center gap-2">
                                                         <span className="text-sm font-bold text-gray-900 dark:text-white capitalize">{v.customer_name}</span>
-                                                        {v.customer?.loyalty_level_name && (
-                                                            <Badge color={v.customer.loyaltyLevel === 1 ? 'bronze' : v.customer.loyaltyLevel === 2 ? 'silver' : v.customer.loyaltyLevel === 3 ? 'gold' : 'diamond'} className="py-0 px-2 h-5 text-[9px]">
-                                                                {v.customer.loyalty_level_name}
+                                                        {v.customer && (
+                                                            <Badge color={v.customer.loyaltyLevel === 4 ? 'diamond' : v.customer.loyaltyLevel === 3 ? 'gold' : v.customer.loyaltyLevel === 2 ? 'silver' : 'bronze'}>
+                                                                {v.customer.loyalty_level_name || (
+                                                                    v.customer.loyaltyLevel === 4 ? '💎 Diamante' :
+                                                                        v.customer.loyaltyLevel === 3 ? '🥇 Ouro' :
+                                                                            v.customer.loyaltyLevel === 2 ? '🥈 Prata' :
+                                                                                '🥉 Bronze'
+                                                                )}
                                                             </Badge>
                                                         )}
                                                     </div>
