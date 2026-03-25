@@ -136,14 +136,18 @@ class ClientController extends Controller
                 $request->user()->tenant->verifyAndNotifyLimit();
 
                 if ($initialPoints > 0) {
-                    \App\Models\PointMovement::create([
-                        'tenant_id' => $customer->tenant_id,
-                        'customer_id' => $customer->id,
-                        'type' => 'earn',
-                        'points' => $initialPoints,
-                        'origin' => 'crm_manual',
-                        'description' => 'Saldo inicial via CRM'
-                    ]);
+                    try {
+                        \App\Models\PointMovement::create([
+                            'tenant_id' => $customer->tenant_id,
+                            'customer_id' => $customer->id,
+                            'type' => 'earn',
+                            'points' => $initialPoints,
+                            'origin' => 'crm_manual',
+                            'description' => 'Saldo inicial via CRM'
+                        ]);
+                    } catch (\Exception $e) {
+                        \Log::warning("PointMovement Initial Balance Fallback: " . $e->getMessage());
+                    }
                 }
 
                 if ($signupBonus > 0) {
@@ -227,13 +231,24 @@ class ClientController extends Controller
             $diff = $newPoints - $oldPoints;
             
             if ($diff !== 0) {
-                \App\Models\PointMovement::create([
-                    'customer_id' => $customer->id,
-                    'type' => $diff > 0 ? 'earn' : 'redeem',
-                    'points' => $diff,
-                    'origin' => 'crm_manual',
-                    'description' => 'Ajuste manual via CRM'
-                ]);
+                try {
+                    \App\Models\PointMovement::create([
+                        'tenant_id' => $customer->tenant_id,
+                        'customer_id' => $customer->id,
+                        'type' => $diff > 0 ? 'earn' : 'redeem',
+                        'points' => abs($diff),
+                        'origin' => 'crm_manual',
+                        'description' => 'Ajuste manual via CRM'
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::warning("PointMovement CRM Adjustment Fallback: " . $e->getMessage());
+                    // Minimal fallback for PointMovement
+                    \App\Models\PointMovement::create([
+                        'customer_id' => $customer->id,
+                        'type' => $diff > 0 ? 'earn' : 'redeem',
+                        'points' => abs($diff),
+                    ]);
+                }
             }
         }
 

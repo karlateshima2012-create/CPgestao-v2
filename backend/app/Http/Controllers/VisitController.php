@@ -180,23 +180,21 @@ class VisitController extends Controller
                     'origin' => $request->origin,
                     'plan_type' => auth()->user()->tenant?->plan ?? 'pro',
                     'status' => 'aprovado',
-                    'points_granted' => $request->points,
+                    'points_granted' => (int)$request->points,
                     'meta' => ['reason' => $request->reason],
                     'approved_by' => auth()->id(),
                     'approved_at' => now(),
                 ]);
             } catch (\Exception $e) {
-                \Log::warning("Manual Visit Create Fallback: " . $e->getMessage());
-                // Minimal create if first one fails
+                \Log::error("CRITICAL: Manual Visit Create Failed, applying minimal fallback: " . $e->getMessage());
+                // Minimal create if first one fails - Only fields guaranteed by all versions
                 $visit = Visit::create([
                     'tenant_id' => $tenantId,
                     'customer_id' => $customer->id,
                     'customer_name' => $customer->name,
                     'customer_phone' => $customer->phone,
                     'visit_at' => now(),
-                    'origin' => $request->origin,
-                    'status' => 'aprovado',
-                    'points_granted' => $request->points,
+                    'points_granted' => (int)$request->points,
                 ]);
             }
 
