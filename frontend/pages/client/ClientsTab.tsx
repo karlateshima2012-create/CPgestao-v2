@@ -68,14 +68,14 @@ export const ClientsTab: React.FC<ClientsTabProps> = ({ contacts, onEdit, onDele
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
+        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-800">
+          <table className="w-full border-collapse min-w-[1000px]">
             <thead>
               <tr className="border-b border-gray-100 dark:border-gray-800">
-                <th className="px-8 py-5 text-left text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Cliente</th>
-                <th className="px-8 py-5 text-left text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Cidade</th>
-                <th className="px-8 py-5 text-center text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Pontos</th>
-                <th className="px-8 py-5 text-right text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Ações</th>
+                <th className="px-4 sm:px-8 py-5 text-left text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest min-w-[280px]">Cliente</th>
+                <th className="px-4 py-5 text-left text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Cidade</th>
+                <th className="px-4 py-5 text-center text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Pontos</th>
+                <th className="px-4 sm:px-8 py-5 text-right text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
@@ -158,7 +158,7 @@ export const ClientsTab: React.FC<ClientsTabProps> = ({ contacts, onEdit, onDele
                     </div>
                   </td>
                   <td className="px-8 py-5 text-right">
-                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center justify-end gap-2 transition-opacity">
                       <button
                         onClick={(e) => { e.stopPropagation(); onEdit(contact); }}
                         className="p-2.5 text-gray-400 hover:text-gray-900 hover:bg-white dark:hover:bg-gray-800 rounded-xl transition-all shadow-sm hover:shadow-md border border-transparent hover:border-gray-100 dark:hover:border-gray-700"

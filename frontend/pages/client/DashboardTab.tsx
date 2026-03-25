@@ -161,15 +161,15 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-2 w-full lg:w-auto">
-            <div className="bg-white dark:bg-slate-800 px-3 py-2 rounded-2xl border border-slate-200 dark:border-slate-700 font-mono text-[10px] text-slate-500 dark:text-slate-400 flex-1 lg:flex-none lg:min-w-[220px] max-w-full text-center shadow-inner overflow-hidden truncate">
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+            <div className="bg-white dark:bg-slate-800 px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 font-mono text-[11px] text-slate-500 dark:text-slate-400 flex-1 lg:flex-none lg:min-w-[280px] max-w-full text-center shadow-inner overflow-hidden truncate">
               {window.location.host}/p/{tenantSlug}
             </div>
             <Button
               onClick={onCopyLink}
-              className={`h-10 px-5 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all shadow-lg flex-shrink-0 ${copiedLink ? 'bg-emerald-500 text-white' : 'bg-primary-500 text-white hover:bg-primary-600'}`}
+              className={`h-12 px-8 w-full sm:w-auto rounded-2xl font-black uppercase text-[11px] tracking-widest transition-all shadow-lg flex-shrink-0 ${copiedLink ? 'bg-emerald-500 text-white' : 'bg-primary-500 text-white hover:bg-primary-600'}`}
             >
-              {copiedLink ? 'OK! ✅' : 'copiar'}
+              {copiedLink ? 'COPIADO! ✅' : 'COPIAR LINK'}
             </Button>
           </div>
         </Card>

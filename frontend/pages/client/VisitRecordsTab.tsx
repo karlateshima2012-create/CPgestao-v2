@@ -237,18 +237,18 @@ export const VisitRecordsTab: React.FC = () => {
             </div>
 
             {/* Tabela de Visitas */}
-            <div className="bg-white dark:bg-gray-900 rounded-[32px] border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+            <div className="bg-white dark:bg-gray-900 rounded-[32px] border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden relative">
+                <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-800">
+                    <table className="w-full text-left border-collapse min-w-[1100px]">
                         <thead>
                             <tr className="bg-gray-50/50 dark:bg-gray-800/50">
-                                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Cliente</th>
-                                <th className="px-4 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Pontos</th>
-                                <th className="px-4 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Origem</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Status</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Horário</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Saldo</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Ações</th>
+                                <th className="px-4 sm:px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest min-w-[280px]">Cliente</th>
+                                <th className="px-2 sm:px-4 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Pontos</th>
+                                <th className="px-2 sm:px-4 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Origem</th>
+                                <th className="px-4 sm:px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Status</th>
+                                <th className="px-4 sm:px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Horário</th>
+                                <th className="px-4 sm:px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Saldo</th>
+                                <th className="px-4 sm:px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Ações</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50 dark:divide-gray-800">

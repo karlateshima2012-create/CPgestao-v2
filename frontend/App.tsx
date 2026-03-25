@@ -571,8 +571,9 @@ const App: React.FC = () => {
             )}
           </div>
         </header>
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth bg-[#f8fafc] dark:bg-gray-950">
-          <div className="max-w-7xl mx-auto">
+        <div className="flex-1 overflow-y-auto p-2 sm:p-4 md:p-8 scroll-smooth bg-[#f8fafc] dark:bg-gray-950">
+          <div className="max-w-[1400px] mx-auto w-full px-1">
+
             {authRole === 'admin' ? (
               <AdminDashboard />
             ) : blockedReason ? (
