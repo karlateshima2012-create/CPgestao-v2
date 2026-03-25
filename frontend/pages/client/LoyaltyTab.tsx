@@ -17,9 +17,9 @@ interface LevelConfig {
 
 const defaultLevels: LevelConfig[] = [
    { name: 'Bronze', goal: 10, reward: '', points_per_visit: 1, points_per_signup: 1, days_to_downgrade: 0, active: true },
-   { name: 'Prata', goal: 20, reward: '', points_per_visit: 2, points_per_signup: 1, days_to_downgrade: 30, active: true },
-   { name: 'Ouro', goal: 30, reward: '', points_per_visit: 3, points_per_signup: 1, days_to_downgrade: 30, active: true },
-   { name: 'Diamante', goal: 50, reward: '', points_per_visit: 5, points_per_signup: 1, days_to_downgrade: 30, active: true } // Valor padrão ajustado para 5 conforme solicitado
+   { name: 'Prata', goal: 24, reward: '', points_per_visit: 2, points_per_signup: 1, days_to_downgrade: 30, active: true },
+   { name: 'Ouro', goal: 45, reward: '', points_per_visit: 3, points_per_signup: 1, days_to_downgrade: 30, active: true },
+   { name: 'Diamante', goal: 80, reward: '', points_per_visit: 5, points_per_signup: 1, days_to_downgrade: 30, active: true }
 ];
 
 interface LoyaltyTabProps {
