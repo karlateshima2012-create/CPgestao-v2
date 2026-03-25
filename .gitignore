@@ -14,5 +14,6 @@ backend/storage/framework/cache/*
 frontend/dist/
 .vscode/
 .idea/
-CP_GESTAO_DEPLOY_COMPLETE.zip
+*.zip
 PACOTE_DEPLOY_CP_GESTAO/
+api/
