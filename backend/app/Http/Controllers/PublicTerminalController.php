@@ -1106,13 +1106,15 @@ class PublicTerminalController extends Controller
     /**
      * Robust phone lookup that handles variations in prefixes.
      */
+    private function findCustomer($tenantId, $phoneInput)
+    {
         $raw = preg_replace('/\D/', '', (string)$phoneInput);
         $norm = PhoneHelper::normalize((string)$phoneInput);
         
         $variations = [$raw, $norm];
         
         // Variations for Japan (0 vs 81 vs no prefix)
-        // Using substr logic for max compatibility
+        // Using strpos logic for max compatibility
         if (strpos($norm, '0') === 0 && strlen($norm) >= 10) {
             $noPrefix = substr($norm, 1);
             $variations[] = $noPrefix;
@@ -1129,7 +1131,7 @@ class PublicTerminalController extends Controller
             $variations[] = '81' . $norm;
         }
         
-        $variations = array_unique(array_filter($variations, fn($v) => !empty($v)));
+        $variations = array_unique(array_filter($variations, function($v) { return !empty($v); }));
 
         $customer = Customer::withoutGlobalScopes()
             ->where('tenant_id', $tenantId)
@@ -1142,3 +1144,4 @@ class PublicTerminalController extends Controller
         ];
     }
 }
+
