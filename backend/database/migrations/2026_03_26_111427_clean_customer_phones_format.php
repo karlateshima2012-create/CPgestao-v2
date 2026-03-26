@@ -13,7 +13,18 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // 0. Corrigir bloqueador de índices duplicados de migrações anteriores
+        try {
+            Schema::table('customers', function (Blueprint $table) {
+                // Drop if exists (Safety for old broken migrations)
+                $table->dropIndex('customers_tenant_id_created_at_index');
+            });
+        } catch (\Exception $e) {
+            // Ignore if index doesn't exist
+        }
+
         // 1. Limpar e padronizar todos os telefones existentes
+
         DB::table('customers')->get()->each(function ($customer) {
             if ($customer->phone) {
                 $normalized = PhoneHelper::normalize($customer->phone);

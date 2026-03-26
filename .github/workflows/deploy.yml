@@ -137,10 +137,11 @@ jobs:
             # Garantir que a pasta de destino do link existe
             mkdir -p storage/app/public/clientes/thumbs
             
-            # Criar link na pasta public do laravel (para compatibilidade interna)
-            php artisan storage:link || true
+            # Limpar migrações órfãs que estão travando o sistema
+            rm database/migrations/2026_03_18_232448_add_performance_indexes_to_tables.php || true
             
             # Criar link na raiz do site (para o frontend e telegram)
+
             # Usamos caminho absoluto para evitar erros de resolução no apache
             # Usamos -sf para forçar a criação mesmo que já exista
             ln -sf $ROOT_PATH/api_backend/storage/app/public $ROOT_PATH/storage || true
