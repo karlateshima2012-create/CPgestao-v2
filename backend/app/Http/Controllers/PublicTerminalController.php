@@ -1162,12 +1162,8 @@ class PublicTerminalController extends Controller
         
         return ['customer' => null, 'variations' => $variations];
     }
-
-    private function createPointRequest(array $data)
-    {
-        return \App\Models\PointRequest::create($data);
-    }
 }
+
 
 
 
