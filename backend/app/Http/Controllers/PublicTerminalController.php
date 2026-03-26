@@ -1134,11 +1134,20 @@ class PublicTerminalController extends Controller
     }
     private function findCustomer($tenantId, $phoneInput)
     {
-        // 1. Normalize input using the strict helper (Only digits)
-        $normalized = PhoneHelper::normalize($phoneInput);
+        // 1. INLINE normalization to ensure digits-only (Steel-reinforced)
+        /** @var string $normalized */
+        $normalized = preg_replace('/\D/', '', (string)$phoneInput);
+
+        // Standard Japan normalization (81 -> 0, and single leading 0)
+        if (str_starts_with($normalized, '81') && strlen($normalized) >= 11) {
+             $normalized = substr($normalized, 2);
+        }
+        $normalized = ltrim($normalized, '0');
+        if (!empty($normalized)) {
+            $normalized = '0' . $normalized;
+        }
         
-        // 2. Direct database query bypassing Eloquent scopes for maximum reliability
-        // Now that storage is standardized, we use exact matching.
+        // 2. Exact match on standardized storage
         $dbCustomer = DB::table('customers')
             ->where('tenant_id', $tenantId)
             ->where('phone', $normalized)
@@ -1148,15 +1157,17 @@ class PublicTerminalController extends Controller
         if ($dbCustomer) {
             $customer = Customer::withoutGlobalScopes()->find($dbCustomer->id);
         } else {
-             \Illuminate\Support\Facades\Log::debug("FIND_CUSTOMER: Not found | Input: {$phoneInput} | Normalized: {$normalized} | Tenant: {$tenantId}");
+             \Illuminate\Support\Facades\Log::debug("FIND_CUSTOMER: No match | Input: {$phoneInput} | Norm: {$normalized} | Tenant: {$tenantId}");
         }
         
         return [
             'customer' => $customer,
-            'variations' => [$normalized]
+            'variations' => [$normalized],
+            'v' => '2.5.1' // Version flag to verify deploy
         ];
     }
 }
+
 
 
 
