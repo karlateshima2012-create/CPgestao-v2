@@ -6,7 +6,8 @@ use App\Models\Customer;
 use App\Models\Tenant;
 use App\Models\Device;
 use App\Models\Visit;
-use App\Utils\ApiResponse;
+use App\Http\Responses\ApiResponse;
+
 use App\Services\TelegramService;
 use App\Jobs\SendTelegramNotificationJob;
 
