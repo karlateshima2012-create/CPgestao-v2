@@ -30,10 +30,25 @@ jobs:
           extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql
           coverage: none
 
-      - name: Install Backend Dependencies
+      - name: Install Backend Dependencies (For Analysis)
         working-directory: ./backend
         run: |
+          # 1. Baixa o código incluindo o Larastan
+          composer install --optimize-autoloader
+
+      - name: Run Static Analysis (PHPStan Firewall)
+        working-directory: ./backend
+        run: |
+          # 2. Roda a vasculha do código.
+          # Se o PHPStan apontar "Undefined Variable", o deploy aborta AQUI e não quebra o sistema ao vivo.
+          ./vendor/bin/phpstan analyse --error-format=github
+
+      - name: Prepare Clean Backend Dependencies
+        working-directory: ./backend
+        run: |
+          # 3. Análise passou com sucesso! Remove o Larastan do projeto prático para poupar espaço da Hostinger.
           composer install --no-dev --optimize-autoloader
+
 
       - name: Prepare Deployment Package
         run: |

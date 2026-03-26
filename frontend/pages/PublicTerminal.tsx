@@ -426,22 +426,33 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
       }
     } catch (error: any) {
       const msg = error.response?.data?.message || 'Ocorreu um erro. Tente novamente.';
-      // Se for um erro do sistema (como cooldown ou limite), mostramos o modal.
-      // Se for apenas erro de lookup de dispositivo (404), aí sim poderíamos cair no VISIT_NOT_FOUND, 
-      // mas com os argumentos certos isso não deve acontecer para números válidos.
+      const status = error.response?.status;
 
-      if (error.response?.status === 429 || error.response?.status === 403 || error.response?.status === 409) {
+      // Erros de Regra de Negócio (Limites, Cooldown, Validação)
+      if (status === 429 || status === 403 || status === 409) {
         setModal({
           isOpen: true,
           title: 'Atenção',
           message: msg,
           type: 'warning'
         });
-      } else {
+      }
+      // [NOVO TRAMPO] - Erros Sérios e Internais (Crash de Banco, Variável não Exsite, etc)
+      else if (status >= 500) {
+        console.error("ERRO 500 RECEBIDO DA API:", error);
+        setModal({
+          isOpen: true,
+          title: 'Erro de Comunicação',
+          message: 'Houve uma instabilidade momentânea no processamento do seu ponto. Por favor, avise o balcão ou tente novamente em alguns minutos.',
+          type: 'error'
+        });
+      }
+      // Erro 404 Not Found original ou Sem Resposta.
+      else {
         setMode('VISIT_NOT_FOUND');
       }
-    }
-    finally {
+    } finally {
+
       setLoading(false);
     }
   };
