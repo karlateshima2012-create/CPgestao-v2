@@ -236,9 +236,11 @@ class PublicTerminalController extends Controller
         if (!$customer) {
             return ApiResponse::ok([
                 'customer_exists' => false,
-                'points_balance' => 0
+                'points_balance' => 0,
+                'debug_variations' => $variations // Helpful for troubleshooting
             ]);
         }
+
 
         $balance = $customer->points_balance;
         $loyalty = \App\Models\LoyaltySetting::withoutGlobalScopes()->where('tenant_id', $tenant->id)->first();
@@ -381,6 +383,8 @@ class PublicTerminalController extends Controller
 
             $res = $this->findCustomer($tenant->id, $request->phone);
             $customer = $res['customer'];
+            $phone = PhoneHelper::normalize($request->phone);
+
 
 
             $isNew = false;
@@ -942,11 +946,14 @@ class PublicTerminalController extends Controller
                 }
 
                 $phone = PhoneHelper::normalize($data['phone']);
+                
+                // CRITICAL: Use SAME logic as lookup to detect already registered customers
+                $existing = $this->findCustomer($tenant->id, $data['phone']);
 
-                // Check for existing
-                if (Customer::withoutGlobalScopes()->where('tenant_id', $tenant->id)->where('phone', $phone)->exists()) {
+                if ($existing['customer']) {
                     return ApiResponse::error('Este número de telefone já está cadastrado nesta loja. Para visualizar os pontos, utilize a opção Consultar saldo.', 'DUPLICATE_PHONE', 409);
                 }
+
 
                 // Limit Check
                 if ($tenant->isLimitReached()) {
@@ -1106,11 +1113,19 @@ class PublicTerminalController extends Controller
             $noPrefix = substr($norm, 2);
             $variations[] = $noPrefix;
             $variations[] = '0' . $noPrefix;
+            // Also try with just '90...' if it starts with '81090'
+            if (str_starts_with($noPrefix, '0')) {
+                 $variations[] = substr($noPrefix, 1);
+            }
         } elseif (strlen($norm) == 10) {
             // If it's 90... (without leading zero)
             $variations[] = '0' . $norm;
             $variations[] = '81' . $norm;
         }
+        
+        // Final fallback: any numeric sequence that matches the end of the stored number
+        // (but we stick to strict tenant scoping)
+
 
         $variations = array_unique(array_filter($variations));
 
