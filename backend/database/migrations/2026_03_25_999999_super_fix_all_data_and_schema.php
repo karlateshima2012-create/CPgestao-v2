@@ -76,12 +76,11 @@ return new class extends Migration
 
         // 4. FIX SUPER ADMIN
         $adminEmail = 'suporte@creativeprintjp.com';
-        $user = User::where('email', $adminEmail)->first();
-        if ($user) {
-            $user->role = 'super_admin';
-            $user->save();
-        }
+        DB::table('users')
+            ->where('email', $adminEmail)
+            ->update(['role' => 'super_admin']);
     }
+
 
     private function safeMerge($mainSlug, $dupSlug)
     {

@@ -616,13 +616,14 @@ class PublicTerminalController extends Controller
                              . "🕒 " . now()->format('H:i');
                     
                     $replyMarkup = null;
-                    if ($customer->points_balance + $pointsToGrant >= $goal) {
+                    if ($customer->points_balance + $pointsToAdd >= $goal) {
                         $replyMarkup = [
                             'inline_keyboard' => [
                                 [['text' => '🎁 PREMIAR AGORA!', 'callback_data' => "redeem_reward:{$customer->id}"]]
                             ]
                         ];
                     }
+
 
                     \App\Jobs\SendTelegramNotificationJob::dispatch(
                         $tenant->id, 

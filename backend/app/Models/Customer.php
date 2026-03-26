@@ -48,8 +48,18 @@ class Customer extends Model
      */
     public function setPhoneAttribute($value)
     {
-        $this->attributes['phone'] = \App\Utils\PhoneHelper::normalize($value);
+        // Absolute normalization for storage (Steel-reinforced)
+        $normalized = preg_replace('/\D/', '', (string)$value);
+        if (str_starts_with($normalized, '81') && strlen($normalized) >= 11) {
+             $normalized = substr($normalized, 2);
+        }
+        $normalized = ltrim($normalized, '0');
+        if (!empty($normalized)) {
+            $normalized = '0' . $normalized;
+        }
+        $this->attributes['phone'] = $normalized;
     }
+
 
 
     protected $casts = [
