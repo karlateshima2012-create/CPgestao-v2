@@ -43,6 +43,15 @@ class Customer extends Model
         'attendance_count',
     ];
 
+    /**
+     * ALWAYS normalize phone number on save to ensure consistency.
+     */
+    public function setPhoneAttribute($value)
+    {
+        $this->attributes['phone'] = \App\Utils\PhoneHelper::normalize($value);
+    }
+
+
     protected $casts = [
         'birthday' => 'date:Y-m-d',
         'tags' => 'array',

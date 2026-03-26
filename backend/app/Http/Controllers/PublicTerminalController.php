@@ -401,12 +401,16 @@ class PublicTerminalController extends Controller
             }
 
             try {
-                $res = $this->findCustomer($tenant->id, $request->phone);
-                $customer = $res['customer'];
                 $phone = PhoneHelper::normalize($request->phone);
+                \Illuminate\Support\Facades\Log::info("EARN_VALIDATION: Slug: {$slug} | Input: {$request->phone} | Normalized: {$phone} | Tenant: {$tenant->id}");
+                
+                $res = $this->findCustomer($tenant->id, $phone);
+                $customer = $res['customer'];
             } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error("EARN ERROR (Customer Lookup): " . $e->getMessage());
                 return ApiResponse::error("Erro na busca de cliente: " . $e->getMessage(), 'INTERNAL_ERROR', 500);
             }
+
 
 
 
@@ -1119,50 +1123,30 @@ class PublicTerminalController extends Controller
     }
     private function findCustomer($tenantId, $phoneInput)
     {
-        $raw = preg_replace('/\D/', '', (string)$phoneInput);
-        $norm = PhoneHelper::normalize((string)$phoneInput);
-        $variations = array_unique(array_filter([$raw, $norm, (string)$phoneInput], function($v) { return !empty($v); }));
+        // 1. Normalize input using the strict helper (Only digits)
+        $normalized = PhoneHelper::normalize($phoneInput);
         
-        // Extended Japan prefix variations
-        if (strpos($norm, '0') === 0 && strlen($norm) >= 10) {
-            $noPrefix = substr($norm, 1);
-            $variations[] = $noPrefix;
-            $variations[] = '81' . $noPrefix;
-        } elseif (strpos($norm, '81') === 0 && strlen($norm) >= 11) {
-            $noPrefix = substr($norm, 2);
-            $variations[] = $noPrefix;
-            $variations[] = '0' . $noPrefix;
-            if (strpos($noPrefix, '0') === 0) {
-                 $variations[] = substr($noPrefix, 1);
-            }
-        } elseif (strlen($norm) == 10) {
-            $variations[] = '0' . $norm;
-            $variations[] = '81' . $norm;
-        }
-
-        // Direct database query bypassing Eloquent scopes for maximum reliability
+        // 2. Direct database query bypassing Eloquent scopes for maximum reliability
+        // Now that storage is standardized, we use exact matching.
         $dbCustomer = DB::table('customers')
             ->where('tenant_id', $tenantId)
-            ->where(function($q) use ($variations) {
-                $q->whereIn('phone', $variations);
-                // Also try matching the last 9 digits as a fallback for formatting differences
-                foreach($variations as $v) {
-                    if (strlen($v) >= 9) {
-                        $last9 = substr($v, -9);
-                        $q->orWhere('phone', 'LIKE', '%' . $last9);
-                    }
-                }
-            })
+            ->where('phone', $normalized)
             ->first();
 
+        $customer = null;
         if ($dbCustomer) {
             $customer = Customer::withoutGlobalScopes()->find($dbCustomer->id);
-            return ['customer' => $customer, 'variations' => $variations];
+        } else {
+             \Illuminate\Support\Facades\Log::debug("FIND_CUSTOMER: Not found | Input: {$phoneInput} | Normalized: {$normalized} | Tenant: {$tenantId}");
         }
         
-        return ['customer' => null, 'variations' => $variations];
+        return [
+            'customer' => $customer,
+            'variations' => [$normalized]
+        ];
     }
 }
+
 
 
 
