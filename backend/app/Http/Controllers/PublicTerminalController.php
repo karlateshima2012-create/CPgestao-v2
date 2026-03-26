@@ -1132,13 +1132,12 @@ class PublicTerminalController extends Controller
             'tenant_name' => $tenant->name
         ]);
     }
-    private function findCustomer($tenantId, $phoneInput)
+    /**
+     * LOCAL NORMALIZATION (Bypasses class-map cache issues on some servers)
+     */
+    private function normalizePhone($phone)
     {
-        // 1. INLINE normalization to ensure digits-only (Steel-reinforced)
-        /** @var string $normalized */
-        $normalized = preg_replace('/\D/', '', (string)$phoneInput);
-
-        // Standard Japan normalization (81 -> 0, and single leading 0)
+        $normalized = preg_replace('/\D/', '', (string)$phone);
         if (str_starts_with($normalized, '81') && strlen($normalized) >= 11) {
              $normalized = substr($normalized, 2);
         }
@@ -1146,8 +1145,15 @@ class PublicTerminalController extends Controller
         if (!empty($normalized)) {
             $normalized = '0' . $normalized;
         }
+        return $normalized;
+    }
+
+    private function findCustomer($tenantId, $phoneInput)
+    {
+        // 1. INLINE normalization logic (Steel-reinforced v2.5.1 Final)
+        $normalized = $this->normalizePhone($phoneInput);
         
-        // 2. Exact match on standardized storage
+        // 2. Exact match using DB table for performance and reliability
         $dbCustomer = DB::table('customers')
             ->where('tenant_id', $tenantId)
             ->where('phone', $normalized)
@@ -1163,10 +1169,11 @@ class PublicTerminalController extends Controller
         return [
             'customer' => $customer,
             'variations' => [$normalized],
-            'v' => '2.5.1' // Version flag to verify deploy
+            'v' => '2.5.1-FINAL' 
         ];
     }
 }
+
 
 
 
