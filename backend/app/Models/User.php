@@ -52,8 +52,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-    public function tenant()
+    public function tenant(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Tenant::class);
     }
+
 }

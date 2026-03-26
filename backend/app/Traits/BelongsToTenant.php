@@ -24,8 +24,9 @@ trait BelongsToTenant
     /**
      * Relationship to the Tenant.
      */
-    public function tenant()
+    public function tenant(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\App\Models\Tenant::class);
     }
+
 }

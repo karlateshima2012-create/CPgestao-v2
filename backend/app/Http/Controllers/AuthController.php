@@ -93,7 +93,8 @@ class AuthController extends Controller
         );
 
         // Generate dynamic link for frontend
-        $frontendUrl = env('FRONTEND_URL');
+        $frontendUrl = config('app.frontend_url');
+
         if (!$frontendUrl) {
             // Se não estiver no .env, detectamos o domínio atual automaticamente
             $scheme = $request->getScheme();
@@ -107,7 +108,8 @@ class AuthController extends Controller
             Mail::to($request->email)->send(new ResetPasswordMail($resetUrl));
         } catch (\Exception $e) {
             // Log if needed, but return success to avoid leaking email existence
-            \Log::error("Failed to send reset email: " . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error("Failed to send reset email: " . $e->getMessage());
+
         }
 
         return response()->json([

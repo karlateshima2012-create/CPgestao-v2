@@ -146,7 +146,8 @@ class ClientController extends Controller
                             'description' => 'Saldo inicial via CRM'
                         ]);
                     } catch (\Exception $e) {
-                        \Log::warning("PointMovement Initial Balance Fallback: " . $e->getMessage());
+                        \Illuminate\Support\Facades\Log::warning("PointMovement Initial Balance Fallback: " . $e->getMessage());
+
                     }
                 }
 
@@ -171,7 +172,8 @@ class ClientController extends Controller
                 return ApiResponse::ok($customer, "Contato criado com sucesso");
             });
         } catch (\Exception $e) {
-            \Log::error('Store Contact Error: ' . $e->getMessage(), [
+            \Illuminate\Support\Facades\Log::error('Store Contact Error: ' . $e->getMessage(), [
+
                 'trace' => $e->getTraceAsString()
             ]);
             return ApiResponse::error('Erro ao cadastrar contato: ' . $e->getMessage(), 'STORE_CONTACT_ERROR', 500);
@@ -241,7 +243,8 @@ class ClientController extends Controller
                         'description' => 'Ajuste manual via CRM'
                     ]);
                 } catch (\Exception $e) {
-                    \Log::warning("PointMovement CRM Adjustment Fallback: " . $e->getMessage());
+                    \Illuminate\Support\Facades\Log::warning("PointMovement CRM Adjustment Fallback: " . $e->getMessage());
+
                     // Minimal fallback for PointMovement
                     \App\Models\PointMovement::create([
                         'customer_id' => $customer->id,
@@ -638,7 +641,8 @@ class ClientController extends Controller
 
     public function toggleDeviceStatus(Request $request, $uid)
     {
-        $device = \App\Models\LoyaltyCard::where('uid', $uid)
+        $device = \App\Models\Device::where('nfc_uid', $uid)
+
             ->firstOrFail();
         if ($device->status === 'disabled') {
             // Restore status: if it was linked, go back to linked, otherwise assigned.
@@ -855,7 +859,8 @@ class ClientController extends Controller
 
             return $filename;
         } catch (\Exception $e) {
-            Log::error('Photo processing failed: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Photo processing failed: ' . $e->getMessage());
+
             return '';
         }
     }
