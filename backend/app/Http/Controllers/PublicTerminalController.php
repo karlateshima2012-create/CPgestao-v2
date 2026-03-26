@@ -12,6 +12,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use App\Services\PointRequestService;
+use App\Services\PointEngineService;
+
 use Exception;
 
 use App\Http\Responses\ApiResponse;
@@ -27,20 +29,26 @@ class PublicTerminalController extends Controller
     protected $planService;
     protected $qrTokenService;
     protected $deviceService;
+    protected $pointEngineService;
+
 
     public function __construct(
         TelegramService $telegramService, 
         PointRequestService $pointRequestService,
         \App\Services\PlanService $planService,
         \App\Services\QrTokenService $qrTokenService,
-        \App\Services\DeviceService $deviceService
+        \App\Services\DeviceService $deviceService,
+        PointEngineService $pointEngineService
+
     ) {
         $this->telegramService = $telegramService;
         $this->pointRequestService = $pointRequestService;
         $this->planService = $planService;
         $this->qrTokenService = $qrTokenService;
         $this->deviceService = $deviceService;
+        $this->pointEngineService = $pointEngineService;
     }
+
     /**
      * Centralized device validation.
      * Supports physical terminals, loyalty cards, and online virtual devices.
@@ -531,8 +539,16 @@ class PublicTerminalController extends Controller
                     $pointsToAdd = (int) $levelsConfig[$lvlIdx]['points_per_visit'];
                 }
             }
+            
+            // --- BLINDAGEM REA-TIME: BLOCK EARN IF GOAL REACHED ---
+            $blockingResponse = $this->pointEngineService->checkRewardBlocking($customer, $tenant, $device, $token, $levelsConfig);
+            if ($blockingResponse) {
+                return $blockingResponse;
+            }
+            // --- END BLINDAGEM ---
 
             // DETERMINAR SE PODE AUTO-APROVAR (ELITE já nasce aprovado, PRO pendente)
+
             $isElite = strtolower($tenant->plan) === 'elite';
             $isPro = strtolower($tenant->plan) === 'pro';
             
