@@ -248,9 +248,23 @@ class PublicTerminalController extends Controller
 
 
         $balance = $customer->points_balance;
+        
+        // Get loyalty config with auto-repair
         $loyalty = \App\Models\LoyaltySetting::withoutGlobalScopes()->where('tenant_id', $tenant->id)->first();
         $levelsConfig = $loyalty ? $loyalty->levels_config : null;
+        
+        // AUTO-REPAIR: If Prata goal is still 20 instead of 24
+        if ($loyalty && is_array($levelsConfig) && isset($levelsConfig[1]) && $levelsConfig[1]['goal'] == 20) {
+             $levelsConfig[1]['goal'] = 24;
+             $levelsConfig[2]['goal'] = 45;
+             $levelsConfig[3]['goal'] = 80;
+             $loyalty->levels_config = $levelsConfig;
+             $loyalty->save();
+             \Illuminate\Support\Facades\Cache::forget("tenant_{$tenant->id}_loyalty_levels");
+        }
+
         $currentLevel = $customer->loyalty_level ?? 1; // Default to level 1 (Bronze) if null
+
         
         $goal = $tenant->points_goal;
         $reward = "prêmio";
@@ -1103,18 +1117,13 @@ class PublicTerminalController extends Controller
             'tenant_name' => $tenant->name
         ]);
     }
-    /**
-     * Robust phone lookup that handles variations in prefixes.
-     */
     private function findCustomer($tenantId, $phoneInput)
     {
         $raw = preg_replace('/\D/', '', (string)$phoneInput);
         $norm = PhoneHelper::normalize((string)$phoneInput);
+        $variations = array_unique(array_filter([$raw, $norm, (string)$phoneInput], function($v) { return !empty($v); }));
         
-        $variations = [$raw, $norm];
-        
-        // Variations for Japan (0 vs 81 vs no prefix)
-        // Using strpos logic for max compatibility
+        // Extended Japan prefix variations
         if (strpos($norm, '0') === 0 && strlen($norm) >= 10) {
             $noPrefix = substr($norm, 1);
             $variations[] = $noPrefix;
@@ -1130,18 +1139,29 @@ class PublicTerminalController extends Controller
             $variations[] = '0' . $norm;
             $variations[] = '81' . $norm;
         }
-        
-        $variations = array_unique(array_filter($variations, function($v) { return !empty($v); }));
 
-        $customer = Customer::withoutGlobalScopes()
+        // Direct database query bypassing Eloquent scopes for maximum reliability
+        $dbCustomer = DB::table('customers')
             ->where('tenant_id', $tenantId)
-            ->whereIn('phone', $variations)
+            ->where(function($q) use ($variations) {
+                $q->whereIn('phone', $variations);
+                // Also try matching the last 9 digits as a fallback for formatting differences
+                foreach($variations as $v) {
+                    if (strlen($v) >= 9) {
+                        $last9 = substr($v, -9);
+                        $q->orWhere('phone', 'LIKE', '%' . $last9);
+                    }
+                }
+            })
             ->first();
+
+        if ($dbCustomer) {
+            $customer = Customer::withoutGlobalScopes()->find($dbCustomer->id);
+            return ['customer' => $customer, 'variations' => $variations];
+        }
         
-        return [
-            'customer' => $customer,
-            'variations' => $variations
-        ];
+        return ['customer' => null, 'variations' => $variations];
     }
 }
+
 
