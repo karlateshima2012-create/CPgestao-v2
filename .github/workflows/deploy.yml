@@ -153,11 +153,10 @@ jobs:
             php artisan migrate --force || echo "⚠️ Alerta: Erro nas migrações."
             
             echo "--- FINALIZANDO CONFIGURAÇÃO ---"
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
-            
+            php artisan optimize:clear
+            touch app/Http/Controllers/PublicTerminalController.php
             chmod -R 777 storage bootstrap/cache
+
             cd ..
             rm deploy_package.zip
             echo "--- DEPLOY FINALIZADO ---"
