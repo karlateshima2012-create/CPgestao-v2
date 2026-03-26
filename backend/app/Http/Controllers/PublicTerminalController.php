@@ -460,17 +460,21 @@ class PublicTerminalController extends Controller
                 }
             }
 
-            // MEASURE C: Visit Cooldown (12 hours)
+            // MEASURE C: Visit Cooldown (12 hours) - Unified status check
             $cooldownHours = 12;
-            $recentVisit = \App\Models\Visit::where('customer_id', $customer->id)
+            $recentVisit = \App\Models\Visit::withoutGlobalScopes()
+                ->where('customer_id', $customer->id)
                 ->where('tenant_id', $tenant->id)
-                ->whereIn('status', ['pendente', 'aprovado'])
+                ->where(function($q) {
+                    $q->whereIn('status', ['pendente', 'aprovado', 'pending', 'approved', 'auto_approved']);
+                })
                 ->where('visit_at', '>=', now()->subHours($cooldownHours))
                 ->first();
 
             if ($recentVisit) {
                 return ApiResponse::error("Aguarde {$cooldownHours}h entre visitas para pontuar novamente.", 'VISIT_COOLDOWN', 429);
             }
+
 
             // AUTO-CHECKIN PROTECTION: Interval check
             if ($device && $device->mode === 'auto_checkin') {
@@ -489,10 +493,17 @@ class PublicTerminalController extends Controller
                 }
             }
 
-            $loyalty = \App\Models\LoyaltySetting::firstOrCreate(['tenant_id' => $tenant->id]);
+            $loyalty = \App\Models\LoyaltySetting::withoutGlobalScopes()->where('tenant_id', $tenant->id)->first();
+            if (!$loyalty) {
+                $loyalty = \App\Models\LoyaltySetting::withoutGlobalScopes()->create(['tenant_id' => $tenant->id]);
+                // Clear cache for getInfo consistency
+                \Illuminate\Support\Facades\Cache::forget("tenant_{$tenant->id}_loyalty_config");
+            }
             $levelsConfig = $loyalty->levels_config;
-            $customer = $customer->fresh(); // Ensure we have latest points state
-            $currentLevel = $customer->loyalty_level ?? 0;
+            
+            // IMPORTANT: Use the current points balance without re-applying scopes
+            $currentLevel = $customer->loyalty_level ?? 1;
+
 
             // Grant signup bonus if new
             if ($isNew && $loyalty->signup_bonus_points > 0) {
