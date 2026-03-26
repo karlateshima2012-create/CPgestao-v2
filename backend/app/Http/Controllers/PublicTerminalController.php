@@ -227,11 +227,16 @@ class PublicTerminalController extends Controller
             return ApiResponse::error($msg, 'SESSION_REQUIRED', 403);
         }
         
-        $res = $this->findCustomer($tenant->id, $request->phone);
-        $customer = $res['customer'];
-        $variations = $res['variations'];
+        try {
+            $res = $this->findCustomer($tenant->id, $request->phone);
+            $customer = $res['customer'];
+            $variations = $res['variations'];
 
-        \Illuminate\Support\Facades\Log::debug("LOOKUP: Tenant: {$tenant->slug} ({$tenant->id}) | Raw: {$request->phone} | Variations: " . implode(', ', $variations) . " | Found: " . ($customer ? 'YES ('.$customer->id.')' : 'NO'));
+            \Illuminate\Support\Facades\Log::debug("LOOKUP: Tenant: {$tenant->slug} ({$tenant->id}) | Raw: {$request->phone} | Variations: " . implode(', ', $variations) . " | Found: " . ($customer ? 'YES ('.$customer->id.')' : 'NO'));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("LOOKUP ERROR: " . $e->getMessage());
+            return ApiResponse::error("Erro interno ao processar busca: " . $e->getMessage(), 'INTERNAL_ERROR', 500);
+        }
 
         if (!$customer) {
             return ApiResponse::ok([
@@ -381,9 +386,13 @@ class PublicTerminalController extends Controller
                 return ApiResponse::error('Esta ação exige presença física na loja (NFC ou QRCode do Totem).', 'DEVICE_REQUIRED', 403);
             }
 
-            $res = $this->findCustomer($tenant->id, $request->phone);
-            $customer = $res['customer'];
-            $phone = PhoneHelper::normalize($request->phone);
+            try {
+                $res = $this->findCustomer($tenant->id, $request->phone);
+                $customer = $res['customer'];
+                $phone = PhoneHelper::normalize($request->phone);
+            } catch (\Throwable $e) {
+                return ApiResponse::error("Erro na busca de cliente: " . $e->getMessage(), 'INTERNAL_ERROR', 500);
+            }
 
 
 
@@ -1097,37 +1106,30 @@ class PublicTerminalController extends Controller
     /**
      * Robust phone lookup that handles variations in prefixes.
      */
-    private function findCustomer($tenantId, $phoneInput)
-    {
-        $raw = preg_replace('/\D/', '', $phoneInput);
-        $norm = PhoneHelper::normalize($phoneInput);
+        $raw = preg_replace('/\D/', '', (string)$phoneInput);
+        $norm = PhoneHelper::normalize((string)$phoneInput);
         
         $variations = [$raw, $norm];
         
         // Variations for Japan (0 vs 81 vs no prefix)
-        if (str_starts_with($norm, '0') && strlen($norm) >= 10) {
+        // Using substr logic for max compatibility
+        if (strpos($norm, '0') === 0 && strlen($norm) >= 10) {
             $noPrefix = substr($norm, 1);
             $variations[] = $noPrefix;
             $variations[] = '81' . $noPrefix;
-        } elseif (str_starts_with($norm, '81') && strlen($norm) >= 11) {
+        } elseif (strpos($norm, '81') === 0 && strlen($norm) >= 11) {
             $noPrefix = substr($norm, 2);
             $variations[] = $noPrefix;
             $variations[] = '0' . $noPrefix;
-            // Also try with just '90...' if it starts with '81090'
-            if (str_starts_with($noPrefix, '0')) {
+            if (strpos($noPrefix, '0') === 0) {
                  $variations[] = substr($noPrefix, 1);
             }
         } elseif (strlen($norm) == 10) {
-            // If it's 90... (without leading zero)
             $variations[] = '0' . $norm;
             $variations[] = '81' . $norm;
         }
         
-        // Final fallback: any numeric sequence that matches the end of the stored number
-        // (but we stick to strict tenant scoping)
-
-
-        $variations = array_unique(array_filter($variations));
+        $variations = array_unique(array_filter($variations, fn($v) => !empty($v)));
 
         $customer = Customer::withoutGlobalScopes()
             ->where('tenant_id', $tenantId)

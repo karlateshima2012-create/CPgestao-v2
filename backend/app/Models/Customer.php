@@ -68,12 +68,12 @@ class Customer extends Model
             return $this->generateStorageUrl($this->foto_perfil_url);
         }
 
-        $nameDisplay = $this->name ?: 'Cliente';
+        $nameDisplay = (string)($this->name ?? 'Cliente');
         $parts = explode(' ', trim($nameDisplay));
         $initials = '';
-        if (count($parts) > 0) {
+        if (count($parts) > 0 && !empty($parts[0])) {
             $initials .= mb_substr($parts[0], 0, 1);
-            if (count($parts) > 1) {
+            if (count($parts) > 1 && !empty($parts[count($parts) - 1])) {
                 $initials .= mb_substr($parts[count($parts) - 1], 0, 1);
             }
         }
