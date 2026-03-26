@@ -46,9 +46,10 @@ class PointEngineService
             ]);
 
             $customerNameEscaped = TelegramService::escapeMarkdownV2($customer->name);
-            $msg = "🏆 *RESGATE PENDENTE* 🏆\n"
-                 . "O cliente *{$customerNameEscaped}* já atingiu a meta e aguarda o prêmio\.\n\n"
+            $msg = "🏆 <b>RESGATE PENDENTE</b> 🏆\n\n"
+                 . "O cliente <b>{$customerNameEscaped}</b> já atingiu a meta e aguarda o prêmio.\n\n"
                  . "Clique abaixo para entregar a recompensa e reiniciar o ciclo:";
+
 
             $markup = [
                 'inline_keyboard' => [
