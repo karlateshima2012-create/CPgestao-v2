@@ -205,7 +205,7 @@ export const PublicTerminal: React.FC<PublicTerminalProps> = ({
 
 
   const formatJapanesePhone = (val: string) => {
-    const digits = val.replace(/\D/g, '').slice(0, 11);
+    const digits = val.replace(/\D/g, '').slice(0, 15);
     if (digits.length <= 3) return digits;
     if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
     return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
